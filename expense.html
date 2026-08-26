@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="mr">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <meta name="theme-color"
+          content="#5b0b18">
+
+    <title>खर्च नोंदवा | रोजचा जमा खर्च अहवाल</title>
+
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+    <link rel="stylesheet"
+          href="style.css">
+
+</head>
+
+<body>
+
+
+<!-- =====================================================
+     HEADER
+===================================================== -->
+
+<header class="app-header">
+
+    <div class="header-brand">
+
+        <div class="app-logo">
+
+            <i class="fa-solid fa-arrow-up"></i>
+
+        </div>
+
+        <div>
+
+            <h1>खर्च नोंदवा</h1>
+
+            <p>रोजचा जमा खर्च अहवाल</p>
+
+        </div>
+
+    </div>
+
+
+    <button class="notification-btn"
+            onclick="goHome()">
+
+        <i class="fa-solid fa-house"></i>
+
+    </button>
+
+</header>
+
+
+
+<!-- =====================================================
+     MAIN
+===================================================== -->
+
+<main class="form-container">
+
+
+    <!-- PAGE INTRO -->
+
+    <section class="page-intro">
+
+        <div class="page-intro-icon expense-intro">
+
+            <i class="fa-solid fa-money-bill-transfer"></i>
+
+        </div>
+
+        <div>
+
+            <h2>नवीन खर्च नोंद</h2>
+
+            <p>
+                केलेला खर्च येथे नोंदवा.
+            </p>
+
+        </div>
+
+    </section>
+
+
+
+    <!-- =================================================
+         EXPENSE SUMMARY
+    ================================================== -->
+
+    <section class="expense-summary">
+
+        <div>
+
+            <span>
+                आजचा खर्च
+            </span>
+
+            <strong id="todayExpense">
+                ₹0.00
+            </strong>
+
+        </div>
+
+
+        <div>
+
+            <span>
+                या महिन्याचा खर्च
+            </span>
+
+            <strong id="monthExpense">
+                ₹0.00
+            </strong>
+
+        </div>
+
+
+        <div>
+
+            <span>
+                एकूण खर्च
+            </span>
+
+            <strong id="totalExpense">
+                ₹0.00
+            </strong>
+
+        </div>
+
+    </section>
+
+
+
+    <!-- =================================================
+         EXPENSE FORM
+    ================================================== -->
+
+    <section class="form-card">
+
+        <form id="expenseForm">
+
+
+            <!-- DATE -->
+
+            <div class="form-group">
+
+                <label for="expenseDate">
+
+                    <i class="fa-solid fa-calendar"></i>
+
+                    तारीख
+
+                    <span>*</span>
+
+                </label>
+
+
+                <input
+                    type="date"
+                    id="expenseDate"
+                    required
+                >
+
+            </div>
+
+
+
+            <!-- AMOUNT -->
+
+            <div class="form-group">
+
+                <label for="expenseAmount">
+
+                    <i class="fa-solid fa-indian-rupee-sign"></i>
+
+                    खर्चाची रक्कम
+
+                    <span>*</span>
+
+                </label>
+
+
+                <div class="amount-input">
+
+                    <span class="expense-rupee">
+                        ₹
+                    </span>
+
+                    <input
+                        type="number"
+                        id="expenseAmount"
+                        min="0.01"
+                        step="0.01"
+                        placeholder="उदा. 250"
+                        required
+                    >
+
+                </div>
+
+            </div>
+
+
+
+            <!-- CATEGORY -->
+
+            <div class="form-group">
+
+                <label for="expenseCategory">
+
+                    <i class="fa-solid fa-layer-group"></i>
+
+                    खर्चाचा प्रकार
+
+                    <span>*</span>
+
+                </label>
+
+
+                <select
+                    id="expenseCategory"
+                    required
+                >
+
+                    <option value="">
+                        खर्चाचा प्रकार निवडा
+                    </option>
+
+                    <option value="Food">
+                        🍱 Food / जेवण
+                    </option>
+
+                    <option value="Travel">
+                        🚕 Travel / प्रवास
+                    </option>
+
+                    <option value="Home">
+                        🏠 Home / घरखर्च
+                    </option>
+
+                    <option value="Shopping">
+                        🛒 Shopping
+                    </option>
+
+                    <option value="Bills">
+                        📱 Bills / Recharge
+                    </option>
+
+                    <option value="Medical">
+                        💊 Medical / औषधे
+                    </option>
+
+                    <option value="Education">
+                        📚 Education / शिक्षण
+                    </option>
+
+                    <option value="Entertainment">
+                        🎬 Entertainment
+                    </option>
+
+                    <option value="EMI">
+                        🏦 EMI / Loan
+                    </option>
+
+                    <option value="Family">
+                        👨‍👩‍👧 Family
+                    </option>
+
+                    <option value="Other">
+                        📌 Other / इतर
+                    </option>
+
+                </select>
+
+            </div>
+
+
+
+            <!-- ACCOUNT -->
+
+            <div class="form-group">
+
+                <label for="expenseAccount">
+
+                    <i class="fa-solid fa-building-columns"></i>
+
+                    कोणत्या खात्यातून खर्च?
+
+                    <span>*</span>
+
+                </label>
+
+
+                <select
+                    id="expenseAccount"
+                    required
+                >
+
+                    <option value="">
+                        खाते निवडा
+                    </option>
+
+                </select>
+
+
+                <small>
+                    ज्या Cash / Bank / UPI खात्यातून पैसे गेले ते निवडा.
+                </small>
+
+            </div>
+
+
+
+            <!-- PAYMENT MODE -->
+
+            <div class="form-group">
+
+                <label for="expensePaymentMode">
+
+                    <i class="fa-solid fa-credit-card"></i>
+
+                    Payment Mode
+
+                </label>
+
+
+                <select
+                    id="expensePaymentMode"
+                >
+
+                    <option value="Cash">
+                        Cash
+                    </option>
+
+                    <option value="UPI">
+                        UPI
+                    </option>
+
+                    <option value="Bank Transfer">
+                        Bank Transfer
+                    </option>
+
+                    <option value="Debit Card">
+                        Debit Card
+                    </option>
+
+                    <option value="Credit Card">
+                        Credit Card
+                    </option>
+
+                    <option value="Cheque">
+                        Cheque
+                    </option>
+
+                    <option value="Other">
+                        Other
+                    </option>
+
+                </select>
+
+            </div>
+
+
+
+            <!-- NOTE -->
+
+            <div class="form-group">
+
+                <label for="expenseNote">
+
+                    <i class="fa-solid fa-note-sticky"></i>
+
+                    Note / माहिती
+
+                </label>
+
+
+                <textarea
+                    id="expenseNote"
+                    rows="3"
+                    maxlength="300"
+                    placeholder="उदा. आजचे lunch, petrol..."
+                ></textarea>
+
+
+                <small id="expenseNoteCounter">
+                    0 / 300
+                </small>
+
+            </div>
+
+
+
+            <!-- SAVE -->
+
+            <button
+                type="submit"
+                class="save-expense-btn"
+            >
+
+                <i class="fa-solid fa-check"></i>
+
+                खर्च नोंदवा
+
+            </button>
+
+
+
+            <!-- RESET -->
+
+            <button
+                type="button"
+                class="reset-btn"
+                onclick="resetExpenseForm()"
+            >
+
+                <i class="fa-solid fa-rotate-left"></i>
+
+                Reset
+
+            </button>
+
+
+        </form>
+
+    </section>
+
+
+
+    <!-- =================================================
+         LAST SAVED
+    ================================================== -->
+
+    <section
+        id="lastExpenseSaved"
+        class="last-saved expense-last-saved"
+        style="display:none;"
+    >
+
+        <i class="fa-solid fa-circle-check"></i>
+
+        <div>
+
+            <strong>
+                खर्च नोंदवला आहे
+            </strong>
+
+            <p id="lastExpenseSavedText">
+                --
+            </p>
+
+        </div>
+
+    </section>
+
+
+</main>
+
+
+
+<!-- =====================================================
+     BOTTOM NAVIGATION
+===================================================== -->
+
+<nav class="bottom-nav">
+
+
+    <button class="nav-item"
+            onclick="goHome()">
+
+        <i class="fa-solid fa-house"></i>
+
+        <span>
+            मुख्यपृष्ठ
+        </span>
+
+    </button>
+
+
+    <button class="nav-item"
+            onclick="goToTransactions()">
+
+        <i class="fa-solid fa-list"></i>
+
+        <span>
+            व्यवहार
+        </span>
+
+    </button>
+
+
+    <button class="nav-add expense-add"
+            onclick="goToIncome()">
+
+        <i class="fa-solid fa-plus"></i>
+
+    </button>
+
+
+    <button class="nav-item"
+            onclick="goToReports()">
+
+        <i class="fa-solid fa-chart-pie"></i>
+
+        <span>
+            अहवाल
+        </span>
+
+    </button>
+
+
+    <button class="nav-item"
+            onclick="goToSettings()">
+
+        <i class="fa-solid fa-gear"></i>
+
+        <span>
+            सेटिंग
+        </span>
+
+    </button>
+
+
+</nav>
+
+
+
+<!-- =====================================================
+     JS
+===================================================== -->
+
+<script src="app.js"></script>
+
+<script src="expense.js"></script>
+
+
+</body>
+
+</html>
