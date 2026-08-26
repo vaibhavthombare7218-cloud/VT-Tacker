@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="mr">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <meta name="theme-color"
+          content="#5b0b18">
+
+    <meta name="description"
+          content="रोजचा जमा खर्च अहवाल - Personal Finance Tracker">
+
+    <title>रोजचा जमा खर्च अहवाल</title>
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+    <!-- CSS -->
+    <link rel="stylesheet"
+          href="style.css">
+
+</head>
+
+<body>
+
+
+<!-- =====================================================
+     HEADER
+===================================================== -->
+
+<header class="app-header">
+
+    <div class="header-brand">
+
+        <div class="app-logo">
+
+            <i class="fa-solid fa-wallet"></i>
+
+        </div>
+
+        <div>
+
+            <h1>रोजचा जमा खर्च अहवाल</h1>
+
+            <p>Personal Finance Tracker</p>
+
+        </div>
+
+    </div>
+
+
+    <button class="notification-btn"
+            onclick="openReminder()">
+
+        <i class="fa-solid fa-bell"></i>
+
+        <span id="notificationDot"></span>
+
+    </button>
+
+</header>
+
+
+
+<!-- =====================================================
+     MAIN
+===================================================== -->
+
+<main class="container">
+
+
+    <!-- DATE -->
+
+    <section class="date-card">
+
+        <div>
+
+            <span class="small-label">
+                आज
+            </span>
+
+            <h2 id="todayDate">
+                --
+            </h2>
+
+        </div>
+
+
+        <div class="date-icon">
+
+            <i class="fa-solid fa-calendar-day"></i>
+
+        </div>
+
+    </section>
+
+
+
+    <!-- TOTAL BALANCE -->
+
+    <section class="balance-card">
+
+        <div class="balance-header">
+
+            <span>
+                एकूण शिल्लक
+            </span>
+
+            <button onclick="toggleBalance()"
+                    class="eye-btn">
+
+                <i id="balanceEye"
+                   class="fa-solid fa-eye">
+                </i>
+
+            </button>
+
+        </div>
+
+
+        <div id="totalBalance"
+             class="balance-value">
+
+            ₹0.00
+
+        </div>
+
+
+        <div class="balance-row">
+
+            <div>
+
+                <span>
+                    <i class="fa-solid fa-arrow-down"></i>
+                    एकूण जमा
+                </span>
+
+                <strong id="totalIncome">
+                    ₹0.00
+                </strong>
+
+            </div>
+
+
+            <div>
+
+                <span>
+                    <i class="fa-solid fa-arrow-up"></i>
+                    एकूण खर्च
+                </span>
+
+                <strong id="totalExpense">
+                    ₹0.00
+                </strong>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+
+    <!-- TODAY -->
+
+    <h3 class="section-title">
+        आजचा अहवाल
+    </h3>
+
+
+    <section class="summary-grid">
+
+
+        <div class="summary-card income-card">
+
+            <div class="summary-icon">
+
+                <i class="fa-solid fa-arrow-down"></i>
+
+            </div>
+
+            <div>
+
+                <span>
+                    आजची जमा
+                </span>
+
+                <strong id="todayIncome">
+                    ₹0.00
+                </strong>
+
+            </div>
+
+        </div>
+
+
+
+        <div class="summary-card expense-card">
+
+            <div class="summary-icon">
+
+                <i class="fa-solid fa-arrow-up"></i>
+
+            </div>
+
+            <div>
+
+                <span>
+                    आजचा खर्च
+                </span>
+
+                <strong id="todayExpense">
+                    ₹0.00
+                </strong>
+
+            </div>
+
+        </div>
+
+
+
+        <div class="summary-card saving-card">
+
+            <div class="summary-icon">
+
+                <i class="fa-solid fa-piggy-bank"></i>
+
+            </div>
+
+            <div>
+
+                <span>
+                    आजची शिल्लक
+                </span>
+
+                <strong id="todaySaving">
+                    ₹0.00
+                </strong>
+
+            </div>
+
+        </div>
+
+
+
+        <div class="summary-card budget-card">
+
+            <div class="summary-icon">
+
+                <i class="fa-solid fa-chart-pie"></i>
+
+            </div>
+
+            <div>
+
+                <span>
+                    या महिन्याचा Budget
+                </span>
+
+                <strong id="monthBudget">
+                    ₹0.00
+                </strong>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+
+    <!-- MONTHLY BUDGET -->
+
+    <section class="budget-card">
+
+        <div class="card-heading">
+
+            <div>
+
+                <span class="small-label">
+                    चालू महिना
+                </span>
+
+                <h3>
+                    मासिक बजेट
+                </h3>
+
+            </div>
+
+            <i class="fa-solid fa-wallet"></i>
+
+        </div>
+
+
+        <div class="budget-numbers">
+
+            <div>
+
+                <span>
+                    Budget
+                </span>
+
+                <strong id="budgetAmount">
+                    ₹0
+                </strong>
+
+            </div>
+
+
+            <div>
+
+                <span>
+                    खर्च
+                </span>
+
+                <strong id="budgetSpent">
+                    ₹0
+                </strong>
+
+            </div>
+
+
+            <div>
+
+                <span>
+                    बाकी
+                </span>
+
+                <strong id="budgetRemaining">
+                    ₹0
+                </strong>
+
+            </div>
+
+        </div>
+
+
+        <div class="progress-container">
+
+            <div id="budgetProgress"
+                 class="progress-bar">
+
+            </div>
+
+        </div>
+
+
+        <div class="budget-footer">
+
+            <span id="budgetPercentage">
+                0% वापरले
+            </span>
+
+            <button onclick="goToBudget()">
+
+                Budget पहा
+
+                <i class="fa-solid fa-chevron-right"></i>
+
+            </button>
+
+        </div>
+
+    </section>
+
+
+
+    <!-- QUICK ACTIONS -->
+
+    <h3 class="section-title">
+        जलद नोंद
+    </h3>
+
+
+    <section class="quick-actions">
+
+
+        <button class="quick-btn income-btn"
+                onclick="goToIncome()">
+
+            <i class="fa-solid fa-plus"></i>
+
+            <span>
+                जमा नोंदवा
+            </span>
+
+        </button>
+
+
+        <button class="quick-btn expense-btn"
+                onclick="goToExpense()">
+
+            <i class="fa-solid fa-minus"></i>
+
+            <span>
+                खर्च नोंदवा
+            </span>
+
+        </button>
+
+
+        <button class="quick-btn budget-btn"
+                onclick="goToBudget()">
+
+            <i class="fa-solid fa-bullseye"></i>
+
+            <span>
+                Budget ठरवा
+            </span>
+
+        </button>
+
+    </section>
+
+
+
+    <!-- ACCOUNTS -->
+
+    <div class="section-heading">
+
+        <h3 class="section-title">
+            माझी खाती
+        </h3>
+
+        <button onclick="goToAccounts()">
+            सर्व पहा
+            <i class="fa-solid fa-chevron-right"></i>
+        </button>
+
+    </div>
+
+
+    <section id="accountSummary"
+             class="account-grid">
+
+        <div class="empty-card">
+
+            <i class="fa-solid fa-building-columns"></i>
+
+            <p>
+                खाते जोडलेले नाही.
+            </p>
+
+            <button onclick="goToAccounts()">
+                खाते जोडा
+            </button>
+
+        </div>
+
+    </section>
+
+
+
+    <!-- RECENT TRANSACTIONS -->
+
+    <div class="section-heading">
+
+        <h3 class="section-title">
+            अलीकडील व्यवहार
+        </h3>
+
+        <button onclick="goToTransactions()">
+
+            सर्व पहा
+
+            <i class="fa-solid fa-chevron-right"></i>
+
+        </button>
+
+    </div>
+
+
+    <section id="recentTransactions"
+             class="transactions-list">
+
+        <div class="empty-card">
+
+            <i class="fa-solid fa-receipt"></i>
+
+            <p>
+                अजून कोणतेही व्यवहार नाहीत.
+            </p>
+
+        </div>
+
+    </section>
+
+
+
+    <!-- REMINDER -->
+
+    <section id="reminderCard"
+             class="reminder-card">
+
+        <div class="reminder-icon">
+
+            <i class="fa-solid fa-bell"></i>
+
+        </div>
+
+
+        <div class="reminder-content">
+
+            <strong>
+                आजचा खर्च नोंदवला का?
+            </strong>
+
+            <p>
+                रोजचा खर्च वेळेवर नोंदवा.
+            </p>
+
+        </div>
+
+
+        <button onclick="goToExpense()">
+            नोंदवा
+        </button>
+
+    </section>
+
+
+</main>
+
+
+
+<!-- =====================================================
+     BOTTOM NAVIGATION
+===================================================== -->
+
+<nav class="bottom-nav">
+
+
+    <button class="nav-item active"
+            onclick="goHome()">
+
+        <i class="fa-solid fa-house"></i>
+
+        <span>
+            मुख्यपृष्ठ
+        </span>
+
+    </button>
+
+
+    <button class="nav-item"
+            onclick="goToTransactions()">
+
+        <i class="fa-solid fa-list"></i>
+
+        <span>
+            व्यवहार
+        </span>
+
+    </button>
+
+
+    <button class="nav-add"
+            onclick="showAddMenu()">
+
+        <i class="fa-solid fa-plus"></i>
+
+    </button>
+
+
+    <button class="nav-item"
+            onclick="goToReports()">
+
+        <i class="fa-solid fa-chart-pie"></i>
+
+        <span>
+            अहवाल
+        </span>
+
+    </button>
+
+
+    <button class="nav-item"
+            onclick="goToSettings()">
+
+        <i class="fa-solid fa-gear"></i>
+
+        <span>
+            सेटिंग
+        </span>
+
+    </button>
+
+
+</nav>
+
+
+
+<!-- =====================================================
+     ADD MENU
+===================================================== -->
+
+<div id="addMenu"
+     class="add-menu-overlay"
+     onclick="closeAddMenu(event)">
+
+
+    <div class="add-menu"
+         onclick="event.stopPropagation()">
+
+
+        <div class="add-menu-header">
+
+            <h3>
+                नवीन नोंद
+            </h3>
+
+            <button onclick="closeAddMenu()">
+
+                <i class="fa-solid fa-xmark"></i>
+
+            </button>
+
+        </div>
+
+
+        <button class="menu-income"
+                onclick="goToIncome()">
+
+            <i class="fa-solid fa-arrow-down"></i>
+
+            जमा नोंदवा
+
+        </button>
+
+
+        <button class="menu-expense"
+                onclick="goToExpense()">
+
+            <i class="fa-solid fa-arrow-up"></i>
+
+            खर्च नोंदवा
+
+        </button>
+
+
+    </div>
+
+</div>
+
+
+
+<!-- =====================================================
+     APP JS
+===================================================== -->
+
+<script src="app.js"></script>
+
+</body>
+
+</html>
