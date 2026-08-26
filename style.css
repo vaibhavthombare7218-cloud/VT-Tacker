@@ -2477,3 +2477,482 @@ button {
     }
 
 }
+/* =====================================================
+   MONTHLY BUDGET
+===================================================== */
+
+.budget-intro {
+
+    background: #f1e9fb;
+    color: var(--primary);
+
+}
+
+
+.budget-month-card {
+
+    background: white;
+    border-radius: 17px;
+    padding: 15px;
+    box-shadow: var(--shadow);
+    margin-bottom: 12px;
+
+}
+
+
+.load-budget-btn {
+
+    width: 100%;
+    border: none;
+    background: #f3edf7;
+    color: var(--primary);
+    padding: 11px;
+    border-radius: 10px;
+    font-weight: 700;
+    font-size: 12px;
+
+}
+
+
+.budget-planned-card {
+
+    background: white;
+    border-radius: 17px;
+    padding: 15px;
+    box-shadow: var(--shadow);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+
+}
+
+
+.budget-card-icon {
+
+    width: 45px;
+    height: 45px;
+    border-radius: 13px;
+    background: #f3edf7;
+    color: var(--primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 19px;
+
+}
+
+
+.budget-planned-content {
+
+    flex: 1;
+
+}
+
+
+.budget-planned-content > span {
+
+    display: block;
+    font-size: 11px;
+    color: var(--muted);
+    margin-bottom: 5px;
+
+}
+
+
+.planned-money-input {
+
+    display: flex;
+    align-items: center;
+    gap: 5px;
+
+}
+
+
+.planned-money-input span {
+
+    font-weight: 700;
+    color: var(--primary);
+
+}
+
+
+.planned-money-input input {
+
+    border: none;
+    outline: none;
+    width: 100%;
+    font-size: 20px;
+    font-weight: 700;
+
+}
+
+
+.budget-summary {
+
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 9px;
+    margin-bottom: 12px;
+
+}
+
+
+.budget-summary-card {
+
+    background: white;
+    border-radius: 15px;
+    padding: 13px;
+    box-shadow: var(--shadow);
+
+}
+
+
+.budget-summary-card span {
+
+    display: block;
+    font-size: 10px;
+    color: var(--muted);
+
+}
+
+
+.budget-summary-card strong {
+
+    display: block;
+    font-size: 17px;
+    margin-top: 5px;
+    color: var(--primary);
+
+}
+
+
+.budget-summary-card .expense-text {
+
+    color: var(--expense);
+
+}
+
+
+.budget-summary-card .remaining-text {
+
+    color: var(--income);
+
+}
+
+
+.budget-alert-card {
+
+    background: white;
+    border-radius: 17px;
+    padding: 15px;
+    box-shadow: var(--shadow);
+    margin-bottom: 15px;
+
+}
+
+
+.budget-alert-title h3 {
+
+    font-size: 14px;
+
+}
+
+
+.budget-alert-title h3 i {
+
+    color: #d99a00;
+    margin-right: 5px;
+
+}
+
+
+.budget-alert-title p {
+
+    color: var(--muted);
+    font-size: 10px;
+    margin-top: 4px;
+
+}
+
+
+.alert-setting-row {
+
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 13px;
+
+}
+
+
+.alert-setting-row label {
+
+    font-size: 12px;
+    font-weight: 600;
+
+}
+
+
+.alert-setting-row select {
+
+    width: 100px;
+
+}
+
+
+.budget-category-section {
+
+    margin-top: 5px;
+
+}
+
+
+.section-subtitle {
+
+    color: var(--muted);
+    font-size: 10px;
+    margin-top: 3px;
+
+}
+
+
+.add-category-btn {
+
+    border: none;
+    background: var(--primary);
+    color: white;
+    padding: 9px 11px;
+    border-radius: 9px;
+    font-size: 10px;
+    font-weight: 700;
+
+}
+
+
+.budget-categories-list {
+
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 12px;
+
+}
+
+
+.budget-category-card {
+
+    background: white;
+    border-radius: 16px;
+    padding: 13px;
+    box-shadow: var(--shadow);
+
+}
+
+
+.budget-category-top {
+
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+}
+
+
+.budget-category-icon {
+
+    width: 40px;
+    height: 40px;
+    border-radius: 11px;
+    background: #f4edf8;
+    color: var(--primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+}
+
+
+.budget-category-info {
+
+    flex: 1;
+
+}
+
+
+.budget-category-info h4 {
+
+    font-size: 12px;
+    margin-bottom: 3px;
+
+}
+
+
+.budget-category-info p {
+
+    font-size: 9px;
+    color: var(--muted);
+
+}
+
+
+.budget-category-amount {
+
+    text-align: right;
+
+}
+
+
+.budget-category-amount strong {
+
+    display: block;
+    font-size: 13px;
+    color: var(--primary);
+
+}
+
+
+.budget-category-amount span {
+
+    display: block;
+    font-size: 8px;
+    color: var(--muted);
+    margin-top: 2px;
+
+}
+
+
+.budget-progress {
+
+    height: 7px;
+    background: #eeeeee;
+    border-radius: 10px;
+    overflow: hidden;
+    margin-top: 11px;
+
+}
+
+
+.budget-progress-bar {
+
+    height: 100%;
+    width: 0%;
+    border-radius: 10px;
+    background: var(--primary);
+    transition: width .3s ease;
+
+}
+
+
+.budget-category-bottom {
+
+    display: flex;
+    justify-content: space-between;
+    margin-top: 7px;
+    font-size: 9px;
+    color: var(--muted);
+
+}
+
+
+.budget-category-bottom .over-budget {
+
+    color: var(--expense);
+    font-weight: 700;
+
+}
+
+
+.budget-category-bottom .safe-budget {
+
+    color: var(--income);
+    font-weight: 700;
+
+}
+
+
+.category-form-card {
+
+    background: white;
+    border-radius: 17px;
+    padding: 15px;
+    box-shadow: var(--shadow);
+    margin-top: 12px;
+
+}
+
+
+.save-category-btn {
+
+    width: 100%;
+    border: none;
+    background: var(--primary);
+    color: white;
+    padding: 12px;
+    border-radius: 10px;
+    font-size: 12px;
+    font-weight: 700;
+
+}
+
+
+.save-budget-btn {
+
+    width: 100%;
+    border: none;
+    background: var(--primary);
+    color: white;
+    padding: 14px;
+    border-radius: 12px;
+    margin-top: 18px;
+    font-size: 13px;
+    font-weight: 700;
+
+}
+
+
+.budget-status-message {
+
+    padding: 13px;
+    border-radius: 11px;
+    margin-top: 10px;
+    text-align: center;
+    font-size: 11px;
+    font-weight: 600;
+
+}
+
+
+.budget-status-message.success {
+
+    background: #e8f7ed;
+    color: #16813d;
+
+}
+
+
+.budget-status-message.warning {
+
+    background: #fff5dc;
+    color: #9b6a00;
+
+}
+
+
+.budget-status-message.danger {
+
+    background: #fdeaea;
+    color: #c62828;
+
+}
+
+
+@media (max-width: 480px) {
+
+    .budget-summary {
+
+        grid-template-columns: 1fr 1fr;
+
+    }
+
+}
