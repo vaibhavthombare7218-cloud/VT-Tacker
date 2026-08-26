@@ -1638,3 +1638,100 @@ button {
     }
 
 }
+/* =====================================================
+   EXPENSE PAGE
+===================================================== */
+
+.expense-intro {
+
+    background: #fdeaea;
+    color: var(--expense);
+
+}
+
+
+.expense-summary {
+
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin-bottom: 15px;
+
+}
+
+
+.expense-summary > div {
+
+    background: white;
+    border-radius: 14px;
+    padding: 12px;
+    box-shadow: var(--shadow);
+
+}
+
+
+.expense-summary span {
+
+    display: block;
+    color: var(--muted);
+    font-size: 10px;
+
+}
+
+
+.expense-summary strong {
+
+    display: block;
+    color: var(--expense);
+    font-size: 14px;
+    margin-top: 5px;
+
+}
+
+
+.expense-rupee {
+
+    color: var(--expense) !important;
+
+}
+
+
+.save-expense-btn {
+
+    width: 100%;
+    background: var(--expense);
+    color: white;
+    padding: 14px;
+    border-radius: 11px;
+    font-size: 15px;
+    font-weight: 700;
+    margin-top: 5px;
+
+}
+
+
+.expense-last-saved {
+
+    background: #fff0f0;
+    border-color: #efb8b8;
+    color: var(--expense);
+
+}
+
+
+.expense-add {
+
+    background: var(--expense);
+
+}
+
+
+@media (max-width: 480px) {
+
+    .expense-summary {
+
+        grid-template-columns: 1fr;
+
+    }
+
+}
