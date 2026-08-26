@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="mr">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <meta name="theme-color"
+          content="#5b0b18">
+
+    <title>Monthly Budget | रोजचा जमा खर्च अहवाल</title>
+
+
+    <!-- Font Awesome -->
+
+    <link
+        rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+    >
+
+
+    <!-- Main CSS -->
+
+    <link
+        rel="stylesheet"
+        href="style.css"
+    >
+
+</head>
+
+
+<body>
+
+
+<!-- =====================================================
+     HEADER
+===================================================== -->
+
+<header class="app-header">
+
+    <div class="header-brand">
+
+        <div class="app-logo">
+
+            <i class="fa-solid fa-calendar-days"></i>
+
+        </div>
+
+
+        <div>
+
+            <h1>Monthly Budget</h1>
+
+            <p>मासिक बजेट नियोजन</p>
+
+        </div>
+
+    </div>
+
+
+    <button
+        class="notification-btn"
+        onclick="goHome()"
+        title="मुख्यपृष्ठ"
+    >
+
+        <i class="fa-solid fa-house"></i>
+
+    </button>
+
+</header>
+
+
+
+<!-- =====================================================
+     MAIN
+===================================================== -->
+
+<main class="form-container">
+
+
+    <!-- =================================================
+         PAGE INTRO
+    ================================================== -->
+
+    <section class="page-intro">
+
+        <div class="page-intro-icon budget-intro">
+
+            <i class="fa-solid fa-chart-pie"></i>
+
+        </div>
+
+
+        <div>
+
+            <h2>मासिक Budget</h2>
+
+            <p>
+                महिन्याचे पैसे आणि खर्चाचे नियोजन करा.
+            </p>
+
+        </div>
+
+    </section>
+
+
+
+    <!-- =================================================
+         MONTH SELECT
+    ================================================== -->
+
+    <section class="budget-month-card">
+
+        <div class="form-group">
+
+            <label for="budgetMonth">
+
+                <i class="fa-solid fa-calendar"></i>
+
+                महिना निवडा
+
+            </label>
+
+
+            <input
+                type="month"
+                id="budgetMonth"
+            >
+
+        </div>
+
+
+        <button
+            type="button"
+            class="load-budget-btn"
+            onclick="loadBudgetForSelectedMonth()"
+        >
+
+            <i class="fa-solid fa-rotate"></i>
+
+            Budget Load करा
+
+        </button>
+
+    </section>
+
+
+
+    <!-- =================================================
+         PLANNED MONEY
+    ================================================== -->
+
+    <section class="budget-planned-card">
+
+
+        <div class="budget-card-icon">
+
+            <i class="fa-solid fa-money-bill-wave"></i>
+
+        </div>
+
+
+        <div class="budget-planned-content">
+
+            <span>
+                या महिन्याचे Planned Money
+            </span>
+
+
+            <div class="planned-money-input">
+
+                <span>₹</span>
+
+                <input
+                    type="number"
+                    id="plannedMoney"
+                    min="0"
+                    step="0.01"
+                    placeholder="उदा. 40000"
+                >
+
+            </div>
+
+        </div>
+
+
+    </section>
+
+
+
+    <!-- =================================================
+         BUDGET SUMMARY
+    ================================================== -->
+
+    <section class="budget-summary">
+
+
+        <div class="budget-summary-card">
+
+            <span>
+                Total Budget
+            </span>
+
+            <strong id="totalBudget">
+                ₹0.00
+            </strong>
+
+        </div>
+
+
+
+        <div class="budget-summary-card">
+
+            <span>
+                Actual खर्च
+            </span>
+
+            <strong
+                id="totalActualExpense"
+                class="expense-text"
+            >
+                ₹0.00
+            </strong>
+
+        </div>
+
+
+
+        <div class="budget-summary-card">
+
+            <span>
+                Remaining
+            </span>
+
+            <strong
+                id="remainingBudget"
+                class="remaining-text"
+            >
+                ₹0.00
+            </strong>
+
+        </div>
+
+
+
+        <div class="budget-summary-card">
+
+            <span>
+                Budget Used
+            </span>
+
+            <strong id="budgetUsedPercent">
+                0%
+            </strong>
+
+        </div>
+
+    </section>
+
+
+
+    <!-- =================================================
+         ALERT SETTINGS
+    ================================================== -->
+
+    <section class="budget-alert-card">
+
+        <div class="budget-alert-title">
+
+            <div>
+
+                <h3>
+
+                    <i class="fa-solid fa-bell"></i>
+
+                    Budget Alert
+
+                </h3>
+
+
+                <p>
+                    Budget किती % झाल्यावर warning दाखवायची?
+                </p>
+
+            </div>
+
+        </div>
+
+
+        <div class="alert-setting-row">
+
+
+            <label for="budgetAlertPercent">
+
+                Alert %
+
+            </label>
+
+
+            <select id="budgetAlertPercent">
+
+                <option value="50">
+                    50%
+                </option>
+
+                <option value="60">
+                    60%
+                </option>
+
+                <option value="70">
+                    70%
+                </option>
+
+                <option value="80" selected>
+                    80%
+                </option>
+
+                <option value="90">
+                    90%
+                </option>
+
+                <option value="100">
+                    100%
+                </option>
+
+            </select>
+
+
+        </div>
+
+    </section>
+
+
+
+    <!-- =================================================
+         CATEGORY SECTION
+    ================================================== -->
+
+    <section class="budget-category-section">
+
+
+        <div class="section-heading">
+
+            <div>
+
+                <h3>
+
+                    <i class="fa-solid fa-layer-group"></i>
+
+                    Category-wise Budget
+
+                </h3>
+
+
+                <p class="section-subtitle">
+
+                    प्रत्येक खर्चासाठी स्वतंत्र Budget ठेवा.
+
+                </p>
+
+            </div>
+
+
+            <button
+                type="button"
+                class="add-category-btn"
+                onclick="openCategoryForm()"
+            >
+
+                <i class="fa-solid fa-plus"></i>
+
+                Category
+
+            </button>
+
+        </div>
+
+
+
+        <!-- =================================================
+             CATEGORY LIST
+        ================================================== -->
+
+        <div
+            id="budgetCategoriesList"
+            class="budget-categories-list"
+        >
+
+            <!-- Categories JS मधून तयार होतील -->
+
+        </div>
+
+
+    </section>
+
+
+
+    <!-- =================================================
+         ADD CATEGORY FORM
+    ================================================== -->
+
+    <section
+        id="categoryFormCard"
+        class="category-form-card"
+        style="display:none;"
+    >
+
+
+        <div class="form-section-title">
+
+            <h3>
+                नवीन Category
+            </h3>
+
+
+            <button
+                type="button"
+                class="close-form-btn"
+                onclick="closeCategoryForm()"
+            >
+
+                <i class="fa-solid fa-xmark"></i>
+
+            </button>
+
+        </div>
+
+
+
+        <div class="form-group">
+
+            <label for="newCategoryName">
+
+                <i class="fa-solid fa-tag"></i>
+
+                Category Name
+
+            </label>
+
+
+            <input
+                type="text"
+                id="newCategoryName"
+                maxlength="50"
+                placeholder="उदा. शिक्षण"
+            >
+
+        </div>
+
+
+
+        <div class="form-group">
+
+            <label for="newCategoryIcon">
+
+                <i class="fa-solid fa-icons"></i>
+
+                Icon
+
+            </label>
+
+
+            <select id="newCategoryIcon">
+
+                <option value="fa-solid fa-tag">
+                    🏷️ General
+                </option>
+
+                <option value="fa-solid fa-book">
+                    📚 शिक्षण
+                </option>
+
+                <option value="fa-solid fa-bolt">
+                    ⚡ वीज
+                </option>
+
+                <option value="fa-solid fa-car">
+                    🚗 वाहन
+                </option>
+
+                <option value="fa-solid fa-utensils">
+                    🍴 Food
+                </option>
+
+                <option value="fa-solid fa-house">
+                    🏠 घर
+                </option>
+
+                <option value="fa-solid fa-heart-pulse">
+                    ❤️ Health
+                </option>
+
+            </select>
+
+        </div>
+
+
+
+        <button
+            type="button"
+            class="save-category-btn"
+            onclick="saveNewCategory()"
+        >
+
+            <i class="fa-solid fa-check"></i>
+
+            Category Save करा
+
+        </button>
+
+
+    </section>
+
+
+
+    <!-- =================================================
+         SAVE BUDGET
+    ================================================== -->
+
+    <button
+        type="button"
+        class="save-budget-btn"
+        onclick="saveMonthlyBudget()"
+    >
+
+        <i class="fa-solid fa-floppy-disk"></i>
+
+        Monthly Budget Save करा
+
+    </button>
+
+
+
+    <!-- =================================================
+         BUDGET STATUS
+    ================================================== -->
+
+    <section
+        id="budgetStatusMessage"
+        class="budget-status-message"
+        style="display:none;"
+    >
+
+    </section>
+
+
+</main>
+
+
+
+<!-- =====================================================
+     BOTTOM NAVIGATION
+===================================================== -->
+
+<nav class="bottom-nav">
+
+
+    <button
+        class="nav-item"
+        onclick="goHome()"
+    >
+
+        <i class="fa-solid fa-house"></i>
+
+        <span>
+            मुख्यपृष्ठ
+        </span>
+
+    </button>
+
+
+
+    <button
+        class="nav-item"
+        onclick="goToTransactions()"
+    >
+
+        <i class="fa-solid fa-list"></i>
+
+        <span>
+            व्यवहार
+        </span>
+
+    </button>
+
+
+
+    <button
+        class="nav-add"
+        onclick="openQuickAdd()"
+    >
+
+        <i class="fa-solid fa-plus"></i>
+
+    </button>
+
+
+
+    <button
+        class="nav-item active"
+    >
+
+        <i class="fa-solid fa-chart-pie"></i>
+
+        <span>
+            Budget
+        </span>
+
+    </button>
+
+
+
+    <button
+        class="nav-item"
+        onclick="goToReports()"
+    >
+
+        <i class="fa-solid fa-file-lines"></i>
+
+        <span>
+            Reports
+        </span>
+
+    </button>
+
+
+</nav>
+
+
+
+<!-- =====================================================
+     QUICK ADD
+===================================================== -->
+
+<div
+    id="quickAddMenu"
+    class="quick-add-menu"
+    style="display:none;"
+>
+
+
+    <button
+        onclick="goToIncome()"
+    >
+
+        <i class="fa-solid fa-arrow-down"></i>
+
+        जमा नोंदवा
+
+    </button>
+
+
+
+    <button
+        onclick="goToExpense()"
+    >
+
+        <i class="fa-solid fa-arrow-up"></i>
+
+        खर्च नोंदवा
+
+    </button>
+
+
+</div>
+
+
+
+<!-- =====================================================
+     JAVASCRIPT
+===================================================== -->
+
+<script src="app.js"></script>
+
+<script src="monthly-budget.js"></script>
+
+
+</body>
+
+</html>
