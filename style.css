@@ -1,0 +1,1348 @@
+/* =====================================================
+   रोजचा जमा खर्च अहवाल
+   MAIN STYLE
+===================================================== */
+
+:root {
+
+    --primary: #5b0b18;
+    --primary-dark: #3f0710;
+    --primary-light: #8a1a2a;
+
+    --income: #16803c;
+    --expense: #c62828;
+    --saving: #1565c0;
+    --budget: #7b1fa2;
+
+    --bg: #f6f6f8;
+    --white: #ffffff;
+
+    --text: #222;
+    --muted: #777;
+
+    --border: #e7e7e7;
+
+    --shadow:
+        0 4px 15px rgba(0,0,0,0.08);
+
+}
+
+
+* {
+
+    box-sizing: border-box;
+
+    margin: 0;
+
+    padding: 0;
+
+}
+
+
+body {
+
+    font-family:
+        "Noto Sans Devanagari",
+        "Noto Sans",
+        Arial,
+        sans-serif;
+
+    background: var(--bg);
+
+    color: var(--text);
+
+    padding-bottom: 85px;
+
+}
+
+
+button {
+
+    font-family: inherit;
+
+    cursor: pointer;
+
+    border: none;
+
+}
+
+
+.container {
+
+    width: 100%;
+
+    max-width: 900px;
+
+    margin: auto;
+
+    padding: 15px;
+
+}
+
+
+
+/* =====================================================
+   HEADER
+===================================================== */
+
+.app-header {
+
+    background: var(--primary);
+
+    color: white;
+
+    min-height: 70px;
+
+    padding: 12px 16px;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: space-between;
+
+    position: sticky;
+
+    top: 0;
+
+    z-index: 100;
+
+    box-shadow:
+        0 3px 10px rgba(0,0,0,0.18);
+
+}
+
+
+.header-brand {
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 12px;
+
+}
+
+
+.app-logo {
+
+    width: 45px;
+
+    height: 45px;
+
+    border-radius: 12px;
+
+    background: rgba(255,255,255,0.15);
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    font-size: 22px;
+
+}
+
+
+.header-brand h1 {
+
+    font-size: 18px;
+
+    line-height: 1.3;
+
+}
+
+
+.header-brand p {
+
+    font-size: 11px;
+
+    opacity: 0.8;
+
+}
+
+
+.notification-btn {
+
+    width: 42px;
+
+    height: 42px;
+
+    border-radius: 50%;
+
+    color: white;
+
+    background: rgba(255,255,255,0.12);
+
+    font-size: 18px;
+
+    position: relative;
+
+}
+
+
+#notificationDot {
+
+    position: absolute;
+
+    top: 7px;
+
+    right: 8px;
+
+    width: 8px;
+
+    height: 8px;
+
+    background: #ff5252;
+
+    border-radius: 50%;
+
+    display: none;
+
+}
+
+
+
+/* =====================================================
+   DATE CARD
+===================================================== */
+
+.date-card {
+
+    background: white;
+
+    border-radius: 16px;
+
+    padding: 16px;
+
+    margin-bottom: 15px;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: space-between;
+
+    box-shadow: var(--shadow);
+
+}
+
+
+.small-label {
+
+    color: var(--muted);
+
+    font-size: 12px;
+
+}
+
+
+.date-card h2 {
+
+    font-size: 18px;
+
+    margin-top: 3px;
+
+}
+
+
+.date-icon {
+
+    width: 45px;
+
+    height: 45px;
+
+    border-radius: 12px;
+
+    background: #f4e9eb;
+
+    color: var(--primary);
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    font-size: 20px;
+
+}
+
+
+
+/* =====================================================
+   BALANCE CARD
+===================================================== */
+
+.balance-card {
+
+    background:
+        linear-gradient(
+            135deg,
+            var(--primary),
+            var(--primary-light)
+        );
+
+    color: white;
+
+    border-radius: 20px;
+
+    padding: 20px;
+
+    box-shadow: var(--shadow);
+
+}
+
+
+.balance-header {
+
+    display: flex;
+
+    justify-content: space-between;
+
+    align-items: center;
+
+    font-size: 14px;
+
+}
+
+
+.eye-btn {
+
+    background: transparent;
+
+    color: white;
+
+    font-size: 17px;
+
+}
+
+
+.balance-value {
+
+    font-size: 32px;
+
+    font-weight: 700;
+
+    margin: 10px 0 18px;
+
+}
+
+
+.balance-row {
+
+    display: grid;
+
+    grid-template-columns: 1fr 1fr;
+
+    gap: 10px;
+
+}
+
+
+.balance-row div {
+
+    background: rgba(255,255,255,0.12);
+
+    border-radius: 12px;
+
+    padding: 10px;
+
+}
+
+
+.balance-row span {
+
+    display: block;
+
+    font-size: 11px;
+
+    opacity: 0.85;
+
+}
+
+
+.balance-row strong {
+
+    display: block;
+
+    margin-top: 4px;
+
+    font-size: 15px;
+
+}
+
+
+
+/* =====================================================
+   SECTION TITLE
+===================================================== */
+
+.section-title {
+
+    font-size: 17px;
+
+    margin: 20px 0 10px;
+
+}
+
+
+.section-heading {
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: space-between;
+
+}
+
+
+.section-heading .section-title {
+
+    margin-bottom: 10px;
+
+}
+
+
+.section-heading button {
+
+    background: transparent;
+
+    color: var(--primary);
+
+    font-size: 12px;
+
+}
+
+
+
+/* =====================================================
+   SUMMARY GRID
+===================================================== */
+
+.summary-grid {
+
+    display: grid;
+
+    grid-template-columns:
+        repeat(2, 1fr);
+
+    gap: 12px;
+
+}
+
+
+.summary-card {
+
+    background: white;
+
+    border-radius: 16px;
+
+    padding: 14px;
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 10px;
+
+    box-shadow: var(--shadow);
+
+}
+
+
+.summary-icon {
+
+    width: 40px;
+
+    height: 40px;
+
+    border-radius: 11px;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+}
+
+
+.summary-card span {
+
+    display: block;
+
+    color: var(--muted);
+
+    font-size: 11px;
+
+}
+
+
+.summary-card strong {
+
+    display: block;
+
+    margin-top: 4px;
+
+    font-size: 16px;
+
+}
+
+
+.income-card .summary-icon {
+
+    background: #e8f5ed;
+
+    color: var(--income);
+
+}
+
+
+.expense-card .summary-icon {
+
+    background: #fdeaea;
+
+    color: var(--expense);
+
+}
+
+
+.saving-card .summary-icon {
+
+    background: #e8f0fc;
+
+    color: var(--saving);
+
+}
+
+
+.budget-card .summary-icon {
+
+    background: #f3e8f8;
+
+    color: var(--budget);
+
+}
+
+
+
+/* =====================================================
+   MONTHLY BUDGET
+===================================================== */
+
+.budget-card {
+
+    background: white;
+
+    border-radius: 18px;
+
+    padding: 17px;
+
+    margin-top: 20px;
+
+    box-shadow: var(--shadow);
+
+}
+
+
+.card-heading {
+
+    display: flex;
+
+    justify-content: space-between;
+
+    align-items: center;
+
+}
+
+
+.card-heading h3 {
+
+    font-size: 18px;
+
+    margin-top: 2px;
+
+}
+
+
+.card-heading > i {
+
+    font-size: 24px;
+
+    color: var(--budget);
+
+}
+
+
+.budget-numbers {
+
+    display: grid;
+
+    grid-template-columns:
+        repeat(3, 1fr);
+
+    gap: 8px;
+
+    margin: 18px 0;
+
+}
+
+
+.budget-numbers div {
+
+    background: #f8f8f8;
+
+    padding: 10px;
+
+    border-radius: 10px;
+
+}
+
+
+.budget-numbers span {
+
+    display: block;
+
+    color: var(--muted);
+
+    font-size: 11px;
+
+}
+
+
+.budget-numbers strong {
+
+    display: block;
+
+    margin-top: 4px;
+
+    font-size: 14px;
+
+}
+
+
+.progress-container {
+
+    width: 100%;
+
+    height: 9px;
+
+    background: #eee;
+
+    border-radius: 20px;
+
+    overflow: hidden;
+
+}
+
+
+.progress-bar {
+
+    width: 0%;
+
+    height: 100%;
+
+    background: var(--budget);
+
+    border-radius: 20px;
+
+    transition: width 0.3s;
+
+}
+
+
+.budget-footer {
+
+    display: flex;
+
+    justify-content: space-between;
+
+    align-items: center;
+
+    margin-top: 10px;
+
+    font-size: 11px;
+
+    color: var(--muted);
+
+}
+
+
+.budget-footer button {
+
+    background: transparent;
+
+    color: var(--primary);
+
+    font-weight: 600;
+
+}
+
+
+
+/* =====================================================
+   QUICK ACTIONS
+===================================================== */
+
+.quick-actions {
+
+    display: grid;
+
+    grid-template-columns:
+        repeat(3, 1fr);
+
+    gap: 10px;
+
+}
+
+
+.quick-btn {
+
+    min-height: 85px;
+
+    border-radius: 16px;
+
+    background: white;
+
+    box-shadow: var(--shadow);
+
+    display: flex;
+
+    flex-direction: column;
+
+    align-items: center;
+
+    justify-content: center;
+
+    gap: 8px;
+
+    font-size: 13px;
+
+    font-weight: 600;
+
+}
+
+
+.quick-btn i {
+
+    font-size: 23px;
+
+}
+
+
+.income-btn {
+
+    color: var(--income);
+
+}
+
+
+.expense-btn {
+
+    color: var(--expense);
+
+}
+
+
+.budget-btn {
+
+    color: var(--budget);
+
+}
+
+
+
+/* =====================================================
+   ACCOUNTS
+===================================================== */
+
+.account-grid {
+
+    display: grid;
+
+    grid-template-columns:
+        repeat(2, 1fr);
+
+    gap: 10px;
+
+}
+
+
+.account-card {
+
+    background: white;
+
+    padding: 14px;
+
+    border-radius: 15px;
+
+    box-shadow: var(--shadow);
+
+}
+
+
+.account-card .account-name {
+
+    font-size: 13px;
+
+    color: var(--muted);
+
+}
+
+
+.account-card .account-balance {
+
+    font-size: 18px;
+
+    font-weight: 700;
+
+    margin-top: 5px;
+
+}
+
+
+.empty-card {
+
+    background: white;
+
+    border-radius: 16px;
+
+    padding: 25px;
+
+    text-align: center;
+
+    box-shadow: var(--shadow);
+
+    grid-column: 1 / -1;
+
+}
+
+
+.empty-card i {
+
+    font-size: 30px;
+
+    color: #aaa;
+
+    margin-bottom: 10px;
+
+}
+
+
+.empty-card p {
+
+    color: var(--muted);
+
+    font-size: 13px;
+
+    margin-bottom: 12px;
+
+}
+
+
+.empty-card button {
+
+    background: var(--primary);
+
+    color: white;
+
+    padding: 9px 15px;
+
+    border-radius: 8px;
+
+}
+
+
+
+/* =====================================================
+   TRANSACTIONS
+===================================================== */
+
+.transactions-list {
+
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 8px;
+
+}
+
+
+.transaction-item {
+
+    background: white;
+
+    border-radius: 14px;
+
+    padding: 12px;
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 10px;
+
+    box-shadow: var(--shadow);
+
+}
+
+
+.transaction-icon {
+
+    width: 40px;
+
+    height: 40px;
+
+    border-radius: 10px;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+}
+
+
+.transaction-details {
+
+    flex: 1;
+
+}
+
+
+.transaction-details strong {
+
+    display: block;
+
+    font-size: 13px;
+
+}
+
+
+.transaction-details span {
+
+    display: block;
+
+    font-size: 10px;
+
+    color: var(--muted);
+
+    margin-top: 3px;
+
+}
+
+
+.transaction-amount {
+
+    font-size: 14px;
+
+    font-weight: 700;
+
+}
+
+
+
+/* =====================================================
+   REMINDER
+===================================================== */
+
+.reminder-card {
+
+    margin-top: 20px;
+
+    background: #fff7e6;
+
+    border: 1px solid #f4dca7;
+
+    border-radius: 16px;
+
+    padding: 14px;
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 10px;
+
+}
+
+
+.reminder-icon {
+
+    width: 42px;
+
+    height: 42px;
+
+    border-radius: 12px;
+
+    background: #ffe5a8;
+
+    color: #a66a00;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+}
+
+
+.reminder-content {
+
+    flex: 1;
+
+}
+
+
+.reminder-content strong {
+
+    display: block;
+
+    font-size: 13px;
+
+}
+
+
+.reminder-content p {
+
+    color: #777;
+
+    font-size: 11px;
+
+    margin-top: 3px;
+
+}
+
+
+.reminder-card button {
+
+    background: var(--primary);
+
+    color: white;
+
+    border-radius: 8px;
+
+    padding: 8px 12px;
+
+    font-size: 11px;
+
+}
+
+
+
+/* =====================================================
+   BOTTOM NAVIGATION
+===================================================== */
+
+.bottom-nav {
+
+    position: fixed;
+
+    bottom: 0;
+
+    left: 0;
+
+    right: 0;
+
+    height: 70px;
+
+    background: white;
+
+    border-top: 1px solid var(--border);
+
+    display: grid;
+
+    grid-template-columns:
+        1fr 1fr 1fr 1fr 1fr;
+
+    align-items: center;
+
+    z-index: 200;
+
+}
+
+
+.nav-item {
+
+    background: transparent;
+
+    color: #777;
+
+    display: flex;
+
+    flex-direction: column;
+
+    align-items: center;
+
+    justify-content: center;
+
+    gap: 4px;
+
+    font-size: 10px;
+
+}
+
+
+.nav-item i {
+
+    font-size: 18px;
+
+}
+
+
+.nav-item.active {
+
+    color: var(--primary);
+
+}
+
+
+.nav-add {
+
+    width: 52px;
+
+    height: 52px;
+
+    border-radius: 50%;
+
+    background: var(--primary);
+
+    color: white;
+
+    margin: auto;
+
+    font-size: 22px;
+
+    box-shadow:
+        0 5px 15px rgba(91,11,24,0.35);
+
+}
+
+
+
+/* =====================================================
+   ADD MENU
+===================================================== */
+
+.add-menu-overlay {
+
+    position: fixed;
+
+    inset: 0;
+
+    background: rgba(0,0,0,0.45);
+
+    display: none;
+
+    align-items: flex-end;
+
+    justify-content: center;
+
+    z-index: 500;
+
+}
+
+
+.add-menu-overlay.show {
+
+    display: flex;
+
+}
+
+
+.add-menu {
+
+    background: white;
+
+    width: 100%;
+
+    max-width: 500px;
+
+    border-radius:
+        22px 22px 0 0;
+
+    padding: 20px;
+
+    animation:
+        slideUp 0.25s ease;
+
+}
+
+
+@keyframes slideUp {
+
+    from {
+
+        transform: translateY(100%);
+
+    }
+
+    to {
+
+        transform: translateY(0);
+
+    }
+
+}
+
+
+.add-menu-header {
+
+    display: flex;
+
+    justify-content: space-between;
+
+    align-items: center;
+
+    margin-bottom: 15px;
+
+}
+
+
+.add-menu-header h3 {
+
+    font-size: 18px;
+
+}
+
+
+.add-menu-header button {
+
+    background: #f3f3f3;
+
+    width: 35px;
+
+    height: 35px;
+
+    border-radius: 50%;
+
+}
+
+
+.add-menu > button {
+
+    width: 100%;
+
+    padding: 15px;
+
+    border-radius: 12px;
+
+    margin-top: 8px;
+
+    font-size: 15px;
+
+    font-weight: 600;
+
+}
+
+
+.menu-income {
+
+    background: #eaf6ee;
+
+    color: var(--income);
+
+}
+
+
+.menu-expense {
+
+    background: #fdeaea;
+
+    color: var(--expense);
+
+}
+
+
+
+/* =====================================================
+   MOBILE
+===================================================== */
+
+@media (max-width: 480px) {
+
+
+    .header-brand h1 {
+
+        font-size: 16px;
+
+    }
+
+
+    .header-brand p {
+
+        font-size: 10px;
+
+    }
+
+
+    .balance-value {
+
+        font-size: 28px;
+
+    }
+
+
+    .summary-card {
+
+        padding: 11px;
+
+    }
+
+
+    .summary-card strong {
+
+        font-size: 14px;
+
+    }
+
+
+    .quick-btn {
+
+        min-height: 75px;
+
+        font-size: 11px;
+
+    }
+
+
+}
+
+
+
+/* =====================================================
+   TABLET / DESKTOP
+===================================================== */
+
+@media (min-width: 700px) {
+
+
+    .summary-grid {
+
+        grid-template-columns:
+            repeat(4, 1fr);
+
+    }
+
+
+    .account-grid {
+
+        grid-template-columns:
+            repeat(3, 1fr);
+
+    }
+
+
+    .container {
+
+        padding: 25px;
+
+    }
+
+}
