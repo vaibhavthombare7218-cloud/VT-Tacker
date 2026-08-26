@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="mr">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <meta name="theme-color"
+          content="#5b0b18">
+
+    <title>Accounts | रोजचा जमा खर्च अहवाल</title>
+
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+    <link rel="stylesheet"
+          href="style.css">
+
+</head>
+
+<body>
+
+
+<!-- =====================================================
+     HEADER
+===================================================== -->
+
+<header class="app-header">
+
+    <div class="header-brand">
+
+        <div class="app-logo">
+
+            <i class="fa-solid fa-wallet"></i>
+
+        </div>
+
+        <div>
+
+            <h1>Accounts</h1>
+
+            <p>खाती आणि उपलब्ध शिल्लक</p>
+
+        </div>
+
+    </div>
+
+
+    <button class="notification-btn"
+            onclick="goHome()">
+
+        <i class="fa-solid fa-house"></i>
+
+    </button>
+
+</header>
+
+
+
+<!-- =====================================================
+     MAIN
+===================================================== -->
+
+<main class="form-container">
+
+
+    <!-- =================================================
+         PAGE INTRO
+    ================================================== -->
+
+    <section class="page-intro">
+
+        <div class="page-intro-icon account-intro">
+
+            <i class="fa-solid fa-wallet"></i>
+
+        </div>
+
+        <div>
+
+            <h2>माझी खाती</h2>
+
+            <p>
+                Cash, Bank, UPI आणि इतर खात्यांची शिल्लक येथे पहा.
+            </p>
+
+        </div>
+
+    </section>
+
+
+
+    <!-- =================================================
+         TOTAL BALANCE
+    ================================================== -->
+
+    <section class="account-total-card">
+
+        <span>
+            एकूण उपलब्ध शिल्लक
+        </span>
+
+        <strong id="totalAccountBalance">
+            ₹0.00
+        </strong>
+
+    </section>
+
+
+
+    <!-- =================================================
+         ADD ACCOUNT BUTTON
+    ================================================== -->
+
+    <button
+        class="add-account-btn"
+        onclick="openAccountForm()"
+    >
+
+        <i class="fa-solid fa-plus"></i>
+
+        नवीन Account जोडा
+
+    </button>
+
+
+
+    <!-- =================================================
+         ADD / EDIT ACCOUNT FORM
+    ================================================== -->
+
+    <section
+        id="accountFormCard"
+        class="form-card account-form-card"
+        style="display:none;"
+    >
+
+        <div class="form-section-title">
+
+            <h3 id="accountFormTitle">
+                नवीन Account
+            </h3>
+
+            <button
+                type="button"
+                class="close-form-btn"
+                onclick="closeAccountForm()"
+            >
+
+                <i class="fa-solid fa-xmark"></i>
+
+            </button>
+
+        </div>
+
+
+        <form id="accountForm">
+
+
+            <!-- ACCOUNT NAME -->
+
+            <div class="form-group">
+
+                <label for="accountName">
+
+                    <i class="fa-solid fa-wallet"></i>
+
+                    Account Name
+
+                    <span>*</span>
+
+                </label>
+
+
+                <input
+                    type="text"
+                    id="accountName"
+                    maxlength="50"
+                    placeholder="उदा. SBI Bank"
+                    required
+                >
+
+            </div>
+
+
+
+            <!-- ACCOUNT TYPE -->
+
+            <div class="form-group">
+
+                <label for="accountType">
+
+                    <i class="fa-solid fa-layer-group"></i>
+
+                    Account Type
+
+                    <span>*</span>
+
+                </label>
+
+
+                <select
+                    id="accountType"
+                    required
+                >
+
+                    <option value="">
+                        Account Type निवडा
+                    </option>
+
+                    <option value="Cash">
+                        💵 Cash
+                    </option>
+
+                    <option value="Bank">
+                        🏦 Bank Account
+                    </option>
+
+                    <option value="UPI">
+                        📱 UPI
+                    </option>
+
+                    <option value="Card">
+                        💳 Card
+                    </option>
+
+                    <option value="Other">
+                        📁 Other
+                    </option>
+
+                </select>
+
+            </div>
+
+
+
+            <!-- OPENING BALANCE -->
+
+            <div class="form-group">
+
+                <label for="openingBalance">
+
+                    <i class="fa-solid fa-indian-rupee-sign"></i>
+
+                    Opening Balance
+
+                    <span>*</span>
+
+                </label>
+
+
+                <div class="amount-input">
+
+                    <span>
+                        ₹
+                    </span>
+
+                    <input
+                        type="number"
+                        id="openingBalance"
+                        min="0"
+                        step="0.01"
+                        placeholder="उदा. 10000"
+                        required
+                    >
+
+                </div>
+
+
+                <small>
+                    Account तयार करताना या खात्यात असलेली रक्कम.
+                </small>
+
+            </div>
+
+
+
+            <!-- ACCOUNT NOTE -->
+
+            <div class="form-group">
+
+                <label for="accountNote">
+
+                    <i class="fa-solid fa-note-sticky"></i>
+
+                    Note
+
+                </label>
+
+
+                <textarea
+                    id="accountNote"
+                    rows="2"
+                    maxlength="200"
+                    placeholder="Account बद्दल माहिती..."
+                ></textarea>
+
+            </div>
+
+
+
+            <!-- SAVE -->
+
+            <button
+                type="submit"
+                class="save-account-btn"
+            >
+
+                <i class="fa-solid fa-check"></i>
+
+                Account Save करा
+
+            </button>
+
+
+        </form>
+
+    </section>
+
+
+
+    <!-- =================================================
+         ACCOUNTS LIST
+    ================================================== -->
+
+    <section class="accounts-section">
+
+        <div class="section-heading">
+
+            <h3>
+
+                <i class="fa-solid fa-list"></i>
+
+                माझी Accounts
+
+            </h3>
+
+            <span id="accountCount">
+                0 Accounts
+            </span>
+
+        </div>
+
+
+        <div
+            id="accountsList"
+            class="accounts-list"
+        >
+
+            <!-- Accounts dynamically loaded here -->
+
+        </div>
+
+
+        <!-- EMPTY -->
+
+        <div
+            id="emptyAccounts"
+            class="empty-accounts"
+            style="display:none;"
+        >
+
+            <i class="fa-solid fa-wallet"></i>
+
+            <h3>
+                अजून कोणतेही Account नाही
+            </h3>
+
+            <p>
+                सुरुवात करण्यासाठी नवीन Account जोडा.
+            </p>
+
+        </div>
+
+    </section>
+
+
+</main>
+
+
+
+<!-- =====================================================
+     BOTTOM NAVIGATION
+===================================================== -->
+
+<nav class="bottom-nav">
+
+
+    <button
+        class="nav-item"
+        onclick="goHome()"
+    >
+
+        <i class="fa-solid fa-house"></i>
+
+        <span>
+            मुख्यपृष्ठ
+        </span>
+
+    </button>
+
+
+
+    <button
+        class="nav-item"
+        onclick="goToTransactions()"
+    >
+
+        <i class="fa-solid fa-list"></i>
+
+        <span>
+            व्यवहार
+        </span>
+
+    </button>
+
+
+
+    <button
+        class="nav-add account-add"
+        onclick="openAccountForm()"
+    >
+
+        <i class="fa-solid fa-plus"></i>
+
+    </button>
+
+
+
+    <button
+        class="nav-item"
+        onclick="goToReports()"
+    >
+
+        <i class="fa-solid fa-chart-pie"></i>
+
+        <span>
+            अहवाल
+        </span>
+
+    </button>
+
+
+
+    <button
+        class="nav-item"
+        onclick="goToSettings()"
+    >
+
+        <i class="fa-solid fa-gear"></i>
+
+        <span>
+            सेटिंग
+        </span>
+
+    </button>
+
+
+</nav>
+
+
+
+<!-- =====================================================
+     JAVASCRIPT
+===================================================== -->
+
+<script src="app.js"></script>
+
+<script src="accounts.js"></script>
+
+
+</body>
+
+</html>
