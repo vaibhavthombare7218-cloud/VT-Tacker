@@ -1,0 +1,1131 @@
+<!DOCTYPE html>
+<html lang="mr">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <meta name="theme-color"
+          content="#5b0b18">
+
+    <title>Reports | रोजचा जमा खर्च अहवाल</title>
+
+
+    <!-- Font Awesome -->
+
+    <link
+        rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+    >
+
+
+    <!-- Main CSS -->
+
+    <link rel="stylesheet"
+          href="style.css">
+
+
+    <style>
+
+        /* =================================================
+           REPORT PAGE
+        ================================================= */
+
+        .report-filter-card {
+
+            background: white;
+            border-radius: 17px;
+            padding: 15px;
+            box-shadow: var(--shadow);
+            margin-bottom: 12px;
+
+        }
+
+
+        .report-filter-grid {
+
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+
+        }
+
+
+        .report-filter-full {
+
+            grid-column: 1 / -1;
+
+        }
+
+
+        .report-action-row {
+
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-top: 12px;
+
+        }
+
+
+        .report-btn {
+
+            border: none;
+            border-radius: 10px;
+            padding: 11px;
+            font-size: 11px;
+            font-weight: 700;
+            cursor: pointer;
+
+        }
+
+
+        .report-btn-primary {
+
+            background: var(--primary);
+            color: white;
+
+        }
+
+
+        .report-btn-light {
+
+            background: #f4edf7;
+            color: var(--primary);
+
+        }
+
+
+        /* Summary */
+
+        .report-summary {
+
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 9px;
+            margin-bottom: 12px;
+
+        }
+
+
+        .report-summary-card {
+
+            background: white;
+            border-radius: 15px;
+            padding: 13px;
+            box-shadow: var(--shadow);
+
+        }
+
+
+        .report-summary-card span {
+
+            display: block;
+            font-size: 10px;
+            color: var(--muted);
+
+        }
+
+
+        .report-summary-card strong {
+
+            display: block;
+            margin-top: 5px;
+            font-size: 17px;
+            color: var(--primary);
+
+        }
+
+
+        .report-summary-card.income strong {
+
+            color: var(--income);
+
+        }
+
+
+        .report-summary-card.expense strong {
+
+            color: var(--expense);
+
+        }
+
+
+        .report-summary-card.balance strong {
+
+            color: var(--primary);
+
+        }
+
+
+        /* Section */
+
+        .report-section {
+
+            background: white;
+            border-radius: 17px;
+            padding: 15px;
+            box-shadow: var(--shadow);
+            margin-bottom: 12px;
+
+        }
+
+
+        .report-section-title {
+
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+
+        }
+
+
+        .report-section-title h3 {
+
+            font-size: 14px;
+
+        }
+
+
+        .report-section-title i {
+
+            color: var(--primary);
+            margin-right: 5px;
+
+        }
+
+
+        .report-section-title span {
+
+            font-size: 9px;
+            color: var(--muted);
+
+        }
+
+
+        /* Budget */
+
+        .budget-report-summary {
+
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+
+        }
+
+
+        .budget-report-box {
+
+            background: #faf8fb;
+            border-radius: 11px;
+            padding: 11px;
+
+        }
+
+
+        .budget-report-box span {
+
+            display: block;
+            font-size: 9px;
+            color: var(--muted);
+
+        }
+
+
+        .budget-report-box strong {
+
+            display: block;
+            margin-top: 4px;
+            font-size: 14px;
+
+        }
+
+
+        .budget-progress {
+
+            height: 8px;
+            background: #eeeeee;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-top: 12px;
+
+        }
+
+
+        .budget-progress-inner {
+
+            height: 100%;
+            width: 0%;
+            background: var(--primary);
+            border-radius: 10px;
+
+        }
+
+
+        /* Category */
+
+        .category-report-list {
+
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+
+        }
+
+
+        .category-report-item {
+
+            padding-bottom: 9px;
+            border-bottom: 1px solid #eeeeee;
+
+        }
+
+
+        .category-report-top {
+
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+
+        }
+
+
+        .category-report-name {
+
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 11px;
+            font-weight: 600;
+
+        }
+
+
+        .category-report-icon {
+
+            width: 30px;
+            height: 30px;
+            border-radius: 9px;
+            background: #f4edf7;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+        }
+
+
+        .category-report-amount {
+
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--expense);
+
+        }
+
+
+        .category-report-progress {
+
+            height: 6px;
+            background: #eeeeee;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-top: 7px;
+
+        }
+
+
+        .category-report-progress-inner {
+
+            height: 100%;
+            width: 0%;
+            background: var(--expense);
+
+        }
+
+
+        /* Transactions */
+
+        .report-transactions {
+
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+
+        }
+
+
+        .report-transaction {
+
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            padding: 10px;
+            background: #fafafa;
+            border-radius: 11px;
+
+        }
+
+
+        .report-transaction-icon {
+
+            width: 35px;
+            height: 35px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+        }
+
+
+        .report-transaction-icon.income {
+
+            background: #e8f7ed;
+            color: var(--income);
+
+        }
+
+
+        .report-transaction-icon.expense {
+
+            background: #fdeaea;
+            color: var(--expense);
+
+        }
+
+
+        .report-transaction-info {
+
+            flex: 1;
+
+        }
+
+
+        .report-transaction-info strong {
+
+            display: block;
+            font-size: 11px;
+
+        }
+
+
+        .report-transaction-info span {
+
+            display: block;
+            font-size: 9px;
+            color: var(--muted);
+            margin-top: 2px;
+
+        }
+
+
+        .report-transaction-amount {
+
+            font-weight: 700;
+            font-size: 11px;
+
+        }
+
+
+        .report-transaction-amount.income {
+
+            color: var(--income);
+
+        }
+
+
+        .report-transaction-amount.expense {
+
+            color: var(--expense);
+
+        }
+
+
+        .empty-report {
+
+            text-align: center;
+            padding: 25px 10px;
+            color: var(--muted);
+            font-size: 11px;
+
+        }
+
+
+        @media(max-width:480px) {
+
+            .report-filter-grid {
+
+                grid-template-columns: 1fr;
+
+            }
+
+
+            .report-filter-full {
+
+                grid-column: auto;
+
+            }
+
+        }
+
+
+        @media print {
+
+            .app-header,
+            .bottom-nav,
+            .report-filter-card,
+            .report-action-row {
+
+                display: none !important;
+
+            }
+
+
+            body {
+
+                background: white !important;
+
+            }
+
+
+            .report-section,
+            .report-summary-card {
+
+                box-shadow: none !important;
+                border: 1px solid #ddd;
+
+            }
+
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+
+<!-- =====================================================
+     HEADER
+===================================================== -->
+
+<header class="app-header">
+
+    <div class="header-brand">
+
+        <div class="app-logo">
+
+            <i class="fa-solid fa-chart-column"></i>
+
+        </div>
+
+
+        <div>
+
+            <h1>Reports</h1>
+
+            <p>जमा खर्च अहवाल</p>
+
+        </div>
+
+    </div>
+
+
+    <button
+        class="notification-btn"
+        onclick="goHome()"
+    >
+
+        <i class="fa-solid fa-house"></i>
+
+    </button>
+
+</header>
+
+
+
+<main class="form-container">
+
+
+    <!-- =================================================
+         INTRO
+    ================================================== -->
+
+    <section class="page-intro">
+
+        <div class="page-intro-icon budget-intro">
+
+            <i class="fa-solid fa-chart-pie"></i>
+
+        </div>
+
+
+        <div>
+
+            <h2>अहवाल</h2>
+
+            <p>
+                तुमच्या जमा, खर्च आणि Budget ची माहिती.
+            </p>
+
+        </div>
+
+    </section>
+
+
+
+    <!-- =================================================
+         FILTER
+    ================================================== -->
+
+    <section class="report-filter-card">
+
+        <div class="report-filter-grid">
+
+
+            <div class="form-group">
+
+                <label>
+
+                    <i class="fa-solid fa-filter"></i>
+
+                    Report Type
+
+                </label>
+
+
+                <select id="reportType">
+
+                    <option value="monthly">
+                        Monthly
+                    </option>
+
+                    <option value="daily">
+                        Daily
+                    </option>
+
+                    <option value="yearly">
+                        Yearly
+                    </option>
+
+                    <option value="all">
+                        All
+                    </option>
+
+                </select>
+
+            </div>
+
+
+
+            <div
+                class="form-group"
+                id="reportMonthGroup"
+            >
+
+                <label>
+
+                    <i class="fa-solid fa-calendar"></i>
+
+                    महिना
+
+                </label>
+
+
+                <input
+                    type="month"
+                    id="reportMonth"
+                >
+
+            </div>
+
+
+
+            <div
+                class="form-group"
+                id="reportDateGroup"
+                style="display:none;"
+            >
+
+                <label>
+
+                    <i class="fa-solid fa-calendar-day"></i>
+
+                    तारीख
+
+                </label>
+
+
+                <input
+                    type="date"
+                    id="reportDate"
+                >
+
+            </div>
+
+
+
+            <div
+                class="form-group"
+                id="reportYearGroup"
+                style="display:none;"
+            >
+
+                <label>
+
+                    <i class="fa-solid fa-calendar"></i>
+
+                    वर्ष
+
+                </label>
+
+
+                <select id="reportYear">
+
+                </select>
+
+            </div>
+
+
+        </div>
+
+
+
+        <div class="report-action-row">
+
+            <button
+                class="report-btn report-btn-primary"
+                onclick="generateReport()"
+            >
+
+                <i class="fa-solid fa-magnifying-glass"></i>
+
+                Report दाखवा
+
+            </button>
+
+
+            <button
+                class="report-btn report-btn-light"
+                onclick="printReport()"
+            >
+
+                <i class="fa-solid fa-print"></i>
+
+                Print
+
+            </button>
+
+        </div>
+
+
+        <div class="report-action-row">
+
+            <button
+                class="report-btn report-btn-light"
+                onclick="exportReportCSV()"
+            >
+
+                <i class="fa-solid fa-file-csv"></i>
+
+                CSV Export
+
+            </button>
+
+
+            <button
+                class="report-btn report-btn-light"
+                onclick="goToBudget()"
+            >
+
+                <i class="fa-solid fa-chart-pie"></i>
+
+                Monthly Budget
+
+            </button>
+
+        </div>
+
+    </section>
+
+
+
+    <!-- =================================================
+         SUMMARY
+    ================================================== -->
+
+    <section class="report-summary">
+
+
+        <div class="report-summary-card income">
+
+            <span>
+                एकूण जमा
+            </span>
+
+            <strong id="reportTotalIncome">
+                ₹0.00
+            </strong>
+
+        </div>
+
+
+
+        <div class="report-summary-card expense">
+
+            <span>
+                एकूण खर्च
+            </span>
+
+            <strong id="reportTotalExpense">
+                ₹0.00
+            </strong>
+
+        </div>
+
+
+
+        <div class="report-summary-card balance">
+
+            <span>
+                Balance
+            </span>
+
+            <strong id="reportBalance">
+                ₹0.00
+            </strong>
+
+        </div>
+
+
+
+        <div class="report-summary-card">
+
+            <span>
+                Transactions
+            </span>
+
+            <strong id="reportTransactionCount">
+                0
+            </strong>
+
+        </div>
+
+
+    </section>
+
+
+
+    <!-- =================================================
+         BUDGET VS ACTUAL
+    ================================================== -->
+
+    <section
+        class="report-section"
+        id="budgetReportSection"
+    >
+
+        <div class="report-section-title">
+
+            <h3>
+
+                <i class="fa-solid fa-chart-line"></i>
+
+                Budget vs Actual
+
+            </h3>
+
+
+            <span id="budgetReportMonthText">
+                -
+            </span>
+
+        </div>
+
+
+        <div class="budget-report-summary">
+
+
+            <div class="budget-report-box">
+
+                <span>
+                    Planned Money
+                </span>
+
+                <strong id="reportPlannedMoney">
+                    ₹0.00
+                </strong>
+
+            </div>
+
+
+
+            <div class="budget-report-box">
+
+                <span>
+                    Total Budget
+                </span>
+
+                <strong id="reportTotalBudget">
+                    ₹0.00
+                </strong>
+
+            </div>
+
+
+
+            <div class="budget-report-box">
+
+                <span>
+                    Actual Expense
+                </span>
+
+                <strong id="reportBudgetActual">
+                    ₹0.00
+                </strong>
+
+            </div>
+
+
+
+            <div class="budget-report-box">
+
+                <span>
+                    Budget Remaining
+                </span>
+
+                <strong id="reportBudgetRemaining">
+                    ₹0.00
+                </strong>
+
+            </div>
+
+
+        </div>
+
+
+        <div class="budget-progress">
+
+            <div
+                id="reportBudgetProgress"
+                class="budget-progress-inner"
+            ></div>
+
+        </div>
+
+
+        <div
+            id="reportBudgetStatus"
+            style="
+                font-size:10px;
+                margin-top:7px;
+                color:var(--muted);
+            "
+        >
+
+            Budget information
+
+        </div>
+
+    </section>
+
+
+
+    <!-- =================================================
+         CATEGORY REPORT
+    ================================================== -->
+
+    <section class="report-section">
+
+        <div class="report-section-title">
+
+            <h3>
+
+                <i class="fa-solid fa-layer-group"></i>
+
+                Category-wise खर्च
+
+            </h3>
+
+
+            <span>
+                खर्चाचे वितरण
+            </span>
+
+        </div>
+
+
+        <div
+            id="categoryReportList"
+            class="category-report-list"
+        >
+
+        </div>
+
+    </section>
+
+
+
+    <!-- =================================================
+         TRANSACTIONS
+    ================================================== -->
+
+    <section class="report-section">
+
+        <div class="report-section-title">
+
+            <h3>
+
+                <i class="fa-solid fa-list"></i>
+
+                Transactions
+
+            </h3>
+
+
+            <span id="transactionReportLabel">
+                -
+            </span>
+
+        </div>
+
+
+        <div
+            id="reportTransactionsList"
+            class="report-transactions"
+        >
+
+        </div>
+
+    </section>
+
+
+</main>
+
+
+
+<!-- =====================================================
+     BOTTOM NAV
+===================================================== -->
+
+<nav class="bottom-nav">
+
+
+    <button
+        class="nav-item"
+        onclick="goHome()"
+    >
+
+        <i class="fa-solid fa-house"></i>
+
+        <span>
+            मुख्यपृष्ठ
+        </span>
+
+    </button>
+
+
+
+    <button
+        class="nav-item"
+        onclick="goToTransactions()"
+    >
+
+        <i class="fa-solid fa-list"></i>
+
+        <span>
+            व्यवहार
+        </span>
+
+    </button>
+
+
+
+    <button
+        class="nav-add"
+        onclick="openQuickAdd()"
+    >
+
+        <i class="fa-solid fa-plus"></i>
+
+    </button>
+
+
+
+    <button
+        class="nav-item"
+        onclick="goToBudget()"
+    >
+
+        <i class="fa-solid fa-chart-pie"></i>
+
+        <span>
+            Budget
+        </span>
+
+    </button>
+
+
+
+    <button
+        class="nav-item active"
+    >
+
+        <i class="fa-solid fa-file-lines"></i>
+
+        <span>
+            Reports
+        </span>
+
+    </button>
+
+
+</nav>
+
+
+
+<!-- =====================================================
+     QUICK ADD
+===================================================== -->
+
+<div
+    id="quickAddMenu"
+    class="quick-add-menu"
+    style="display:none;"
+>
+
+    <button onclick="goToIncome()">
+
+        <i class="fa-solid fa-arrow-down"></i>
+
+        जमा नोंदवा
+
+    </button>
+
+
+    <button onclick="goToExpense()">
+
+        <i class="fa-solid fa-arrow-up"></i>
+
+        खर्च नोंदवा
+
+    </button>
+
+</div>
+
+
+
+<script src="app.js"></script>
+
+<script src="reports.js"></script>
+
+
+</body>
+
+</html>
