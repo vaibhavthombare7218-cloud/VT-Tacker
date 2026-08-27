@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="mr">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <meta
+        name="theme-color"
+        content="#5b0b18"
+    >
+
+    <title>
+        Settings | रोजचा जमा खर्च अहवाल
+    </title>
+
+    <link
+        rel="stylesheet"
+        href="style.css"
+    >
+
+    <link
+        rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+    >
+
+</head>
+
+
+<body>
+
+
+<!-- =====================================================
+     HEADER
+===================================================== -->
+
+<header class="app-header">
+
+    <button
+        class="header-back"
+        onclick="goHome()"
+        aria-label="Back"
+    >
+
+        <i class="fa-solid fa-arrow-left"></i>
+
+    </button>
+
+
+    <div class="header-title">
+
+        <i class="fa-solid fa-gear"></i>
+
+        <span>
+            Settings
+        </span>
+
+    </div>
+
+
+</header>
+
+
+
+<!-- =====================================================
+     MAIN
+===================================================== -->
+
+<main class="settings-page">
+
+
+    <!-- =================================================
+         APP INFORMATION
+    ================================================== -->
+
+    <section class="settings-card">
+
+        <div class="settings-card-title">
+
+            <div class="settings-icon">
+
+                <i class="fa-solid fa-wallet"></i>
+
+            </div>
+
+            <div>
+
+                <h3>
+                    रोजचा जमा खर्च अहवाल
+                </h3>
+
+                <p>
+                    Personal Income & Expense Management
+                </p>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+
+    <!-- =================================================
+         DATA SUMMARY
+    ================================================== -->
+
+    <section class="settings-card">
+
+        <h3 class="settings-section-title">
+
+            <i class="fa-solid fa-database"></i>
+
+            Data Summary
+
+        </h3>
+
+
+        <div class="settings-summary-grid">
+
+
+            <div class="settings-summary-item">
+
+                <i class="fa-solid fa-right-left"></i>
+
+                <span>
+                    व्यवहार
+                </span>
+
+                <strong id="transactionCount">
+                    0
+                </strong>
+
+            </div>
+
+
+            <div class="settings-summary-item">
+
+                <i class="fa-solid fa-building-columns"></i>
+
+                <span>
+                    Accounts
+                </span>
+
+                <strong id="accountCount">
+                    0
+                </strong>
+
+            </div>
+
+
+            <div class="settings-summary-item">
+
+                <i class="fa-solid fa-calendar-days"></i>
+
+                <span>
+                    Monthly Budgets
+                </span>
+
+                <strong id="budgetCount">
+                    0
+                </strong>
+
+            </div>
+
+
+        </div>
+
+    </section>
+
+
+
+    <!-- =================================================
+         BACKUP
+    ================================================== -->
+
+    <section class="settings-card">
+
+        <h3 class="settings-section-title">
+
+            <i class="fa-solid fa-cloud-arrow-down"></i>
+
+            Backup & Restore
+
+        </h3>
+
+
+        <p class="settings-description">
+
+            तुमच्या जमा, खर्च, Accounts आणि Monthly Budget
+            ची सुरक्षित Backup file तयार करा.
+
+        </p>
+
+
+        <button
+            class="settings-action primary"
+            onclick="downloadBackup()"
+        >
+
+            <i class="fa-solid fa-download"></i>
+
+            <span>
+                Backup Download करा
+            </span>
+
+        </button>
+
+
+        <label
+            class="settings-action secondary"
+            for="restoreFile"
+        >
+
+            <i class="fa-solid fa-upload"></i>
+
+            <span>
+                Backup Restore करा
+            </span>
+
+        </label>
+
+
+        <input
+            type="file"
+            id="restoreFile"
+            accept=".json"
+            style="display:none"
+            onchange="restoreBackup(event)"
+        >
+
+
+        <small class="settings-hint">
+
+            Backup file सुरक्षित ठिकाणी जतन करून ठेवा.
+
+        </small>
+
+    </section>
+
+
+
+    <!-- =================================================
+         REMINDER
+    ================================================== -->
+
+    <section class="settings-card">
+
+        <h3 class="settings-section-title">
+
+            <i class="fa-solid fa-bell"></i>
+
+            Daily Expense Reminder
+
+        </h3>
+
+
+        <p class="settings-description">
+
+            रोजचा खर्च नोंदवला नसेल तर App मध्ये
+            Reminder दाखवण्यासाठी ही सुविधा वापरा.
+
+        </p>
+
+
+        <div class="setting-row">
+
+            <div>
+
+                <strong>
+                    रोज खर्च नोंदवण्याची आठवण
+                </strong>
+
+                <span>
+                    Daily reminder
+                </span>
+
+            </div>
+
+
+            <label class="switch">
+
+                <input
+                    type="checkbox"
+                    id="expenseReminder"
+                    onchange="toggleExpenseReminder()"
+                >
+
+                <span class="slider"></span>
+
+            </label>
+
+        </div>
+
+
+        <div
+            id="reminderStatus"
+            class="settings-status"
+        >
+
+            Reminder बंद आहे.
+
+        </div>
+
+    </section>
+
+
+
+    <!-- =================================================
+         DATA MANAGEMENT
+    ================================================== -->
+
+    <section class="settings-card">
+
+        <h3 class="settings-section-title">
+
+            <i class="fa-solid fa-screwdriver-wrench"></i>
+
+            Data Management
+
+        </h3>
+
+
+        <button
+            class="settings-action danger"
+            onclick="clearAllData()"
+        >
+
+            <i class="fa-solid fa-trash"></i>
+
+            <span>
+                सर्व Data Delete करा
+            </span>
+
+        </button>
+
+
+        <small class="settings-danger-note">
+
+            ⚠️ ही कृती केल्यानंतर Data परत मिळवण्यासाठी
+            Backup file आवश्यक असेल.
+
+        </small>
+
+    </section>
+
+
+
+    <!-- =================================================
+         NAVIGATION
+    ================================================== -->
+
+    <section class="settings-card">
+
+        <h3 class="settings-section-title">
+
+            <i class="fa-solid fa-compass"></i>
+
+            Quick Navigation
+
+        </h3>
+
+
+        <div class="settings-menu-grid">
+
+
+            <button
+                onclick="goToIncome()"
+            >
+
+                <i class="fa-solid fa-arrow-down"></i>
+
+                जमा
+
+            </button>
+
+
+            <button
+                onclick="goToExpense()"
+            >
+
+                <i class="fa-solid fa-arrow-up"></i>
+
+                खर्च
+
+            </button>
+
+
+            <button
+                onclick="goToAccounts()"
+            >
+
+                <i class="fa-solid fa-building-columns"></i>
+
+                Accounts
+
+            </button>
+
+
+            <button
+                onclick="goToBudget()"
+            >
+
+                <i class="fa-solid fa-chart-pie"></i>
+
+                Budget
+
+            </button>
+
+
+            <button
+                onclick="goToTransactions()"
+            >
+
+                <i class="fa-solid fa-list"></i>
+
+                व्यवहार
+
+            </button>
+
+
+            <button
+                onclick="goToReports()"
+            >
+
+                <i class="fa-solid fa-chart-column"></i>
+
+                Reports
+
+            </button>
+
+
+        </div>
+
+    </section>
+
+
+
+    <!-- =================================================
+         APP VERSION
+    ================================================== -->
+
+    <div class="settings-footer">
+
+        <i class="fa-solid fa-wallet"></i>
+
+        <strong>
+            रोजचा जमा खर्च अहवाल
+        </strong>
+
+        <span>
+            Version 1.0
+        </span>
+
+    </div>
+
+
+</main>
+
+
+
+<script src="app.js"></script>
+
+<script src="settings.js"></script>
+
+
+</body>
+
+</html>
