@@ -8,26 +8,15 @@
     <meta name="viewport"
           content="width=device-width, initial-scale=1.0">
 
-    <meta name="theme-color"
-          content="#5b0b18">
-
     <title>व्यवहार | रोजचा जमा खर्च अहवाल</title>
 
+    <!-- Main CSS -->
+    <link rel="stylesheet"
+          href="style.css">
 
     <!-- Font Awesome -->
-
-    <link
-        rel="stylesheet"
-        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
-    >
-
-
-    <!-- Main CSS -->
-
-    <link
-        rel="stylesheet"
-        href="style.css"
-    >
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 
 </head>
 
@@ -35,38 +24,44 @@
 <body>
 
 
-<!-- =====================================================
+<!-- =========================================================
      HEADER
-===================================================== -->
+========================================================= -->
 
 <header class="app-header">
 
-    <div class="header-brand">
+    <div class="header-left">
 
-        <div class="app-logo">
+        <button class="icon-btn"
+                type="button"
+                onclick="goHome()">
 
-            <i class="fa-solid fa-list-check"></i>
+            <i class="fa-solid fa-arrow-left"></i>
 
-        </div>
+        </button>
+
 
         <div>
 
-            <h1>व्यवहार</h1>
+            <h1>
+                व्यवहार
+            </h1>
 
-            <p>सर्व जमा आणि खर्च</p>
+            <p>
+                जमा आणि खर्चाची नोंद
+            </p>
 
         </div>
 
     </div>
 
 
-    <button
-        class="notification-btn"
-        onclick="goHome()"
-        title="मुख्यपृष्ठ"
-    >
+    <button class="icon-btn"
+            type="button"
+            onclick="loadTransactions()"
+            title="Refresh">
 
-        <i class="fa-solid fa-house"></i>
+        <i class="fa-solid fa-rotate"></i>
 
     </button>
 
@@ -74,97 +69,127 @@
 
 
 
-<!-- =====================================================
-     MAIN
-===================================================== -->
+<!-- =========================================================
+     MAIN CONTENT
+========================================================= -->
 
-<main class="form-container">
-
-
-    <!-- =================================================
-         PAGE INTRO
-    ================================================== -->
-
-    <section class="page-intro">
-
-        <div class="page-intro-icon transaction-intro">
-
-            <i class="fa-solid fa-arrow-right-arrow-left"></i>
-
-        </div>
+<main class="page-container">
 
 
-        <div>
-
-            <h2>सर्व व्यवहार</h2>
-
-            <p>
-                तुमचे सर्व जमा आणि खर्च येथे पहा.
-            </p>
-
-        </div>
-
-    </section>
-
-
-
-    <!-- =================================================
+    <!-- =====================================================
          SUMMARY
-    ================================================== -->
+    ====================================================== -->
 
-    <section class="transaction-summary">
-
-
-        <div class="transaction-summary-card income-summary">
-
-            <span>
-                जमा
-            </span>
-
-            <strong id="filteredIncome">
-                ₹0.00
-            </strong>
-
-        </div>
+    <section class="summary-grid">
 
 
+        <!-- Total Income -->
 
-        <div class="transaction-summary-card expense-summary-card">
+        <div class="summary-card income-card">
 
-            <span>
-                खर्च
-            </span>
+            <div class="summary-icon">
 
-            <strong id="filteredExpense">
-                ₹0.00
-            </strong>
+                <i class="fa-solid fa-arrow-down"></i>
+
+            </div>
+
+            <div>
+
+                <span>
+                    एकूण जमा
+                </span>
+
+                <strong id="transactionTotalIncome">
+                    ₹0.00
+                </strong>
+
+            </div>
 
         </div>
 
 
 
-        <div class="transaction-summary-card balance-summary">
+        <!-- Total Expense -->
 
-            <span>
-                शिल्लक फरक
-            </span>
+        <div class="summary-card expense-card">
 
-            <strong id="filteredBalance">
-                ₹0.00
-            </strong>
+            <div class="summary-icon">
+
+                <i class="fa-solid fa-arrow-up"></i>
+
+            </div>
+
+            <div>
+
+                <span>
+                    एकूण खर्च
+                </span>
+
+                <strong id="transactionTotalExpense">
+                    ₹0.00
+                </strong>
+
+            </div>
 
         </div>
+
+
+
+        <!-- Net Balance -->
+
+        <div class="summary-card balance-card">
+
+            <div class="summary-icon">
+
+                <i class="fa-solid fa-wallet"></i>
+
+            </div>
+
+            <div>
+
+                <span>
+                    शिल्लक
+                </span>
+
+                <strong id="transactionNetBalance">
+                    ₹0.00
+                </strong>
+
+            </div>
+
+        </div>
+
 
     </section>
 
 
 
-    <!-- =================================================
-         SEARCH
-    ================================================== -->
+    <!-- =====================================================
+         FILTER SECTION
+    ====================================================== -->
 
-    <section class="transaction-filter-card">
+    <section class="content-card">
 
+
+        <div class="section-title">
+
+            <div>
+
+                <h2>
+                    व्यवहार शोधा
+                </h2>
+
+                <p>
+                    तारीख, प्रकार किंवा खात्यानुसार व्यवहार पाहा
+                </p>
+
+            </div>
+
+        </div>
+
+
+
+        <!-- Search -->
 
         <div class="form-group">
 
@@ -180,7 +205,7 @@
             <input
                 type="search"
                 id="transactionSearch"
-                placeholder="Category, Note, Account..."
+                placeholder="Category, Note किंवा Account शोधा..."
                 autocomplete="off"
             >
 
@@ -188,175 +213,130 @@
 
 
 
-        <!-- =================================================
-             TYPE
-        ================================================== -->
+        <!-- Filters -->
 
-        <div class="form-group">
-
-            <label for="transactionType">
-
-                <i class="fa-solid fa-filter"></i>
-
-                व्यवहार प्रकार
-
-            </label>
+        <div class="form-grid">
 
 
-            <select id="transactionType">
+            <!-- Type -->
 
-                <option value="all">
-                    सर्व व्यवहार
-                </option>
+            <div class="form-group">
 
-                <option value="income">
-                    फक्त जमा
-                </option>
+                <label for="transactionType">
 
-                <option value="expense">
-                    फक्त खर्च
-                </option>
+                    व्यवहार प्रकार
 
-            </select>
+                </label>
+
+
+                <select id="transactionType">
+
+                    <option value="all">
+                        सर्व व्यवहार
+                    </option>
+
+                    <option value="income">
+                        जमा
+                    </option>
+
+                    <option value="expense">
+                        खर्च
+                    </option>
+
+                </select>
+
+            </div>
+
+
+
+            <!-- Account -->
+
+            <div class="form-group">
+
+                <label for="transactionAccount">
+
+                    खाते
+
+                </label>
+
+
+                <select id="transactionAccount">
+
+                    <option value="all">
+                        सर्व खाती
+                    </option>
+
+                </select>
+
+            </div>
+
+
+
+            <!-- Month -->
+
+            <div class="form-group">
+
+                <label for="transactionMonth">
+
+                    महिना
+
+                </label>
+
+
+                <input
+                    type="month"
+                    id="transactionMonth"
+                >
+
+            </div>
+
+
+
+            <!-- Date -->
+
+            <div class="form-group">
+
+                <label for="transactionDate">
+
+                    तारीख
+
+                </label>
+
+
+                <input
+                    type="date"
+                    id="transactionDate"
+                >
+
+            </div>
+
 
         </div>
 
 
 
-        <!-- =================================================
-             MONTH
-        ================================================== -->
+        <!-- Filter Buttons -->
 
-        <div class="form-group">
-
-            <label for="transactionMonth">
-
-                <i class="fa-solid fa-calendar-days"></i>
-
-                महिना
-
-            </label>
-
-
-            <input
-                type="month"
-                id="transactionMonth"
-            >
-
-        </div>
-
-
-
-        <!-- =================================================
-             DATE
-        ================================================== -->
-
-        <div class="form-group">
-
-            <label for="transactionDate">
-
-                <i class="fa-solid fa-calendar"></i>
-
-                विशिष्ट तारीख
-
-            </label>
-
-
-            <input
-                type="date"
-                id="transactionDate"
-            >
-
-        </div>
-
-
-
-        <!-- =================================================
-             ACCOUNT
-        ================================================== -->
-
-        <div class="form-group">
-
-            <label for="transactionAccount">
-
-                <i class="fa-solid fa-wallet"></i>
-
-                Account
-
-            </label>
-
-
-            <select id="transactionAccount">
-
-                <option value="all">
-
-                    सर्व Accounts
-
-                </option>
-
-            </select>
-
-        </div>
-
-
-
-        <!-- =================================================
-             CATEGORY
-        ================================================== -->
-
-        <div class="form-group">
-
-            <label for="transactionCategory">
-
-                <i class="fa-solid fa-layer-group"></i>
-
-                Category
-
-            </label>
-
-
-            <select id="transactionCategory">
-
-                <option value="all">
-
-                    सर्व Categories
-
-                </option>
-
-            </select>
-
-        </div>
-
-
-
-        <!-- =================================================
-             FILTER BUTTONS
-        ================================================== -->
-
-        <div class="transaction-filter-actions">
-
+        <div class="filter-actions">
 
             <button
                 type="button"
-                class="apply-filter-btn"
-                onclick="applyTransactionFilters()"
-            >
+                class="btn btn-primary"
+                onclick="applyTransactionFilters()">
 
                 <i class="fa-solid fa-filter"></i>
 
-                Filter लागू करा
+                Filter
 
             </button>
 
 
-
             <button
                 type="button"
-                class="clear-filter-btn"
-                onclick="clearTransactionFilters()"
-            >
+                class="btn btn-secondary"
+                onclick="clearTransactionFilters()">
 
-                <i class="fa-solid fa-rotate-left"></i>
+                <i class="fa-solid fa-xmark"></i>
 
                 Clear
 
@@ -364,76 +344,115 @@
 
         </div>
 
-
     </section>
 
 
 
-    <!-- =================================================
-         RESULT COUNT
-    ================================================== -->
+    <!-- =====================================================
+         TRANSACTION COUNT
+    ====================================================== -->
 
-    <section class="transaction-result-header">
+    <div class="transaction-list-header">
 
         <div>
 
-            <h3>
-
-                <i class="fa-solid fa-list"></i>
-
+            <h2>
                 व्यवहार यादी
+            </h2>
 
-            </h3>
+            <span id="transactionCount">
+                0 व्यवहार
+            </span>
 
         </div>
 
 
-        <span id="transactionCount">
+        <button
+            type="button"
+            class="btn btn-primary"
+            onclick="goToIncome()">
 
-            0 व्यवहार
+            <i class="fa-solid fa-plus"></i>
 
-        </span>
+            जमा नोंदवा
 
-    </section>
-
-
-
-    <!-- =================================================
-         TRANSACTIONS LIST
-    ================================================== -->
-
-    <section
-        id="transactionsList"
-        class="transactions-list"
-    >
-
-        <!-- Transactions dynamically loaded -->
-
-    </section>
+        </button>
 
 
+        <button
+            type="button"
+            class="btn btn-danger"
+            onclick="goToExpense()">
 
-    <!-- =================================================
-         EMPTY STATE
-    ================================================== -->
+            <i class="fa-solid fa-minus"></i>
 
-    <section
-        id="emptyTransactions"
-        class="empty-transactions"
-        style="display:none;"
-    >
+            खर्च नोंदवा
 
-        <i class="fa-solid fa-receipt"></i>
+        </button>
 
-
-        <h3>
-            कोणतेही व्यवहार सापडले नाहीत
-        </h3>
+    </div>
 
 
-        <p>
-            Filter बदलून पुन्हा प्रयत्न करा.
-        </p>
+
+    <!-- =====================================================
+         TRANSACTION LIST
+    ====================================================== -->
+
+    <section class="transaction-list"
+             id="transactionsList">
+
+
+        <!-- Empty State -->
+
+        <div class="empty-state"
+             id="emptyTransactionState">
+
+            <div class="empty-icon">
+
+                <i class="fa-solid fa-receipt"></i>
+
+            </div>
+
+
+            <h3>
+                अजून कोणताही व्यवहार नाही
+            </h3>
+
+
+            <p>
+                जमा किंवा खर्चाची पहिली नोंद करा.
+            </p>
+
+
+            <div class="empty-actions">
+
+                <button
+                    type="button"
+                    class="btn btn-primary"
+                    onclick="goToIncome()">
+
+                    <i class="fa-solid fa-arrow-down"></i>
+
+                    जमा नोंदवा
+
+                </button>
+
+
+                <button
+                    type="button"
+                    class="btn btn-danger"
+                    onclick="goToExpense()">
+
+                    <i class="fa-solid fa-arrow-up"></i>
+
+                    खर्च नोंदवा
+
+                </button>
+
+            </div>
+
+        </div>
+
 
     </section>
 
@@ -442,31 +461,131 @@
 
 
 
-<!-- =====================================================
+<!-- =========================================================
+     DELETE CONFIRMATION MODAL
+========================================================= -->
+
+<div class="modal-overlay"
+     id="deleteTransactionModal"
+     style="display:none;">
+
+
+    <div class="modal-card">
+
+
+        <div class="modal-icon">
+
+            <i class="fa-solid fa-trash"></i>
+
+        </div>
+
+
+        <h3>
+            व्यवहार Delete करायचा?
+        </h3>
+
+
+        <p id="deleteTransactionMessage">
+
+            हा व्यवहार कायमचा delete होईल.
+
+        </p>
+
+
+        <div class="modal-actions">
+
+
+            <button
+                type="button"
+                class="btn btn-secondary"
+                onclick="closeDeleteModal()">
+
+                Cancel
+
+            </button>
+
+
+            <button
+                type="button"
+                class="btn btn-danger"
+                onclick="confirmDeleteTransaction()">
+
+                <i class="fa-solid fa-trash"></i>
+
+                Delete
+
+            </button>
+
+
+        </div>
+
+
+    </div>
+
+</div>
+
+
+
+<!-- =========================================================
      BOTTOM NAVIGATION
-===================================================== -->
+========================================================= -->
 
 <nav class="bottom-nav">
 
 
-    <button
-        class="nav-item"
-        onclick="goHome()"
-    >
+    <!-- Home -->
+
+    <button class="nav-item"
+            type="button"
+            onclick="goHome()">
 
         <i class="fa-solid fa-house"></i>
 
         <span>
-            मुख्यपृष्ठ
+            होम
         </span>
 
     </button>
 
 
 
-    <button
-        class="nav-item active"
-    >
+    <!-- Income -->
+
+    <button class="nav-item"
+            type="button"
+            onclick="goToIncome()">
+
+        <i class="fa-solid fa-arrow-down"></i>
+
+        <span>
+            जमा
+        </span>
+
+    </button>
+
+
+
+    <!-- Expense -->
+
+    <button class="nav-item"
+            type="button"
+            onclick="goToExpense()">
+
+        <i class="fa-solid fa-arrow-up"></i>
+
+        <span>
+            खर्च
+        </span>
+
+    </button>
+
+
+
+    <!-- Transactions -->
+
+    <button class="nav-item active"
+            type="button"
+            onclick="goToTransactions()">
 
         <i class="fa-solid fa-list"></i>
 
@@ -478,41 +597,16 @@
 
 
 
-    <button
-        class="nav-add"
-        onclick="openQuickAdd()"
-    >
+    <!-- Budget -->
 
-        <i class="fa-solid fa-plus"></i>
-
-    </button>
-
-
-
-    <button
-        class="nav-item"
-        onclick="goToReports()"
-    >
+    <button class="nav-item"
+            type="button"
+            onclick="goToBudget()">
 
         <i class="fa-solid fa-chart-pie"></i>
 
         <span>
-            अहवाल
-        </span>
-
-    </button>
-
-
-
-    <button
-        class="nav-item"
-        onclick="goToSettings()"
-    >
-
-        <i class="fa-solid fa-gear"></i>
-
-        <span>
-            सेटिंग
+            Budget
         </span>
 
     </button>
@@ -522,49 +616,16 @@
 
 
 
-<!-- =====================================================
-     QUICK ADD MENU
-===================================================== -->
-
-<div
-    id="quickAddMenu"
-    class="quick-add-menu"
-    style="display:none;"
->
-
-
-    <button
-        onclick="goToIncome()"
-    >
-
-        <i class="fa-solid fa-arrow-down"></i>
-
-        जमा नोंदवा
-
-    </button>
-
-
-
-    <button
-        onclick="goToExpense()"
-    >
-
-        <i class="fa-solid fa-arrow-up"></i>
-
-        खर्च नोंदवा
-
-    </button>
-
-
-</div>
-
-
-
-<!-- =====================================================
-     JAVASCRIPT
-===================================================== -->
+<!-- =========================================================
+     APP JS
+========================================================= -->
 
 <script src="app.js"></script>
+
+
+<!-- =========================================================
+     TRANSACTIONS JS
+========================================================= -->
 
 <script src="transactions.js"></script>
 
