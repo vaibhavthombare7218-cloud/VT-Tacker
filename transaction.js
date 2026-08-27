@@ -2,28 +2,31 @@
    transactions.js
 
    रोजचा जमा खर्च अहवाल
-   TRANSACTIONS MANAGEMENT
+   TRANSACTION MANAGEMENT
 
-   Connected with:
+   CONNECTED WITH:
    - app.js
    - income.js
    - expense.js
    - accounts.js
+   - monthly-budget.js
 
-   Features:
-   - All transactions
-   - Search
-   - Income / Expense filter
-   - Month filter
-   - Date filter
-   - Account filter
-   - Category filter
-   - Total Income
-   - Total Expense
-   - Net Balance
-   - Edit
-   - Delete
+   STORAGE:
+   - rdkh_transactions
+   - rdkh_accounts
 ========================================================= */
+
+
+/* =========================================================
+   GLOBAL VARIABLES
+========================================================= */
+
+let transactionList = [];
+
+let transactionToDelete = null;
+
+let transactionToEdit = null;
+
 
 
 /* =========================================================
@@ -34,7 +37,15 @@ document.addEventListener(
     "DOMContentLoaded",
     function () {
 
-        initializeTransactionsPage();
+        initializeAccounts();
+
+        loadTransactionAccounts();
+
+        setDefaultTransactionMonth();
+
+        setupTransactionEvents();
+
+        loadTransactions();
 
     }
 );
@@ -42,18 +53,22 @@ document.addEventListener(
 
 
 /* =========================================================
-   INITIALIZE
+   LOAD TRANSACTIONS
 ========================================================= */
 
-function initializeTransactionsPage() {
+function loadTransactions() {
 
-    loadTransactionAccounts();
+    const transactions =
+        getTransactions();
 
-    loadTransactionCategories();
 
-    setupTransactionFilters();
+    transactionList =
+        Array.isArray(transactions)
+            ? [...transactions]
+            : [];
 
-    renderTransactions();
+
+    applyTransactionFilters();
 
 }
 
@@ -79,22 +94,20 @@ function loadTransactionAccounts() {
 
 
     const currentValue =
-        select.value || "all";
-
-
-    const accounts =
-        typeof getAccounts === "function"
-            ? getAccounts()
-            : [];
+        select.value;
 
 
     select.innerHTML = `
 
         <option value="all">
-            सर्व Accounts
+            सर्व खाती
         </option>
 
     `;
+
+
+    const accounts =
+        getAccounts();
 
 
     accounts.forEach(
@@ -123,9 +136,8 @@ function loadTransactionAccounts() {
 
 
     if (
-        Array.from(
-            select.options
-        ).some(
+        currentValue &&
+        [...select.options].some(
             option =>
                 option.value ===
                 currentValue
@@ -142,113 +154,41 @@ function loadTransactionAccounts() {
 
 
 /* =========================================================
-   LOAD CATEGORIES
+   DEFAULT MONTH
 ========================================================= */
 
-function loadTransactionCategories() {
+function setDefaultTransactionMonth() {
 
-    const select =
+    const month =
         document.getElementById(
-            "transactionCategory"
+            "transactionMonth"
         );
 
 
-    if (!select) {
+    if (!month) {
 
         return;
 
     }
 
 
-    const currentValue =
-        select.value || "all";
+    /*
+       सुरुवातीला current month दाखवू.
+    */
 
-
-    const transactions =
-        getTransactions();
-
-
-    const categories =
-        new Set();
-
-
-    transactions.forEach(
-        transaction => {
-
-            if (
-                transaction.category
-            ) {
-
-                categories.add(
-                    transaction.category
-                );
-
-            }
-
-        }
-    );
-
-
-    select.innerHTML = `
-
-        <option value="all">
-            सर्व Categories
-        </option>
-
-    `;
-
-
-    Array.from(categories)
-        .sort()
-        .forEach(
-            category => {
-
-                const option =
-                    document.createElement(
-                        "option"
-                    );
-
-
-                option.value =
-                    category;
-
-
-                option.textContent =
-                    category;
-
-
-                select.appendChild(
-                    option
-                );
-
-            }
-        );
-
-
-    if (
-        Array.from(
-            select.options
-        ).some(
-            option =>
-                option.value ===
-                currentValue
-        )
-    ) {
-
-        select.value =
-            currentValue;
-
-    }
+    month.value =
+        getCurrentMonth();
 
 }
 
 
 
 /* =========================================================
-   SETUP FILTERS
+   EVENT SETUP
 ========================================================= */
 
-function setupTransactionFilters() {
+function setupTransactionEvents() {
+
 
     const search =
         document.getElementById(
@@ -259,6 +199,12 @@ function setupTransactionFilters() {
     const type =
         document.getElementById(
             "transactionType"
+        );
+
+
+    const account =
+        document.getElementById(
+            "transactionAccount"
         );
 
 
@@ -274,29 +220,13 @@ function setupTransactionFilters() {
         );
 
 
-    const account =
-        document.getElementById(
-            "transactionAccount"
-        );
-
-
-    const category =
-        document.getElementById(
-            "transactionCategory"
-        );
-
-
-    /*
-       Search instantly updates results.
-    */
-
     if (search) {
 
         search.addEventListener(
             "input",
             function () {
 
-                renderTransactions();
+                applyTransactionFilters();
 
             }
         );
@@ -304,38 +234,86 @@ function setupTransactionFilters() {
     }
 
 
-    /*
-       Dropdown/date filters
-    */
+    if (type) {
 
-    [
-        type,
-        month,
-        date,
-        account,
-        category
+        type.addEventListener(
+            "change",
+            function () {
 
-    ].forEach(
-        element => {
-
-            if (!element) {
-
-                return;
+                applyTransactionFilters();
 
             }
+        );
+
+    }
 
 
-            element.addEventListener(
-                "change",
-                function () {
+    if (account) {
 
-                    renderTransactions();
+        account.addEventListener(
+            "change",
+            function () {
+
+                applyTransactionFilters();
+
+            }
+        );
+
+    }
+
+
+    if (month) {
+
+        month.addEventListener(
+            "change",
+            function () {
+
+                /*
+                   Month निवडल्यास
+                   specific date clear करा.
+                */
+
+                if (date) {
+
+                    date.value =
+                        "";
 
                 }
-            );
 
-        }
-    );
+
+                applyTransactionFilters();
+
+            }
+        );
+
+    }
+
+
+    if (date) {
+
+        date.addEventListener(
+            "change",
+            function () {
+
+                /*
+                   Specific date निवडल्यास
+                   month filter clear करा.
+                */
+
+                if (month) {
+
+                    month.value =
+                        "";
+
+                }
+
+
+                applyTransactionFilters();
+
+            }
+        );
+
+    }
 
 }
 
@@ -347,7 +325,1058 @@ function setupTransactionFilters() {
 
 function applyTransactionFilters() {
 
-    renderTransactions();
+    const searchInput =
+        document.getElementById(
+            "transactionSearch"
+        );
+
+
+    const typeInput =
+        document.getElementById(
+            "transactionType"
+        );
+
+
+    const accountInput =
+        document.getElementById(
+            "transactionAccount"
+        );
+
+
+    const monthInput =
+        document.getElementById(
+            "transactionMonth"
+        );
+
+
+    const dateInput =
+        document.getElementById(
+            "transactionDate"
+        );
+
+
+    const search =
+        (
+            searchInput?.value ||
+            ""
+        )
+            .trim()
+            .toLowerCase();
+
+
+    const selectedType =
+        typeInput?.value ||
+        "all";
+
+
+    const selectedAccount =
+        accountInput?.value ||
+        "all";
+
+
+    const selectedMonth =
+        monthInput?.value ||
+        "";
+
+
+    const selectedDate =
+        dateInput?.value ||
+        "";
+
+
+
+    const filtered =
+        transactionList.filter(
+            transaction => {
+
+
+                /* --------------------------------
+                   TYPE
+                -------------------------------- */
+
+                if (
+                    selectedType !==
+                    "all"
+                ) {
+
+                    if (
+                        transaction.type !==
+                        selectedType
+                    ) {
+
+                        return false;
+
+                    }
+
+                }
+
+
+
+                /* --------------------------------
+                   ACCOUNT
+                -------------------------------- */
+
+                if (
+                    selectedAccount !==
+                    "all"
+                ) {
+
+                    if (
+                        transaction.accountId !==
+                        selectedAccount
+                    ) {
+
+                        return false;
+
+                    }
+
+                }
+
+
+
+                /* --------------------------------
+                   MONTH
+                -------------------------------- */
+
+                if (
+                    selectedMonth
+                ) {
+
+                    const date =
+                        normalizeTransactionDate(
+                            transaction.date
+                        );
+
+
+                    if (
+                        !date.startsWith(
+                            selectedMonth
+                        )
+                    ) {
+
+                        return false;
+
+                    }
+
+                }
+
+
+
+                /* --------------------------------
+                   DATE
+                -------------------------------- */
+
+                if (
+                    selectedDate
+                ) {
+
+                    const date =
+                        normalizeTransactionDate(
+                            transaction.date
+                        );
+
+
+                    if (
+                        date !==
+                        selectedDate
+                    ) {
+
+                        return false;
+
+                    }
+
+                }
+
+
+
+                /* --------------------------------
+                   SEARCH
+                -------------------------------- */
+
+                if (
+                    search
+                ) {
+
+                    const accountName =
+                        getAccountName(
+                            transaction.accountId
+                        );
+
+
+                    const searchableText = [
+
+                        transaction.category,
+
+                        transaction.note,
+
+                        transaction.paymentMode,
+
+                        accountName,
+
+                        transaction.type,
+
+                        transaction.date,
+
+                        transaction.amount
+
+                    ]
+                        .map(
+                            value =>
+                                String(
+                                    value ?? ""
+                                )
+                                    .toLowerCase()
+                        )
+                        .join(" ");
+
+
+                    if (
+                        !searchableText.includes(
+                            search
+                        )
+                    ) {
+
+                        return false;
+
+                    }
+
+                }
+
+
+                return true;
+
+            }
+        );
+
+
+    renderTransactions(
+        filtered
+    );
+
+
+    updateTransactionSummary(
+        filtered
+    );
+
+}
+
+
+
+/* =========================================================
+   RENDER TRANSACTIONS
+========================================================= */
+
+function renderTransactions(
+    transactions
+) {
+
+    const container =
+        document.getElementById(
+            "transactionsList"
+        );
+
+
+    const emptyState =
+        document.getElementById(
+            "emptyTransactionState"
+        );
+
+
+    if (!container) {
+
+        return;
+
+    }
+
+
+
+    /*
+       Remove old transaction items
+       पण empty state ठेवायची.
+    */
+
+    const oldItems =
+        container.querySelectorAll(
+            ".transaction-record"
+        );
+
+
+    oldItems.forEach(
+        item => {
+
+            item.remove();
+
+        }
+    );
+
+
+
+    /*
+       No transactions
+    */
+
+    if (
+        !transactions ||
+        transactions.length === 0
+    ) {
+
+        if (emptyState) {
+
+            emptyState.style.display =
+                "block";
+
+        }
+
+
+        updateTransactionCount(
+            0
+        );
+
+
+        return;
+
+    }
+
+
+    if (emptyState) {
+
+        emptyState.style.display =
+            "none";
+
+    }
+
+
+
+    /*
+       Sort:
+       नवीन व्यवहार प्रथम
+    */
+
+    const sorted =
+        [...transactions]
+            .sort(
+                sortTransactions
+            );
+
+
+
+    sorted.forEach(
+        transaction => {
+
+            const element =
+                createTransactionElement(
+                    transaction
+                );
+
+
+            container.appendChild(
+                element
+            );
+
+        }
+    );
+
+
+    updateTransactionCount(
+        sorted.length
+    );
+
+}
+
+
+
+/* =========================================================
+   SORT TRANSACTIONS
+========================================================= */
+
+function sortTransactions(
+    a,
+    b
+) {
+
+    const dateA =
+        normalizeTransactionDate(
+            a.date
+        );
+
+
+    const dateB =
+        normalizeTransactionDate(
+            b.date
+        );
+
+
+    if (
+        dateA !==
+        dateB
+    ) {
+
+        return dateB.localeCompare(
+            dateA
+        );
+
+    }
+
+
+    const createdA =
+        new Date(
+            a.createdAt || 0
+        ).getTime();
+
+
+    const createdB =
+        new Date(
+            b.createdAt || 0
+        ).getTime();
+
+
+    return createdB -
+        createdA;
+
+}
+
+
+
+/* =========================================================
+   CREATE TRANSACTION CARD
+========================================================= */
+
+function createTransactionElement(
+    transaction
+) {
+
+    const item =
+        document.createElement(
+            "div"
+        );
+
+
+    item.className =
+        "transaction-record";
+
+
+    item.dataset.id =
+        transaction.id;
+
+
+
+    const isIncome =
+        transaction.type ===
+        "income";
+
+
+    const typeText =
+        isIncome
+            ? "जमा"
+            : "खर्च";
+
+
+    const accountName =
+        getAccountName(
+            transaction.accountId
+        );
+
+
+    const amount =
+        Number(
+            transaction.amount
+        ) || 0;
+
+
+
+    item.innerHTML = `
+
+        <div class="transaction-record-icon
+                    ${isIncome
+                        ? "income"
+                        : "expense"}">
+
+            <i class="fa-solid
+                ${isIncome
+                    ? "fa-arrow-down"
+                    : "fa-arrow-up"}">
+            </i>
+
+        </div>
+
+
+        <div class="transaction-record-main">
+
+            <div class="transaction-record-title">
+
+                <strong>
+
+                    ${escapeTransactionHTML(
+                        transaction.category ||
+                        typeText
+                    )}
+
+                </strong>
+
+                <span class="
+                    transaction-type-badge
+                    ${isIncome
+                        ? "income-badge"
+                        : "expense-badge"}
+                ">
+
+                    ${typeText}
+
+                </span>
+
+            </div>
+
+
+            <div class="transaction-record-info">
+
+                <span>
+
+                    <i class="fa-regular fa-calendar"></i>
+
+                    ${formatTransactionDate(
+                        transaction.date
+                    )}
+
+                </span>
+
+
+                <span>
+
+                    <i class="fa-solid fa-wallet"></i>
+
+                    ${escapeTransactionHTML(
+                        accountName
+                    )}
+
+                </span>
+
+
+                ${
+                    transaction.paymentMode
+                        ? `
+                            <span>
+
+                                <i class="fa-solid fa-credit-card"></i>
+
+                                ${escapeTransactionHTML(
+                                    transaction.paymentMode
+                                )}
+
+                            </span>
+                          `
+                        : ""
+                }
+
+            </div>
+
+
+            ${
+                transaction.note
+                    ? `
+                        <div class="transaction-record-note">
+
+                            <i class="fa-regular fa-note-sticky"></i>
+
+                            ${escapeTransactionHTML(
+                                transaction.note
+                            )}
+
+                        </div>
+                      `
+                    : ""
+            }
+
+        </div>
+
+
+        <div class="transaction-record-right">
+
+            <strong class="
+                transaction-record-amount
+                ${isIncome
+                    ? "income-amount"
+                    : "expense-amount"}
+            ">
+
+                ${isIncome ? "+" : "-"}
+
+                ${formatMoney(
+                    amount
+                )}
+
+            </strong>
+
+
+            <div class="transaction-record-actions">
+
+                <button
+                    type="button"
+                    class="transaction-edit-btn"
+                    onclick="editTransaction(
+                        '${escapeAttribute(
+                            transaction.id
+                        )}'
+                    )"
+                    title="Edit">
+
+                    <i class="fa-solid fa-pen"></i>
+
+                </button>
+
+
+                <button
+                    type="button"
+                    class="transaction-delete-btn"
+                    onclick="deleteTransaction(
+                        '${escapeAttribute(
+                            transaction.id
+                        )}'
+                    )"
+                    title="Delete">
+
+                    <i class="fa-solid fa-trash"></i>
+
+                </button>
+
+            </div>
+
+        </div>
+
+    `;
+
+
+    return item;
+
+}
+
+
+
+/* =========================================================
+   TRANSACTION SUMMARY
+========================================================= */
+
+function updateTransactionSummary(
+    transactions
+) {
+
+    let totalIncome =
+        0;
+
+
+    let totalExpense =
+        0;
+
+
+    (transactions || []).forEach(
+        transaction => {
+
+            const amount =
+                Number(
+                    transaction.amount
+                ) || 0;
+
+
+            if (
+                transaction.type ===
+                "income"
+            ) {
+
+                totalIncome +=
+                    amount;
+
+            }
+
+
+            else if (
+                transaction.type ===
+                "expense"
+            ) {
+
+                totalExpense +=
+                    amount;
+
+            }
+
+        }
+    );
+
+
+    const netBalance =
+        totalIncome -
+        totalExpense;
+
+
+
+    setTransactionText(
+        "transactionTotalIncome",
+        formatMoney(
+            totalIncome
+        )
+    );
+
+
+    setTransactionText(
+        "transactionTotalExpense",
+        formatMoney(
+            totalExpense
+        )
+    );
+
+
+    setTransactionText(
+        "transactionNetBalance",
+        formatMoney(
+            netBalance
+        )
+    );
+
+
+    const balanceElement =
+        document.getElementById(
+            "transactionNetBalance"
+        );
+
+
+    if (balanceElement) {
+
+        balanceElement.style.color =
+            netBalance >= 0
+                ? "var(--income)"
+                : "var(--expense)";
+
+    }
+
+}
+
+
+
+/* =========================================================
+   TRANSACTION COUNT
+========================================================= */
+
+function updateTransactionCount(
+    count
+) {
+
+    const element =
+        document.getElementById(
+            "transactionCount"
+        );
+
+
+    if (!element) {
+
+        return;
+
+    }
+
+
+    element.textContent =
+        count +
+        (
+            count === 1
+                ? " व्यवहार"
+                : " व्यवहार"
+        );
+
+}
+
+
+
+/* =========================================================
+   EDIT TRANSACTION
+========================================================= */
+
+function editTransaction(
+    transactionId
+) {
+
+    const transaction =
+        transactionList.find(
+            item =>
+                String(item.id) ===
+                String(transactionId)
+        );
+
+
+    if (!transaction) {
+
+        alert(
+            "व्यवहार सापडला नाही."
+        );
+
+        return;
+
+    }
+
+
+    /*
+       Existing income/expense pages मध्ये
+       edit करण्यासाठी त्या page वर घेऊन जाऊ.
+    */
+
+    transactionToEdit =
+        transaction;
+
+
+
+    /*
+       Data sessionStorage मध्ये ठेवतो.
+       Income/Expense page पुढे edit mode मध्ये
+       वापरू शकते.
+    */
+
+    try {
+
+        sessionStorage.setItem(
+            "rdkh_edit_transaction",
+            JSON.stringify(
+                transaction
+            )
+        );
+
+    }
+
+    catch (error) {
+
+        console.error(
+            "Edit storage error:",
+            error
+        );
+
+    }
+
+
+
+    if (
+        transaction.type ===
+        "income"
+    ) {
+
+        window.location.href =
+            "income.html?edit=" +
+            encodeURIComponent(
+                transaction.id
+            );
+
+    }
+
+    else {
+
+        window.location.href =
+            "expense.html?edit=" +
+            encodeURIComponent(
+                transaction.id
+            );
+
+    }
+
+}
+
+
+
+/* =========================================================
+   DELETE TRANSACTION
+========================================================= */
+
+function deleteTransaction(
+    transactionId
+) {
+
+    const transaction =
+        transactionList.find(
+            item =>
+                String(item.id) ===
+                String(transactionId)
+        );
+
+
+    if (!transaction) {
+
+        alert(
+            "व्यवहार सापडला नाही."
+        );
+
+        return;
+
+    }
+
+
+    transactionToDelete =
+        transaction;
+
+
+
+    const message =
+        document.getElementById(
+            "deleteTransactionMessage"
+        );
+
+
+    if (message) {
+
+        const type =
+            transaction.type ===
+            "income"
+                ? "जमा"
+                : "खर्च";
+
+
+        message.textContent =
+            `${type} ${formatMoney(
+                transaction.amount
+            )} चा व्यवहार delete करायचा आहे का?`;
+
+    }
+
+
+
+    const modal =
+        document.getElementById(
+            "deleteTransactionModal"
+        );
+
+
+    if (modal) {
+
+        modal.style.display =
+            "flex";
+
+    }
+
+}
+
+
+
+/* =========================================================
+   CLOSE DELETE MODAL
+========================================================= */
+
+function closeDeleteModal() {
+
+    transactionToDelete =
+        null;
+
+
+    const modal =
+        document.getElementById(
+            "deleteTransactionModal"
+        );
+
+
+    if (modal) {
+
+        modal.style.display =
+            "none";
+
+    }
+
+}
+
+
+
+/* =========================================================
+   CONFIRM DELETE
+========================================================= */
+
+function confirmDeleteTransaction() {
+
+    if (
+        !transactionToDelete
+    ) {
+
+        closeDeleteModal();
+
+        return;
+
+    }
+
+
+    const deleteId =
+        transactionToDelete.id;
+
+
+    const transactions =
+        getTransactions();
+
+
+    const updatedTransactions =
+        transactions.filter(
+            transaction =>
+                String(
+                    transaction.id
+                ) !==
+                String(
+                    deleteId
+                )
+        );
+
+
+    const saved =
+        saveTransactions(
+            updatedTransactions
+        );
+
+
+    if (!saved) {
+
+        alert(
+            "व्यवहार delete करताना समस्या आली."
+        );
+
+        return;
+
+    }
+
+
+
+    /*
+       Local list update
+    */
+
+    transactionList =
+        [...updatedTransactions];
+
+
+    closeDeleteModal();
+
+
+    /*
+       Refresh screen
+    */
+
+    applyTransactionFilters();
+
+
+
+    /*
+       Dashboard refresh
+    */
+
+    if (
+        typeof updateDashboard ===
+        "function"
+    ) {
+
+        updateDashboard();
+
+    }
+
+
+
+    /*
+       Custom event
+       Budget page / other modules
+       refresh करू शकतात.
+    */
+
+    dispatchTransactionsUpdated();
+
+
+
+    alert(
+        "व्यवहार यशस्वीपणे delete केला आहे."
+    );
 
 }
 
@@ -371,6 +1400,12 @@ function clearTransactionFilters() {
         );
 
 
+    const account =
+        document.getElementById(
+            "transactionAccount"
+        );
+
+
     const month =
         document.getElementById(
             "transactionMonth"
@@ -380,18 +1415,6 @@ function clearTransactionFilters() {
     const date =
         document.getElementById(
             "transactionDate"
-        );
-
-
-    const account =
-        document.getElementById(
-            "transactionAccount"
-        );
-
-
-    const category =
-        document.getElementById(
-            "transactionCategory"
         );
 
 
@@ -406,6 +1429,14 @@ function clearTransactionFilters() {
     if (type) {
 
         type.value =
+            "all";
+
+    }
+
+
+    if (account) {
+
+        account.value =
             "all";
 
     }
@@ -427,684 +1458,7 @@ function clearTransactionFilters() {
     }
 
 
-    if (account) {
-
-        account.value =
-            "all";
-
-    }
-
-
-    if (category) {
-
-        category.value =
-            "all";
-
-    }
-
-
-    renderTransactions();
-
-}
-
-
-
-/* =========================================================
-   GET FILTERED TRANSACTIONS
-========================================================= */
-
-function getFilteredTransactions() {
-
-    const transactions =
-        getTransactions();
-
-
-    const search =
-        (
-            document.getElementById(
-                "transactionSearch"
-            )?.value || ""
-        )
-            .trim()
-            .toLowerCase();
-
-
-    const type =
-        document.getElementById(
-            "transactionType"
-        )?.value || "all";
-
-
-    const month =
-        document.getElementById(
-            "transactionMonth"
-        )?.value || "";
-
-
-    const date =
-        document.getElementById(
-            "transactionDate"
-        )?.value || "";
-
-
-    const account =
-        document.getElementById(
-            "transactionAccount"
-        )?.value || "all";
-
-
-    const category =
-        document.getElementById(
-            "transactionCategory"
-        )?.value || "all";
-
-
-    return transactions
-        .filter(
-            transaction => {
-
-
-                /* =========================================
-                   TYPE
-                ========================================= */
-
-                if (
-                    type !== "all" &&
-                    transaction.type !== type
-                ) {
-
-                    return false;
-
-                }
-
-
-
-                /* =========================================
-                   MONTH
-                ========================================= */
-
-                if (month) {
-
-                    if (
-                        !transaction.date ||
-                        !transaction.date.startsWith(
-                            month
-                        )
-                    ) {
-
-                        return false;
-
-                    }
-
-                }
-
-
-
-                /* =========================================
-                   SPECIFIC DATE
-                ========================================= */
-
-                if (date) {
-
-                    if (
-                        transaction.date !==
-                        date
-                    ) {
-
-                        return false;
-
-                    }
-
-                }
-
-
-
-                /* =========================================
-                   ACCOUNT
-                ========================================= */
-
-                if (
-                    account !== "all" &&
-                    transaction.accountId !==
-                    account
-                ) {
-
-                    return false;
-
-                }
-
-
-
-                /* =========================================
-                   CATEGORY
-                ========================================= */
-
-                if (
-                    category !== "all" &&
-                    transaction.category !==
-                    category
-                ) {
-
-                    return false;
-
-                }
-
-
-
-                /* =========================================
-                   SEARCH
-                ========================================= */
-
-                if (search) {
-
-                    const searchableText = [
-
-                        transaction.category,
-
-                        transaction.note,
-
-                        transaction.paymentMode,
-
-                        transaction.type,
-
-                        getAccountName(
-                            transaction.accountId
-                        )
-
-                    ]
-                        .filter(Boolean)
-                        .join(" ")
-                        .toLowerCase();
-
-
-                    if (
-                        !searchableText.includes(
-                            search
-                        )
-                    ) {
-
-                        return false;
-
-                    }
-
-                }
-
-
-                return true;
-
-            }
-        )
-
-        /*
-           Newest transaction first
-        */
-
-        .sort(
-            function (a, b) {
-
-                const dateA =
-                    new Date(
-                        a.date +
-                        "T" +
-                        (
-                            a.createdAt
-                                ? new Date(
-                                    a.createdAt
-                                ).toTimeString()
-                                    .slice(0, 8)
-                                : "00:00:00"
-                        )
-                    );
-
-
-                const dateB =
-                    new Date(
-                        b.date +
-                        "T" +
-                        (
-                            b.createdAt
-                                ? new Date(
-                                    b.createdAt
-                                ).toTimeString()
-                                    .slice(0, 8)
-                                : "00:00:00"
-                        )
-                    );
-
-
-                return dateB - dateA;
-
-            }
-        );
-
-}
-
-
-
-/* =========================================================
-   RENDER TRANSACTIONS
-========================================================= */
-
-function renderTransactions() {
-
-    const list =
-        document.getElementById(
-            "transactionsList"
-        );
-
-
-    const empty =
-        document.getElementById(
-            "emptyTransactions"
-        );
-
-
-    const count =
-        document.getElementById(
-            "transactionCount"
-        );
-
-
-    if (!list) {
-
-        return;
-
-    }
-
-
-    const transactions =
-        getFilteredTransactions();
-
-
-    list.innerHTML =
-        "";
-
-
-
-    /* =====================================================
-       UPDATE SUMMARY
-    ===================================================== */
-
-    updateTransactionSummary(
-        transactions
-    );
-
-
-
-    /* =====================================================
-       COUNT
-    ===================================================== */
-
-    if (count) {
-
-        count.textContent =
-
-            transactions.length +
-
-            (
-                transactions.length === 1
-                    ? " व्यवहार"
-                    : " व्यवहार"
-            );
-
-    }
-
-
-
-    /* =====================================================
-       EMPTY
-    ===================================================== */
-
-    if (
-        transactions.length === 0
-    ) {
-
-        if (empty) {
-
-            empty.style.display =
-                "block";
-
-        }
-
-        return;
-
-    }
-
-
-    if (empty) {
-
-        empty.style.display =
-            "none";
-
-    }
-
-
-
-    /* =====================================================
-       CREATE CARDS
-    ===================================================== */
-
-    transactions.forEach(
-        transaction => {
-
-            list.appendChild(
-                createTransactionCard(
-                    transaction
-                )
-            );
-
-        }
-    );
-
-}
-
-
-
-/* =========================================================
-   SUMMARY
-========================================================= */
-
-function updateTransactionSummary(
-    transactions
-) {
-
-    let income =
-        0;
-
-
-    let expense =
-        0;
-
-
-    transactions.forEach(
-        transaction => {
-
-            const amount =
-                Number(
-                    transaction.amount
-                ) || 0;
-
-
-            if (
-                transaction.type ===
-                "income"
-            ) {
-
-                income += amount;
-
-            }
-
-
-            else if (
-                transaction.type ===
-                "expense"
-            ) {
-
-                expense += amount;
-
-            }
-
-        }
-    );
-
-
-    const balance =
-        income - expense;
-
-
-
-    const incomeElement =
-        document.getElementById(
-            "filteredIncome"
-        );
-
-
-    const expenseElement =
-        document.getElementById(
-            "filteredExpense"
-        );
-
-
-    const balanceElement =
-        document.getElementById(
-            "filteredBalance"
-        );
-
-
-    if (incomeElement) {
-
-        incomeElement.textContent =
-            formatMoney(
-                income
-            );
-
-    }
-
-
-    if (expenseElement) {
-
-        expenseElement.textContent =
-            formatMoney(
-                expense
-            );
-
-    }
-
-
-    if (balanceElement) {
-
-        balanceElement.textContent =
-            formatMoney(
-                balance
-            );
-
-    }
-
-}
-
-
-
-/* =========================================================
-   CREATE TRANSACTION CARD
-========================================================= */
-
-function createTransactionCard(
-    transaction
-) {
-
-    const card =
-        document.createElement(
-            "div"
-        );
-
-
-    card.className =
-        "transaction-card";
-
-
-    const isIncome =
-        transaction.type ===
-        "income";
-
-
-    const typeClass =
-        isIncome
-            ? "income"
-            : "expense";
-
-
-    const typeText =
-        isIncome
-            ? "जमा"
-            : "खर्च";
-
-
-    const typeIcon =
-        isIncome
-            ? "fa-solid fa-arrow-down"
-            : "fa-solid fa-arrow-up";
-
-
-    const sign =
-        isIncome
-            ? "+"
-            : "-";
-
-
-    const accountName =
-        getAccountName(
-            transaction.accountId
-        );
-
-
-    const category =
-        transaction.category ||
-        (
-            isIncome
-                ? "जमा"
-                : "खर्च"
-        );
-
-
-    const dateText =
-        formatTransactionDate(
-            transaction.date
-        );
-
-
-    card.innerHTML = `
-
-        <div class="transaction-card-top">
-
-
-            <div
-                class="transaction-type-icon ${typeClass}"
-            >
-
-                <i class="${typeIcon}"></i>
-
-            </div>
-
-
-            <div class="transaction-info">
-
-                <h4>
-                    ${escapeTransactionHTML(
-                        category
-                    )}
-                </h4>
-
-
-                <p>
-
-                    <i class="fa-solid fa-wallet"></i>
-
-                    ${escapeTransactionHTML(
-                        accountName
-                    )}
-
-                </p>
-
-
-                ${
-                    transaction.note
-                        ? `
-                            <p>
-
-                                <i class="fa-solid fa-note-sticky"></i>
-
-                                ${escapeTransactionHTML(
-                                    transaction.note
-                                )}
-
-                            </p>
-                          `
-                        : ""
-                }
-
-            </div>
-
-
-            <div class="transaction-amount">
-
-                <strong class="${typeClass}">
-
-                    ${sign}
-                    ${formatMoney(
-                        transaction.amount
-                    )}
-
-                </strong>
-
-
-                <div class="transaction-date">
-
-                    ${dateText}
-
-                </div>
-
-            </div>
-
-        </div>
-
-
-
-        <div class="transaction-card-bottom">
-
-
-            <span>
-
-                ${typeText}
-
-                ${
-                    transaction.paymentMode
-                        ? " • " +
-                          escapeTransactionHTML(
-                              transaction.paymentMode
-                          )
-                        : ""
-                }
-
-            </span>
-
-
-
-            <div class="transaction-actions">
-
-
-                <button
-                    type="button"
-                    title="Edit"
-                    onclick="editTransaction('${transaction.id}')"
-                >
-
-                    <i class="fa-solid fa-pen"></i>
-
-                </button>
-
-
-
-                <button
-                    type="button"
-                    class="delete-btn"
-                    title="Delete"
-                    onclick="deleteTransaction('${transaction.id}')"
-                >
-
-                    <i class="fa-solid fa-trash"></i>
-
-                </button>
-
-
-            </div>
-
-
-        </div>
-
-    `;
-
-
-    return card;
+    applyTransactionFilters();
 
 }
 
@@ -1120,28 +1474,104 @@ function getAccountName(
 
     if (!accountId) {
 
-        return "Account नाही";
+        return "खाते उपलब्ध नाही";
 
     }
 
 
     const accounts =
-        typeof getAccounts === "function"
-            ? getAccounts()
-            : [];
+        getAccounts();
 
 
     const account =
         accounts.find(
             item =>
-                item.id ===
-                accountId
+                String(item.id) ===
+                String(accountId)
         );
 
 
     return account
         ? account.name
-        : "Account नाही";
+        : "खाते उपलब्ध नाही";
+
+}
+
+
+
+/* =========================================================
+   NORMALIZE DATE
+========================================================= */
+
+function normalizeTransactionDate(
+    date
+) {
+
+    if (!date) {
+
+        return "";
+
+    }
+
+
+    const stringDate =
+        String(
+            date
+        );
+
+
+    /*
+       Already YYYY-MM-DD
+    */
+
+    if (
+        /^\d{4}-\d{2}-\d{2}$/
+            .test(
+                stringDate
+            )
+    ) {
+
+        return stringDate;
+
+    }
+
+
+    const parsed =
+        new Date(
+            date
+        );
+
+
+    if (
+        isNaN(
+            parsed.getTime()
+        )
+    ) {
+
+        return "";
+
+    }
+
+
+    return (
+
+        parsed.getFullYear() +
+        "-" +
+        String(
+            parsed.getMonth() + 1
+        ).padStart(
+            2,
+            "0"
+        ) +
+        "-" +
+        String(
+            parsed.getDate()
+        ).padStart(
+            2,
+            "0"
+        )
+
+    );
 
 }
 
@@ -1155,32 +1585,40 @@ function formatTransactionDate(
     date
 ) {
 
-    if (!date) {
+    const normalized =
+        normalizeTransactionDate(
+            date
+        );
 
-        return "--";
+
+    if (!normalized) {
+
+        return "तारीख उपलब्ध नाही";
 
     }
 
 
     const parts =
-        date.split("-");
+        normalized.split("-");
 
 
     if (
         parts.length !== 3
     ) {
 
-        return date;
+        return normalized;
 
     }
 
 
     return (
+
         parts[2] +
-        "/" +
+        "-" +
         parts[1] +
-        "/" +
+        "-" +
         parts[0]
+
     );
 
 }
@@ -1188,79 +1626,24 @@ function formatTransactionDate(
 
 
 /* =========================================================
-   EDIT TRANSACTION
+   SET TEXT
 ========================================================= */
 
-function editTransaction(
-    transactionId
+function setTransactionText(
+    id,
+    value
 ) {
 
-    const transactions =
-        getTransactions();
-
-
-    const transaction =
-        transactions.find(
-            item =>
-                item.id ===
-                transactionId
+    const element =
+        document.getElementById(
+            id
         );
 
 
-    if (!transaction) {
+    if (element) {
 
-        alert(
-            "व्यवहार सापडला नाही."
-        );
-
-        return;
-
-    }
-
-
-    /*
-       Income आणि Expense साठी
-       respective page वर पाठवतो.
-    */
-
-    if (
-        transaction.type ===
-        "income"
-    ) {
-
-        localStorage.setItem(
-            "rdkh_edit_transaction",
-            JSON.stringify(
-                transaction
-            )
-        );
-
-
-        window.location.href =
-            "income.html";
-
-        return;
-
-    }
-
-
-    if (
-        transaction.type ===
-        "expense"
-    ) {
-
-        localStorage.setItem(
-            "rdkh_edit_transaction",
-            JSON.stringify(
-                transaction
-            )
-        );
-
-
-        window.location.href =
-            "expense.html";
-
-        return;
+        element.textContent =
+            value;
 
     }
 
@@ -1269,109 +1652,7 @@ function editTransaction(
 
 
 /* =========================================================
-   DELETE TRANSACTION
-========================================================= */
-
-function deleteTransaction(
-    transactionId
-) {
-
-    const transactions =
-        getTransactions();
-
-
-    const transaction =
-        transactions.find(
-            item =>
-                item.id ===
-                transactionId
-        );
-
-
-    if (!transaction) {
-
-        alert(
-            "व्यवहार सापडला नाही."
-        );
-
-        return;
-
-    }
-
-
-    const typeText =
-        transaction.type ===
-        "income"
-            ? "जमा"
-            : "खर्च";
-
-
-    const confirmDelete =
-        confirm(
-
-            typeText +
-            " " +
-            formatMoney(
-                transaction.amount
-            ) +
-            " चा व्यवहार delete करायचा आहे का?\n\n" +
-
-            "हा व्यवहार delete केल्यास Account Balance सुद्धा update होईल."
-
-        );
-
-
-    if (!confirmDelete) {
-
-        return;
-
-    }
-
-
-    const updatedTransactions =
-        transactions.filter(
-            item =>
-                item.id !==
-                transactionId
-        );
-
-
-    const saved =
-        saveTransactions(
-            updatedTransactions
-        );
-
-
-    if (!saved) {
-
-        alert(
-            "व्यवहार delete करताना समस्या आली."
-        );
-
-        return;
-
-    }
-
-
-    renderTransactions();
-
-
-    /*
-       Account page open असेल तर
-       storage event द्वारे update होईल.
-    */
-
-
-    alert(
-        "व्यवहार delete केला आहे."
-    );
-
-}
-
-
-
-/* =========================================================
-   ESCAPE HTML
+   HTML ESCAPE
 ========================================================= */
 
 function escapeTransactionHTML(
@@ -1412,43 +1693,105 @@ function escapeTransactionHTML(
 
 
 /* =========================================================
-   QUICK ADD MENU
+   ATTRIBUTE ESCAPE
 ========================================================= */
 
-function openQuickAdd() {
+function escapeAttribute(
+    value
+) {
 
-    const menu =
-        document.getElementById(
-            "quickAddMenu"
+    return String(
+        value ?? ""
+    )
+
+        .replace(
+            /\\/g,
+            "\\\\"
+        )
+
+        .replace(
+            /'/g,
+            "\\'"
+        )
+
+        .replace(
+            /"/g,
+            "&quot;"
         );
 
+}
 
-    if (!menu) {
 
-        return;
+
+/* =========================================================
+   TRANSACTION UPDATE EVENT
+========================================================= */
+
+function dispatchTransactionsUpdated() {
+
+    try {
+
+        window.dispatchEvent(
+            new Event(
+                "rdkhTransactionsUpdated"
+            )
+        );
 
     }
 
+    catch (error) {
 
-    if (
-        menu.style.display ===
-        "none" ||
-        !menu.style.display
-    ) {
-
-        menu.style.display =
-            "block";
-
-    }
-
-    else {
-
-        menu.style.display =
-            "none";
+        console.error(
+            "Transaction event error:",
+            error
+        );
 
     }
 
 }
+
+
+
+/* =========================================================
+   STORAGE SYNC
+========================================================= */
+
+window.addEventListener(
+    "storage",
+    function (event) {
+
+        if (
+            event.key ===
+                "rdkh_transactions" ||
+            event.key ===
+                "rdkh_accounts"
+        ) {
+
+            loadTransactionAccounts();
+
+            loadTransactions();
+
+        }
+
+    }
+);
+
+
+
+/* =========================================================
+   CUSTOM TRANSACTION EVENT
+========================================================= */
+
+window.addEventListener(
+    "rdkhTransactionsUpdated",
+    function () {
+
+        loadTransactionAccounts();
+
+        loadTransactions();
+
+    }
+);
 
 
 
@@ -1480,6 +1823,30 @@ function goToExpense() {
 }
 
 
+function goToAccounts() {
+
+    window.location.href =
+        "accounts.html";
+
+}
+
+
+function goToBudget() {
+
+    window.location.href =
+        "monthly-budget.html";
+
+}
+
+
+function goToTransactions() {
+
+    window.location.href =
+        "transactions.html";
+
+}
+
+
 function goToReports() {
 
     window.location.href =
@@ -1494,22 +1861,3 @@ function goToSettings() {
         "settings.html";
 
 }
-
-
-
-/* =========================================================
-   STORAGE SYNC
-========================================================= */
-
-window.addEventListener(
-    "storage",
-    function () {
-
-        loadTransactionAccounts();
-
-        loadTransactionCategories();
-
-        renderTransactions();
-
-    }
-);
