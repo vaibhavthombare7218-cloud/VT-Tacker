@@ -13,13 +13,28 @@
 
     <title>खर्च नोंदवा | रोजचा जमा खर्च अहवाल</title>
 
-    <link rel="stylesheet"
-          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 
-    <link rel="stylesheet"
-          href="style.css">
+    <!-- =====================================================
+         FONT AWESOME
+    ====================================================== -->
+
+    <link
+        rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+    >
+
+
+    <!-- =====================================================
+         MAIN CSS
+    ====================================================== -->
+
+    <link
+        rel="stylesheet"
+        href="style.css"
+    >
 
 </head>
+
 
 <body>
 
@@ -38,6 +53,7 @@
 
         </div>
 
+
         <div>
 
             <h1>खर्च नोंदवा</h1>
@@ -49,8 +65,12 @@
     </div>
 
 
-    <button class="notification-btn"
-            onclick="goHome()">
+    <button
+        class="notification-btn"
+        type="button"
+        onclick="goHome()"
+        title="मुख्यपृष्ठ"
+    >
 
         <i class="fa-solid fa-house"></i>
 
@@ -67,7 +87,9 @@
 <main class="form-container">
 
 
-    <!-- PAGE INTRO -->
+    <!-- =================================================
+         PAGE INTRO
+    ================================================== -->
 
     <section class="page-intro">
 
@@ -76,6 +98,7 @@
             <i class="fa-solid fa-money-bill-transfer"></i>
 
         </div>
+
 
         <div>
 
@@ -97,6 +120,9 @@
 
     <section class="expense-summary">
 
+
+        <!-- TODAY -->
+
         <div>
 
             <span>
@@ -109,6 +135,9 @@
 
         </div>
 
+
+
+        <!-- MONTH -->
 
         <div>
 
@@ -123,6 +152,9 @@
         </div>
 
 
+
+        <!-- TOTAL -->
+
         <div>
 
             <span>
@@ -135,6 +167,7 @@
 
         </div>
 
+
     </section>
 
 
@@ -145,10 +178,13 @@
 
     <section class="form-card">
 
+
         <form id="expenseForm">
 
 
-            <!-- DATE -->
+            <!-- =================================================
+                 DATE
+            ================================================= -->
 
             <div class="form-group">
 
@@ -173,7 +209,9 @@
 
 
 
-            <!-- AMOUNT -->
+            <!-- =================================================
+                 AMOUNT
+            ================================================= -->
 
             <div class="form-group">
 
@@ -194,11 +232,13 @@
                         ₹
                     </span>
 
+
                     <input
                         type="number"
                         id="expenseAmount"
                         min="0.01"
                         step="0.01"
+                        inputmode="decimal"
                         placeholder="उदा. 250"
                         required
                     >
@@ -209,7 +249,9 @@
 
 
 
-            <!-- CATEGORY -->
+            <!-- =================================================
+                 EXPENSE CATEGORY
+            ================================================== -->
 
             <div class="form-group">
 
@@ -233,57 +275,97 @@
                         खर्चाचा प्रकार निवडा
                     </option>
 
-                    <option value="Food">
-                        🍱 Food / जेवण
+
+                    <!-- DAILY GROCERY -->
+
+                    <option value="daily-grocery">
+                        🛍️ दररोजचा किराणा खर्च
                     </option>
 
-                    <option value="Travel">
-                        🚕 Travel / प्रवास
+
+                    <!-- MONTHLY GROCERY -->
+
+                    <option value="monthly-grocery">
+                        🛒 महिन्याचा किराणा खर्च
                     </option>
 
-                    <option value="Home">
-                        🏠 Home / घरखर्च
+
+                    <!-- TRAVEL -->
+
+                    <option value="travel">
+                        🚗 प्रवास
                     </option>
 
-                    <option value="Shopping">
-                        🛒 Shopping
+
+                    <!-- SHOPPING -->
+
+                    <option value="shopping">
+                        🛍️ खरेदी
                     </option>
 
-                    <option value="Bills">
-                        📱 Bills / Recharge
+
+                    <!-- LIGHT BILL -->
+
+                    <option value="light-bill">
+                        💡 लाईट बिल
                     </option>
 
-                    <option value="Medical">
-                        💊 Medical / औषधे
+
+                    <!-- MEDICINE -->
+
+                    <option value="medicine">
+                        💊 औषधे
                     </option>
 
-                    <option value="Education">
-                        📚 Education / शिक्षण
+
+                    <!-- MOBILE -->
+
+                    <option value="mobile">
+                        📱 मोबाईल
                     </option>
 
-                    <option value="Entertainment">
-                        🎬 Entertainment
+
+                    <!-- HOME EMI -->
+
+                    <option value="home-emi">
+                        🏠 घरचा EMI
                     </option>
 
-                    <option value="EMI">
-                        🏦 EMI / Loan
+
+                    <!-- HOME MAINTENANCE -->
+
+                    <option value="home-maintenance">
+                        🔧 घरचा मेंटेनन्स
                     </option>
 
-                    <option value="Family">
-                        👨‍👩‍👧 Family
+
+                    <!-- OTHER LOAN -->
+
+                    <option value="other-loan">
+                        💰 इतर लोन
                     </option>
 
-                    <option value="Other">
-                        📌 Other / इतर
+
+                    <!-- OTHER -->
+
+                    <option value="other">
+                        📦 Other / इतर
                     </option>
 
                 </select>
+
+
+                <small>
+                    Monthly Budget मध्ये ज्या Category साठी Budget ठेवले आहे तीच Category निवडा.
+                </small>
 
             </div>
 
 
 
-            <!-- ACCOUNT -->
+            <!-- =================================================
+                 ACCOUNT
+            ================================================== -->
 
             <div class="form-group">
 
@@ -318,7 +400,9 @@
 
 
 
-            <!-- PAYMENT MODE -->
+            <!-- =================================================
+                 PAYMENT MODE
+            ================================================== -->
 
             <div class="form-group">
 
@@ -336,31 +420,37 @@
                 >
 
                     <option value="Cash">
-                        Cash
+                        💵 Cash
                     </option>
+
 
                     <option value="UPI">
-                        UPI
+                        📱 UPI
                     </option>
+
 
                     <option value="Bank Transfer">
-                        Bank Transfer
+                        🏦 Bank Transfer
                     </option>
+
 
                     <option value="Debit Card">
-                        Debit Card
+                        💳 Debit Card
                     </option>
+
 
                     <option value="Credit Card">
-                        Credit Card
+                        💳 Credit Card
                     </option>
+
 
                     <option value="Cheque">
-                        Cheque
+                        🧾 Cheque
                     </option>
 
+
                     <option value="Other">
-                        Other
+                        📌 Other
                     </option>
 
                 </select>
@@ -369,7 +459,9 @@
 
 
 
-            <!-- NOTE -->
+            <!-- =================================================
+                 NOTE
+            ================================================== -->
 
             <div class="form-group">
 
@@ -386,7 +478,7 @@
                     id="expenseNote"
                     rows="3"
                     maxlength="300"
-                    placeholder="उदा. आजचे lunch, petrol..."
+                    placeholder="उदा. आजचे lunch, petrol, घरासाठी सामान..."
                 ></textarea>
 
 
@@ -398,7 +490,9 @@
 
 
 
-            <!-- SAVE -->
+            <!-- =================================================
+                 SAVE BUTTON
+            ================================================== -->
 
             <button
                 type="submit"
@@ -413,7 +507,9 @@
 
 
 
-            <!-- RESET -->
+            <!-- =================================================
+                 RESET BUTTON
+            ================================================== -->
 
             <button
                 type="button"
@@ -446,11 +542,13 @@
 
         <i class="fa-solid fa-circle-check"></i>
 
+
         <div>
 
             <strong>
                 खर्च नोंदवला आहे
             </strong>
+
 
             <p id="lastExpenseSavedText">
                 --
@@ -472,8 +570,13 @@
 <nav class="bottom-nav">
 
 
-    <button class="nav-item"
-            onclick="goHome()">
+    <!-- HOME -->
+
+    <button
+        class="nav-item"
+        type="button"
+        onclick="goHome()"
+    >
 
         <i class="fa-solid fa-house"></i>
 
@@ -484,8 +587,14 @@
     </button>
 
 
-    <button class="nav-item"
-            onclick="goToTransactions()">
+
+    <!-- TRANSACTIONS -->
+
+    <button
+        class="nav-item"
+        type="button"
+        onclick="goToTransactions()"
+    >
 
         <i class="fa-solid fa-list"></i>
 
@@ -496,16 +605,29 @@
     </button>
 
 
-    <button class="nav-add expense-add"
-            onclick="goToIncome()">
+
+    <!-- QUICK ADD -->
+
+    <button
+        class="nav-add expense-add"
+        type="button"
+        onclick="goToIncome()"
+        title="जमा नोंदवा"
+    >
 
         <i class="fa-solid fa-plus"></i>
 
     </button>
 
 
-    <button class="nav-item"
-            onclick="goToReports()">
+
+    <!-- REPORTS -->
+
+    <button
+        class="nav-item"
+        type="button"
+        onclick="goToReports()"
+    >
 
         <i class="fa-solid fa-chart-pie"></i>
 
@@ -516,8 +638,14 @@
     </button>
 
 
-    <button class="nav-item"
-            onclick="goToSettings()">
+
+    <!-- SETTINGS -->
+
+    <button
+        class="nav-item"
+        type="button"
+        onclick="goToSettings()"
+    >
 
         <i class="fa-solid fa-gear"></i>
 
@@ -533,7 +661,46 @@
 
 
 <!-- =====================================================
-     JS
+     QUICK ADD MENU
+===================================================== -->
+
+<div
+    id="quickAddMenu"
+    class="quick-add-menu"
+    style="display:none;"
+>
+
+
+    <button
+        type="button"
+        onclick="goToIncome()"
+    >
+
+        <i class="fa-solid fa-arrow-down"></i>
+
+        जमा नोंदवा
+
+    </button>
+
+
+    <button
+        type="button"
+        onclick="goToExpense()"
+    >
+
+        <i class="fa-solid fa-arrow-up"></i>
+
+        खर्च नोंदवा
+
+    </button>
+
+
+</div>
+
+
+
+<!-- =====================================================
+     JAVASCRIPT
 ===================================================== -->
 
 <script src="app.js"></script>
