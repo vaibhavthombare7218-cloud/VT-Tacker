@@ -12,31 +12,20 @@
 
    FEATURES:
    ---------------------------------------------------------
-   ✅ Expense Save
+   ✅ Expense Entry
+   ✅ Budget Category Integration
+   ✅ Default + Custom Budget Categories
+   ✅ Account Selection
    ✅ Account Balance Check
-   ✅ Monthly Budget Category Integration
-   ✅ Dynamic Budget Categories
-   ✅ Custom Budget Categories
-   ✅ Category Budget
-   ✅ Category Actual Expense
-   ✅ Category Remaining Budget
-   ✅ Category Used %
-   ✅ Budget Alert %
-   ✅ Budget Over Warning
-   ✅ Existing Transaction System Preserved
-========================================================= */
-
-
-/* =========================================================
-   STORAGE KEYS
-========================================================= */
-
-const EXPENSE_MONTHLY_BUDGET_KEY =
-    "rdkh_monthly_budgets";
-
-const EXPENSE_BUDGET_CATEGORY_KEY =
-    "rdkh_budget_categories";
-
+   ✅ Payment Mode
+   ✅ Note
+   ✅ Today Expense
+   ✅ Monthly Expense
+   ✅ Total Expense
+   ✅ Last Saved Expense
+   ✅ Transaction Storage
+   ✅ Budget Auto Sync
+   ========================================================= */
 
 
 /* =========================================================
@@ -47,26 +36,90 @@ document.addEventListener(
     "DOMContentLoaded",
     function () {
 
-        initializeAccounts();
-
-        setDefaultExpenseDate();
-
-        loadExpenseAccounts();
-
-        loadExpenseCategories();
-
-        updateExpenseSummary();
-
-        setupExpenseNoteCounter();
-
-        setupExpenseForm();
-
-        setupExpenseBudgetEvents();
-
-        updateSelectedCategoryBudget();
+        initializeExpensePage();
 
     }
 );
+
+
+
+/* =========================================================
+   MAIN INITIALIZATION
+========================================================= */
+
+function initializeExpensePage() {
+
+    /*
+       Accounts initialize करा
+    */
+
+    if (
+        typeof initializeAccounts ===
+        "function"
+    ) {
+
+        initializeAccounts();
+
+    }
+
+
+    /*
+       Default date
+    */
+
+    setDefaultExpenseDate();
+
+
+    /*
+       Budget categories load करा
+    */
+
+    loadExpenseCategories();
+
+
+    /*
+       Accounts load करा
+    */
+
+    loadExpenseAccounts();
+
+
+    /*
+       Summary
+    */
+
+    updateExpenseSummary();
+
+
+    /*
+       Note counter
+    */
+
+    setupExpenseNoteCounter();
+
+
+    /*
+       Form
+    */
+
+    setupExpenseForm();
+
+
+    /*
+       Payment mode
+    */
+
+    setupExpensePaymentMode();
+
+
+    /*
+       Last saved expense
+       session मध्ये असेल तर दाखवा
+    */
+
+    loadLastExpenseSaved();
+
+}
 
 
 
@@ -89,68 +142,12 @@ function setDefaultExpenseDate() {
     }
 
 
-    dateInput.value =
-        getTodayString();
+    if (!dateInput.value) {
 
-}
-
-
-
-/* =========================================================
-   LOAD ACCOUNTS
-========================================================= */
-
-function loadExpenseAccounts() {
-
-    const select =
-        document.getElementById(
-            "expenseAccount"
-        );
-
-
-    if (!select) {
-
-        return;
+        dateInput.value =
+            getTodayString();
 
     }
-
-
-    const accounts =
-        getAccounts();
-
-
-    select.innerHTML = `
-
-        <option value="">
-            खाते निवडा
-        </option>
-
-    `;
-
-
-    accounts.forEach(
-        account => {
-
-            const option =
-                document.createElement(
-                    "option"
-                );
-
-
-            option.value =
-                account.id;
-
-
-            option.textContent =
-                account.name;
-
-
-            select.appendChild(
-                option
-            );
-
-        }
-    );
 
 }
 
@@ -175,25 +172,153 @@ function loadExpenseCategories() {
     }
 
 
-    const categories =
-        getExpenseBudgetCategories();
+    /*
+       Monthly Budget page मधील
+       categories वापरण्याचा प्रयत्न.
+    */
 
+    let categories = [];
+
+
+    if (
+        typeof getBudgetCategories ===
+        "function"
+    ) {
+
+        categories =
+            getBudgetCategories();
+
+    }
+
+    else {
+
+        /*
+           Fallback categories
+           जर monthly-budget.js load नसेल.
+        */
+
+        categories = [
+
+            {
+                id: "daily-grocery",
+                name: "दररोजचा किराणा खर्च",
+                icon: "fa-solid fa-basket-shopping"
+            },
+
+            {
+                id: "monthly-grocery",
+                name: "महिन्याचा किराणा खर्च",
+                icon: "fa-solid fa-cart-shopping"
+            },
+
+            {
+                id: "travel",
+                name: "प्रवास",
+                icon: "fa-solid fa-car"
+            },
+
+            {
+                id: "shopping",
+                name: "खरेदी",
+                icon: "fa-solid fa-bag-shopping"
+            },
+
+            {
+                id: "light-bill",
+                name: "लाईट बिल",
+                icon: "fa-solid fa-lightbulb"
+            },
+
+            {
+                id: "medicine",
+                name: "औषधे",
+                icon: "fa-solid fa-pills"
+            },
+
+            {
+                id: "mobile",
+                name: "मोबाईल",
+                icon: "fa-solid fa-mobile-screen-button"
+            },
+
+            {
+                id: "home-emi",
+                name: "घरचा EMI",
+                icon: "fa-solid fa-house"
+            },
+
+            {
+                id: "home-maintenance",
+                name: "घरचा मेंटेनन्स",
+                icon: "fa-solid fa-screwdriver-wrench"
+            },
+
+            {
+                id: "other-loan",
+                name: "इतर लोन",
+                icon: "fa-solid fa-money-check-dollar"
+            },
+
+            {
+                id: "other",
+                name: "Other",
+                icon: "fa-solid fa-box"
+            }
+
+        ];
+
+    }
+
+
+
+    /*
+       Current selected value जतन करा
+    */
 
     const previousValue =
         select.value;
 
 
-    select.innerHTML = `
+    select.innerHTML = "";
 
-        <option value="">
-            खर्चाचा प्रकार निवडा
-        </option>
 
-    `;
+    /*
+       Default option
+    */
 
+    const defaultOption =
+        document.createElement(
+            "option"
+        );
+
+
+    defaultOption.value =
+        "";
+
+
+    defaultOption.textContent =
+        "खर्चाचा प्रकार निवडा";
+
+
+    select.appendChild(
+        defaultOption
+    );
+
+
+
+    /*
+       Categories add करा
+    */
 
     categories.forEach(
         category => {
+
+            if (!category) {
+
+                return;
+
+            }
+
 
             const option =
                 document.createElement(
@@ -203,13 +328,12 @@ function loadExpenseCategories() {
 
             /*
                IMPORTANT:
+               Transaction मध्ये category म्हणून
+               category.name save होईल.
 
-               Value = category.name
-
-               monthly-budget.js मधील
+               त्यामुळे Monthly Budget मधील
                getCategoryActualExpense()
-               transaction.category ला
-               category.name सोबत match करते.
+               शी exact match होईल.
             */
 
             option.value =
@@ -217,20 +341,13 @@ function loadExpenseCategories() {
 
 
             option.textContent =
-                category.name;
+                getExpenseCategoryDisplayName(
+                    category
+                );
 
-
-            /*
-               Category ID store करण्यासाठी
-               extra data attribute.
-            */
 
             option.dataset.categoryId =
                 category.id;
-
-
-            option.dataset.icon =
-                category.icon || "";
 
 
             select.appendChild(
@@ -241,16 +358,14 @@ function loadExpenseCategories() {
     );
 
 
+
     /*
-       Previous category available असल्यास
-       ती पुन्हा select करा.
+       जुनी selection असल्यास restore करा
     */
 
     if (
         previousValue &&
-        Array.from(
-            select.options
-        ).some(
+        [...select.options].some(
             option =>
                 option.value ===
                 previousValue
@@ -262,691 +377,251 @@ function loadExpenseCategories() {
 
     }
 
-
-    updateSelectedCategoryBudget();
-
 }
 
 
 
 /* =========================================================
-   GET BUDGET CATEGORIES
+   CATEGORY DISPLAY NAME
 ========================================================= */
 
-function getExpenseBudgetCategories() {
+function getExpenseCategoryDisplayName(
+    category
+) {
 
-    try {
-
-        const stored =
-            localStorage.getItem(
-                EXPENSE_BUDGET_CATEGORY_KEY
-            );
-
-
-        if (!stored) {
-
-            return [];
-
-        }
-
-
-        const categories =
-            JSON.parse(
-                stored
-            );
-
-
-        return Array.isArray(
-            categories
-        )
-            ? categories
-            : [];
-
-    }
-
-    catch {
-
-        return [];
-
-    }
-
-}
-
-
-
-/* =========================================================
-   GET MONTHLY BUDGET DATA
-========================================================= */
-
-function getExpenseMonthlyBudgets() {
-
-    try {
-
-        const stored =
-            localStorage.getItem(
-                EXPENSE_MONTHLY_BUDGET_KEY
-            );
-
-
-        if (!stored) {
-
-            return {};
-
-        }
-
-
-        const data =
-            JSON.parse(
-                stored
-            );
-
-
-        if (
-            data &&
-            typeof data === "object" &&
-            !Array.isArray(data)
-        ) {
-
-            return data;
-
-        }
-
-    }
-
-    catch {
-
-        /* Ignore invalid storage */
-
-    }
-
-
-    return {};
-
-}
-
-
-
-/* =========================================================
-   GET CURRENT MONTH
-========================================================= */
-
-function getExpenseCurrentMonth() {
-
-    const dateInput =
-        document.getElementById(
-            "expenseDate"
+    const name =
+        String(
+            category?.name || ""
         );
 
 
-    let dateValue =
-        dateInput?.value;
+    const icon =
+        getCategoryEmoji(
+            category?.id,
+            category?.icon
+        );
 
 
-    if (!dateValue) {
+    if (icon) {
 
-        dateValue =
-            getTodayString();
+        return (
+            icon +
+            " " +
+            name
+        );
+
+    }
+
+
+    return name;
+
+}
+
+
+
+/* =========================================================
+   CATEGORY EMOJI
+========================================================= */
+
+function getCategoryEmoji(
+    categoryId,
+    icon
+) {
+
+    const map = {
+
+        "daily-grocery":
+            "🧺",
+
+        "monthly-grocery":
+            "🛒",
+
+        "travel":
+            "🚗",
+
+        "shopping":
+            "🛍️",
+
+        "light-bill":
+            "💡",
+
+        "medicine":
+            "💊",
+
+        "mobile":
+            "📱",
+
+        "home-emi":
+            "🏠",
+
+        "home-maintenance":
+            "🔧",
+
+        "other-loan":
+            "💰",
+
+        "other":
+            "📦"
+
+    };
+
+
+    if (
+        map[categoryId]
+    ) {
+
+        return map[categoryId];
 
     }
 
 
     /*
-       YYYY-MM-DD → YYYY-MM
+       Custom categories साठी
+       generic tag icon
     */
 
-    return String(
-        dateValue
-    ).substring(
-        0,
-        7
-    );
+    return "🏷️";
 
 }
 
 
 
 /* =========================================================
-   GET SELECTED CATEGORY OBJECT
+   LOAD ACCOUNTS
 ========================================================= */
 
-function getSelectedExpenseCategory() {
+function loadExpenseAccounts() {
 
     const select =
         document.getElementById(
-            "expenseCategory"
+            "expenseAccount"
         );
 
 
     if (!select) {
-
-        return null;
-
-    }
-
-
-    const categoryName =
-        select.value;
-
-
-    if (!categoryName) {
-
-        return null;
-
-    }
-
-
-    const categories =
-        getExpenseBudgetCategories();
-
-
-    return (
-        categories.find(
-            category =>
-                String(
-                    category.name
-                )
-                    .trim()
-                    .toLowerCase() ===
-                String(
-                    categoryName
-                )
-                    .trim()
-                    .toLowerCase()
-        ) ||
-        null
-    );
-
-}
-
-
-
-/* =========================================================
-   GET CATEGORY BUDGET
-========================================================= */
-
-function getExpenseCategoryBudget(
-    categoryId,
-    month
-) {
-
-    if (
-        !categoryId ||
-        !month
-    ) {
-
-        return 0;
-
-    }
-
-
-    const budgets =
-        getExpenseMonthlyBudgets();
-
-
-    const monthBudget =
-        budgets[month];
-
-
-    if (
-        !monthBudget ||
-        !monthBudget.categories
-    ) {
-
-        return 0;
-
-    }
-
-
-    return Number(
-        monthBudget.categories[
-            categoryId
-        ]
-    ) || 0;
-
-}
-
-
-
-/* =========================================================
-   GET MONTHLY ACTUAL EXPENSE
-========================================================= */
-
-function getExpenseMonthActual(
-    month
-) {
-
-    const transactions =
-        getTransactions();
-
-
-    if (
-        !Array.isArray(
-            transactions
-        )
-    ) {
-
-        return 0;
-
-    }
-
-
-    let total =
-        0;
-
-
-    transactions.forEach(
-        transaction => {
-
-            if (
-                transaction.type !==
-                "expense"
-            ) {
-
-                return;
-
-            }
-
-
-            const transactionDate =
-                normalizeExpenseDate(
-                    transaction.date
-                );
-
-
-            if (
-                transactionDate.startsWith(
-                    month
-                )
-            ) {
-
-                total +=
-                    Number(
-                        transaction.amount
-                    ) || 0;
-
-            }
-
-        }
-    );
-
-
-    return total;
-
-}
-
-
-
-/* =========================================================
-   GET CATEGORY ACTUAL EXPENSE
-========================================================= */
-
-function getExpenseCategoryActual(
-    categoryName,
-    month
-) {
-
-    if (
-        !categoryName ||
-        !month
-    ) {
-
-        return 0;
-
-    }
-
-
-    const transactions =
-        getTransactions();
-
-
-    if (
-        !Array.isArray(
-            transactions
-        )
-    ) {
-
-        return 0;
-
-    }
-
-
-    let total =
-        0;
-
-
-    const requiredCategory =
-        String(
-            categoryName
-        )
-            .trim()
-            .toLowerCase();
-
-
-    transactions.forEach(
-        transaction => {
-
-            if (
-                transaction.type !==
-                "expense"
-            ) {
-
-                return;
-
-            }
-
-
-            const transactionDate =
-                normalizeExpenseDate(
-                    transaction.date
-                );
-
-
-            if (
-                !transactionDate.startsWith(
-                    month
-                )
-            ) {
-
-                return;
-
-            }
-
-
-            const transactionCategory =
-                String(
-                    transaction.category ||
-                    ""
-                )
-                    .trim()
-                    .toLowerCase();
-
-
-            if (
-                transactionCategory ===
-                requiredCategory
-            ) {
-
-                total +=
-                    Number(
-                        transaction.amount
-                    ) || 0;
-
-            }
-
-        }
-    );
-
-
-    return total;
-
-}
-
-
-
-/* =========================================================
-   UPDATE SELECTED CATEGORY BUDGET
-========================================================= */
-
-function updateSelectedCategoryBudget() {
-
-    const section =
-        document.getElementById(
-            "selectedCategoryBudget"
-        );
-
-
-    const categoryBudgetAmount =
-        document.getElementById(
-            "categoryBudgetAmount"
-        );
-
-
-    const categoryActualExpense =
-        document.getElementById(
-            "categoryActualExpense"
-        );
-
-
-    const categoryRemainingBudget =
-        document.getElementById(
-            "categoryRemainingBudget"
-        );
-
-
-    const categoryBudgetUsed =
-        document.getElementById(
-            "categoryBudgetUsed"
-        );
-
-
-    const info =
-        document.getElementById(
-            "categoryBudgetInfo"
-        );
-
-
-    const category =
-        getSelectedExpenseCategory();
-
-
-    if (!category) {
-
-        if (section) {
-
-            section.style.display =
-                "none";
-
-        }
-
-
-        if (info) {
-
-            info.textContent =
-                "या महिन्याच्या Budget नुसार Category निवडा.";
-
-        }
-
 
         return;
 
     }
 
 
-    const month =
-        getExpenseCurrentMonth();
-
-
-    const budget =
-        getExpenseCategoryBudget(
-            category.id,
-            month
-        );
-
-
-    const actual =
-        getExpenseCategoryActual(
-            category.name,
-            month
-        );
-
-
-    const remaining =
-        budget -
-        actual;
-
-
-    let usedPercent =
-        0;
+    let accounts = [];
 
 
     if (
-        budget > 0
+        typeof getAccounts ===
+        "function"
     ) {
 
-        usedPercent =
-            (
-                actual /
-                budget
-            ) * 100;
+        accounts =
+            getAccounts();
 
     }
 
 
-    usedPercent =
-        Math.round(
-            usedPercent * 100
-        ) / 100;
+    select.innerHTML = `
+
+        <option value="">
+            खाते निवडा
+        </option>
+
+    `;
 
 
-    if (section) {
+    if (
+        !Array.isArray(accounts)
+    ) {
 
-        section.style.display =
-            "grid";
+        return;
 
     }
 
 
-    if (categoryBudgetAmount) {
+    accounts.forEach(
+        account => {
 
-        categoryBudgetAmount.textContent =
-            formatExpenseMoney(
-                budget
+            if (!account) {
+
+                return;
+
+            }
+
+
+            const option =
+                document.createElement(
+                    "option"
+                );
+
+
+            option.value =
+                account.id;
+
+
+            option.textContent =
+                getAccountDisplayName(
+                    account
+                );
+
+
+            select.appendChild(
+                option
             );
 
-    }
-
-
-    if (categoryActualExpense) {
-
-        categoryActualExpense.textContent =
-            formatExpenseMoney(
-                actual
-            );
-
-    }
-
-
-    if (categoryRemainingBudget) {
-
-        categoryRemainingBudget.textContent =
-            formatExpenseMoney(
-                remaining
-            );
-
-
-        categoryRemainingBudget.style.color =
-            remaining < 0
-                ? "var(--expense)"
-                : "var(--income)";
-
-    }
-
-
-    if (categoryBudgetUsed) {
-
-        categoryBudgetUsed.textContent =
-            usedPercent + "%";
-
-    }
-
-
-    if (info) {
-
-        if (
-            budget <= 0
-        ) {
-
-            info.textContent =
-                "या Category साठी या महिन्याचे Budget अजून सेट केलेले नाही.";
-
         }
-
-        else if (
-            remaining < 0
-        ) {
-
-            info.textContent =
-                "⚠️ या Category चे Budget exceed झाले आहे.";
-
-        }
-
-        else {
-
-            info.textContent =
-                "या Category साठी Budget उपलब्ध आहे.";
-
-        }
-
-    }
+    );
 
 }
 
 
 
 /* =========================================================
-   BUDGET EVENTS
+   ACCOUNT DISPLAY NAME
 ========================================================= */
 
-function setupExpenseBudgetEvents() {
+function getAccountDisplayName(
+    account
+) {
 
-    const category =
-        document.getElementById(
-            "expenseCategory"
+    const name =
+        String(
+            account.name || ""
         );
 
 
-    const amount =
-        document.getElementById(
-            "expenseAmount"
-        );
+    /*
+       Balance display करायचा असल्यास
+       available balance दाखवा.
+    */
+
+    let balanceText = "";
 
 
-    const date =
-        document.getElementById(
-            "expenseDate"
-        );
+    if (
+        typeof getAccountBalance ===
+        "function"
+    ) {
+
+        const balance =
+            Number(
+                getAccountBalance(
+                    account.id
+                )
+            ) || 0;
 
 
-    if (category) {
-
-        category.addEventListener(
-            "change",
-            function () {
-
-                updateSelectedCategoryBudget();
-
-            }
-        );
+        balanceText =
+            " • " +
+            formatExpenseMoney(
+                balance
+            );
 
     }
 
 
-    if (amount) {
-
-        amount.addEventListener(
-            "input",
-            function () {
-
-                updateSelectedCategoryBudget();
-
-            }
-        );
-
-    }
-
-
-    if (date) {
-
-        date.addEventListener(
-            "change",
-            function () {
-
-                updateSelectedCategoryBudget();
-
-            }
-        );
-
-    }
+    return (
+        name +
+        balanceText
+    );
 
 }
 
@@ -976,11 +651,25 @@ function updateExpenseSummary() {
         );
 
 
+
+    const todayAmount =
+        getSafeTodayExpense();
+
+
+    const monthAmount =
+        getSafeMonthExpense();
+
+
+    const totalAmount =
+        getSafeTotalExpense();
+
+
+
     if (today) {
 
         today.textContent =
             formatExpenseMoney(
-                getTodayExpense()
+                todayAmount
             );
 
     }
@@ -990,7 +679,7 @@ function updateExpenseSummary() {
 
         month.textContent =
             formatExpenseMoney(
-                getMonthExpense()
+                monthAmount
             );
 
     }
@@ -1000,10 +689,122 @@ function updateExpenseSummary() {
 
         total.textContent =
             formatExpenseMoney(
-                getTotalExpense()
+                totalAmount
             );
 
     }
+
+}
+
+
+
+/* =========================================================
+   SAFE TODAY EXPENSE
+========================================================= */
+
+function getSafeTodayExpense() {
+
+    if (
+        typeof getTodayExpense ===
+        "function"
+    ) {
+
+        return Number(
+            getTodayExpense()
+        ) || 0;
+
+    }
+
+
+    const today =
+        getTodayString();
+
+
+    return getExpensesByDate(
+        today
+    );
+
+}
+
+
+
+/* =========================================================
+   SAFE MONTH EXPENSE
+========================================================= */
+
+function getSafeMonthExpense() {
+
+    if (
+        typeof getMonthExpense ===
+        "function"
+    ) {
+
+        return Number(
+            getMonthExpense()
+        ) || 0;
+
+    }
+
+
+    const today =
+        getTodayString();
+
+
+    const month =
+        today.substring(
+            0,
+            7
+        );
+
+
+    return getExpensesByMonth(
+        month
+    );
+
+}
+
+
+
+/* =========================================================
+   SAFE TOTAL EXPENSE
+========================================================= */
+
+function getSafeTotalExpense() {
+
+    if (
+        typeof getTotalExpense ===
+        "function"
+    ) {
+
+        return Number(
+            getTotalExpense()
+        ) || 0;
+
+    }
+
+
+    const transactions =
+        getAllExpenseTransactions();
+
+
+    return transactions.reduce(
+        (
+            total,
+            transaction
+        ) => {
+
+            return (
+                total +
+                (
+                    Number(
+                        transaction.amount
+                    ) || 0
+                )
+            );
+
+        },
+        0
+    );
 
 }
 
@@ -1028,6 +829,24 @@ function setupExpenseForm() {
     }
 
 
+    /*
+       Duplicate listener टाळण्यासाठी
+    */
+
+    if (
+        form.dataset.expenseReady ===
+        "true"
+    ) {
+
+        return;
+
+    }
+
+
+    form.dataset.expenseReady =
+        "true";
+
+
     form.addEventListener(
         "submit",
         saveExpense
@@ -1041,9 +860,12 @@ function setupExpenseForm() {
    SAVE EXPENSE
 ========================================================= */
 
-function saveExpense(event) {
+function saveExpense(
+    event
+) {
 
     event.preventDefault();
+
 
 
     /* =====================================================
@@ -1053,39 +875,39 @@ function saveExpense(event) {
     const date =
         document.getElementById(
             "expenseDate"
-        ).value;
+        )?.value || "";
 
 
     const amount =
         Number(
             document.getElementById(
                 "expenseAmount"
-            ).value
+            )?.value
         );
 
 
     const category =
         document.getElementById(
             "expenseCategory"
-        ).value;
+        )?.value.trim() || "";
 
 
     const accountId =
         document.getElementById(
             "expenseAccount"
-        ).value;
+        )?.value || "";
 
 
     const paymentMode =
         document.getElementById(
             "expensePaymentMode"
-        ).value;
+        )?.value || "Cash";
 
 
     const note =
         document.getElementById(
             "expenseNote"
-        ).value.trim();
+        )?.value.trim() || "";
 
 
 
@@ -1099,13 +921,19 @@ function saveExpense(event) {
             "कृपया तारीख निवडा."
         );
 
+        document
+            .getElementById(
+                "expenseDate"
+            )
+            ?.focus();
+
         return;
 
     }
 
 
     if (
-        !amount ||
+        !Number.isFinite(amount) ||
         amount <= 0
     ) {
 
@@ -1113,13 +941,11 @@ function saveExpense(event) {
             "कृपया योग्य खर्चाची रक्कम भरा."
         );
 
-
         document
             .getElementById(
                 "expenseAmount"
             )
-            .focus();
-
+            ?.focus();
 
         return;
 
@@ -1132,6 +958,12 @@ function saveExpense(event) {
             "कृपया खर्चाचा प्रकार निवडा."
         );
 
+        document
+            .getElementById(
+                "expenseCategory"
+            )
+            ?.focus();
+
         return;
 
     }
@@ -1143,6 +975,49 @@ function saveExpense(event) {
             "कृपया कोणत्या खात्यातून खर्च झाला ते निवडा."
         );
 
+        document
+            .getElementById(
+                "expenseAccount"
+            )
+            ?.focus();
+
+        return;
+
+    }
+
+
+
+    /* =====================================================
+       CHECK ACCOUNT
+    ===================================================== */
+
+    const accounts =
+        typeof getAccounts ===
+        "function"
+            ? getAccounts()
+            : [];
+
+
+    const account =
+        accounts.find(
+            item =>
+                String(
+                    item.id
+                ) ===
+                String(
+                    accountId
+                )
+        );
+
+
+    if (!account) {
+
+        alert(
+            "निवडलेले खाते सापडले नाही."
+        );
+
+        loadExpenseAccounts();
+
         return;
 
     }
@@ -1153,10 +1028,23 @@ function saveExpense(event) {
        CHECK ACCOUNT BALANCE
     ===================================================== */
 
-    const accountBalance =
-        getAccountBalance(
-            accountId
-        );
+    let accountBalance =
+        0;
+
+
+    if (
+        typeof getAccountBalance ===
+        "function"
+    ) {
+
+        accountBalance =
+            Number(
+                getAccountBalance(
+                    accountId
+                )
+            ) || 0;
+
+    }
 
 
     if (
@@ -1164,29 +1052,18 @@ function saveExpense(event) {
         accountBalance
     ) {
 
-        const account =
-            getAccounts().find(
-                item =>
-                    item.id ===
-                    accountId
-            );
-
-
-        const accountName =
-            account
-                ? account.name
-                : "निवडलेले खाते";
-
-
         const confirmNegative =
             confirm(
 
-                accountName +
+                account.name +
                 " मध्ये उपलब्ध शिल्लक " +
                 formatExpenseMoney(
                     accountBalance
                 ) +
                 " आहे.\n\n" +
+
+                "या खर्चानंतर खात्याची शिल्लक negative होऊ शकते.\n\n" +
+
                 "तुम्हाला तरीही हा खर्च नोंदवायचा आहे का?"
 
             );
@@ -1195,227 +1072,6 @@ function saveExpense(event) {
         if (!confirmNegative) {
 
             return;
-
-        }
-
-    }
-
-
-
-    /* =====================================================
-       BUDGET CHECK
-    ===================================================== */
-
-    const selectedCategory =
-        getSelectedExpenseCategory();
-
-
-    const month =
-        String(
-            date
-        ).substring(
-            0,
-            7
-        );
-
-
-    let categoryBudget =
-        0;
-
-
-    let categoryActual =
-        0;
-
-
-    let categoryRemaining =
-        0;
-
-
-    let alertPercent =
-        80;
-
-
-    if (
-        selectedCategory
-    ) {
-
-        categoryBudget =
-            getExpenseCategoryBudget(
-                selectedCategory.id,
-                month
-            );
-
-
-        categoryActual =
-            getExpenseCategoryActual(
-                selectedCategory.name,
-                month
-            );
-
-
-        categoryRemaining =
-            categoryBudget -
-            categoryActual;
-
-
-        const budgets =
-            getExpenseMonthlyBudgets();
-
-
-        if (
-            budgets[month]
-        ) {
-
-            alertPercent =
-                Number(
-                    budgets[month].alertPercent
-                ) || 80;
-
-        }
-
-    }
-
-
-
-    /* =====================================================
-       CHECK CATEGORY BUDGET
-    ===================================================== */
-
-    const newCategoryActual =
-        categoryActual +
-        amount;
-
-
-    if (
-        categoryBudget > 0 &&
-        newCategoryActual >
-        categoryBudget
-    ) {
-
-        const overAmount =
-            newCategoryActual -
-            categoryBudget;
-
-
-        const proceed =
-            confirm(
-
-                "⚠️ Category Budget Warning\n\n" +
-
-                "Category: " +
-                category +
-                "\n\n" +
-
-                "Budget: " +
-                formatExpenseMoney(
-                    categoryBudget
-                ) +
-                "\n" +
-
-                "आधीचा खर्च: " +
-                formatExpenseMoney(
-                    categoryActual
-                ) +
-                "\n" +
-
-                "नवीन खर्च: " +
-                formatExpenseMoney(
-                    amount
-                ) +
-                "\n\n" +
-
-                "Budget पेक्षा " +
-                formatExpenseMoney(
-                    overAmount
-                ) +
-                " जास्त होईल.\n\n" +
-
-                "तरीही खर्च नोंदवायचा आहे का?"
-
-            );
-
-
-        if (!proceed) {
-
-            return;
-
-        }
-
-    }
-
-
-
-    /* =====================================================
-       ALERT PERCENT CHECK
-    ===================================================== */
-
-    if (
-        categoryBudget > 0
-    ) {
-
-        const newUsedPercent =
-            (
-                newCategoryActual /
-                categoryBudget
-            ) * 100;
-
-
-        /*
-           Existing actual alert आधीच crossed
-           असेल तर प्रत्येक save वेळी warning
-           दाखवू नका.
-
-           फक्त नवीन expense मुळे
-           alert threshold cross होत असेल
-           तर warning.
-        */
-
-        const oldUsedPercent =
-            (
-                categoryActual /
-                categoryBudget
-            ) * 100;
-
-
-        if (
-            oldUsedPercent <
-                alertPercent &&
-            newUsedPercent >=
-                alertPercent &&
-            newUsedPercent <=
-                100
-        ) {
-
-            const proceed =
-                confirm(
-
-                    "🔔 Budget Alert\n\n" +
-
-                    "Category: " +
-                    category +
-                    "\n\n" +
-
-                    "Budget चा " +
-                    Math.round(
-                        newUsedPercent *
-                        100
-                    ) / 100 +
-                    "% वापर होईल.\n\n" +
-
-                    "Alert limit: " +
-                    alertPercent +
-                    "%\n\n" +
-
-                    "खर्च नोंदवायचा आहे का?"
-
-                );
-
-
-            if (!proceed) {
-
-                return;
-
-            }
 
         }
 
@@ -1441,6 +1097,15 @@ function saveExpense(event) {
         amount:
             amount,
 
+        /*
+           IMPORTANT:
+           Category name save करतो.
+
+           Monthly Budget मध्ये
+           actual expense याच नावावर
+           calculate होईल.
+        */
+
         category:
             category,
 
@@ -1464,28 +1129,39 @@ function saveExpense(event) {
        GET TRANSACTIONS
     ===================================================== */
 
-    const transactions =
-        getTransactions();
+    let transactions =
+        [];
 
 
     if (
-        !Array.isArray(
-            transactions
-        )
+        typeof getTransactions ===
+        "function"
     ) {
 
-        alert(
-            "Transactions data उपलब्ध नाही."
-        );
+        const existing =
+            getTransactions();
 
-        return;
+
+        transactions =
+            Array.isArray(
+                existing
+            )
+                ? existing
+                : [];
+
+    }
+
+    else {
+
+        transactions =
+            getExpenseTransactionsFallback();
 
     }
 
 
 
     /* =====================================================
-       ADD TRANSACTION
+       ADD
     ===================================================== */
 
     transactions.push(
@@ -1498,10 +1174,30 @@ function saveExpense(event) {
        SAVE
     ===================================================== */
 
-    const saved =
-        saveTransactions(
-            transactions
-        );
+    let saved =
+        false;
+
+
+    if (
+        typeof saveTransactions ===
+        "function"
+    ) {
+
+        saved =
+            saveTransactions(
+                transactions
+            );
+
+    }
+
+    else {
+
+        saved =
+            saveExpenseTransactionsFallback(
+                transactions
+            );
+
+    }
 
 
     if (!saved) {
@@ -1517,32 +1213,41 @@ function saveExpense(event) {
 
 
     /* =====================================================
-       SUCCESS
+       LAST SAVED
     ===================================================== */
+
+    saveLastExpenseSession(
+        transaction
+    );
+
 
     showLastExpenseSaved(
         transaction
     );
 
 
-    alert(
-        "खर्च यशस्वीपणे नोंदवला आहे."
-    );
 
+    /* =====================================================
+       RESET
+    ===================================================== */
 
     resetExpenseForm();
 
 
+
+    /* =====================================================
+       UPDATE
+    ===================================================== */
+
     updateExpenseSummary();
 
 
-    updateSelectedCategoryBudget();
+    loadExpenseAccounts();
 
 
-
-    /* =====================================================
-       DASHBOARD UPDATE
-    ===================================================== */
+    /*
+       Dashboard असल्यास update
+    */
 
     if (
         typeof updateDashboard ===
@@ -1555,14 +1260,29 @@ function saveExpense(event) {
 
 
 
-    /* =====================================================
-       BUDGET UPDATE EVENT
-    ===================================================== */
+    /*
+       Transaction page update
+    */
 
-    window.dispatchEvent(
-        new Event(
-            "rdkhTransactionsUpdated"
-        )
+    dispatchTransactionsUpdated();
+
+
+
+    /*
+       Success message
+    */
+
+    showExpenseSuccess();
+
+
+
+    /*
+       Alert शेवटी
+       जेणेकरून data आधी save होईल.
+    */
+
+    alert(
+        "खर्च यशस्वीपणे नोंदवला आहे."
     );
 
 }
@@ -1570,18 +1290,26 @@ function saveExpense(event) {
 
 
 /* =========================================================
-   EXPENSE ID
+   GENERATE EXPENSE ID
 ========================================================= */
 
 function generateExpenseId() {
 
     return (
+
         "EXP-" +
+
         Date.now() +
+
         "-" +
+
         Math.random()
             .toString(36)
-            .substring(2, 8)
+            .substring(
+                2,
+                8
+            )
+
     );
 
 }
@@ -1589,7 +1317,7 @@ function generateExpenseId() {
 
 
 /* =========================================================
-   RESET
+   RESET FORM
 ========================================================= */
 
 function resetExpenseForm() {
@@ -1610,8 +1338,16 @@ function resetExpenseForm() {
     form.reset();
 
 
+    /*
+       Date पुन्हा आजची
+    */
+
     setDefaultExpenseDate();
 
+
+    /*
+       Note counter
+    */
 
     const counter =
         document.getElementById(
@@ -1627,14 +1363,65 @@ function resetExpenseForm() {
     }
 
 
-    updateSelectedCategoryBudget();
+    /*
+       Category selection reset
+    */
+
+    const category =
+        document.getElementById(
+            "expenseCategory"
+        );
+
+
+    if (category) {
+
+        category.value =
+            "";
+
+    }
+
+
+    /*
+       Account reset
+    */
+
+    const account =
+        document.getElementById(
+            "expenseAccount"
+        );
+
+
+    if (account) {
+
+        account.value =
+            "";
+
+    }
+
+
+    /*
+       Payment mode Cash
+    */
+
+    const paymentMode =
+        document.getElementById(
+            "expensePaymentMode"
+        );
+
+
+    if (paymentMode) {
+
+        paymentMode.value =
+            "Cash";
+
+    }
 
 }
 
 
 
 /* =========================================================
-   LAST SAVED
+   LAST SAVED EXPENSE
 ========================================================= */
 
 function showLastExpenseSaved(
@@ -1653,37 +1440,143 @@ function showLastExpenseSaved(
         );
 
 
-    if (!box || !text) {
+    if (
+        !box ||
+        !text
+    ) {
 
         return;
 
     }
 
 
+    const accounts =
+        typeof getAccounts ===
+        "function"
+            ? getAccounts()
+            : [];
+
+
     const account =
-        getAccounts().find(
+        accounts.find(
             item =>
-                item.id ===
-                transaction.accountId
+                String(
+                    item.id
+                ) ===
+                String(
+                    transaction.accountId
+                )
         );
 
 
+    const accountName =
+        account
+            ? account.name
+            : "";
+
+
     text.textContent =
+
         formatExpenseMoney(
             transaction.amount
         ) +
+
         " • " +
+
         transaction.category +
-        " • " +
+
         (
-            account
-                ? account.name
+            accountName
+                ? " • " +
+                  accountName
                 : ""
         );
 
 
     box.style.display =
         "flex";
+
+}
+
+
+
+/* =========================================================
+   SAVE LAST EXPENSE SESSION
+========================================================= */
+
+function saveLastExpenseSession(
+    transaction
+) {
+
+    try {
+
+        sessionStorage.setItem(
+
+            "rdkh_last_expense",
+
+            JSON.stringify(
+                transaction
+            )
+
+        );
+
+    }
+
+    catch {
+
+        /* Ignore */
+
+    }
+
+}
+
+
+
+/* =========================================================
+   LOAD LAST EXPENSE SESSION
+========================================================= */
+
+function loadLastExpenseSaved() {
+
+    try {
+
+        const stored =
+            sessionStorage.getItem(
+                "rdkh_last_expense"
+            );
+
+
+        if (!stored) {
+
+            return;
+
+        }
+
+
+        const transaction =
+            JSON.parse(
+                stored
+            );
+
+
+        if (
+            transaction &&
+            transaction.amount
+        ) {
+
+            showLastExpenseSaved(
+                transaction
+            );
+
+        }
+
+    }
+
+    catch {
+
+        /* Ignore */
+
+    }
 
 }
 
@@ -1707,23 +1600,196 @@ function setupExpenseNoteCounter() {
         );
 
 
-    if (!note || !counter) {
+    if (
+        !note ||
+        !counter
+    ) {
 
         return;
 
     }
 
 
+    function updateCounter() {
+
+        counter.textContent =
+            note.value.length +
+            " / 300";
+
+    }
+
+
     note.addEventListener(
         "input",
-        function () {
+        updateCounter
+    );
 
-            counter.textContent =
-                note.value.length +
-                " / 300";
+
+    updateCounter();
+
+}
+
+
+
+/* =========================================================
+   PAYMENT MODE
+========================================================= */
+
+function setupExpensePaymentMode() {
+
+    const paymentMode =
+        document.getElementById(
+            "expensePaymentMode"
+        );
+
+
+    if (!paymentMode) {
+
+        return;
+
+    }
+
+
+    if (!paymentMode.value) {
+
+        paymentMode.value =
+            "Cash";
+
+    }
+
+}
+
+
+
+/* =========================================================
+   GET ALL EXPENSE TRANSACTIONS
+========================================================= */
+
+function getAllExpenseTransactions() {
+
+    let transactions = [];
+
+
+    if (
+        typeof getTransactions ===
+        "function"
+    ) {
+
+        const result =
+            getTransactions();
+
+
+        if (
+            Array.isArray(result)
+        ) {
+
+            transactions =
+                result;
 
         }
+
+    }
+
+    else {
+
+        transactions =
+            getExpenseTransactionsFallback();
+
+    }
+
+
+    return transactions.filter(
+        transaction =>
+            transaction &&
+            transaction.type ===
+            "expense"
     );
+
+}
+
+
+
+/* =========================================================
+   EXPENSES BY DATE
+========================================================= */
+
+function getExpensesByDate(
+    date
+) {
+
+    return getAllExpenseTransactions()
+        .filter(
+            transaction =>
+                normalizeExpenseDate(
+                    transaction.date
+                ) ===
+                date
+        )
+        .reduce(
+            (
+                total,
+                transaction
+            ) => {
+
+                return (
+                    total +
+                    (
+                        Number(
+                            transaction.amount
+                        ) || 0
+                    )
+                );
+
+            },
+            0
+        );
+
+}
+
+
+
+/* =========================================================
+   EXPENSES BY MONTH
+========================================================= */
+
+function getExpensesByMonth(
+    month
+) {
+
+    return getAllExpenseTransactions()
+        .filter(
+            transaction => {
+
+                const date =
+                    normalizeExpenseDate(
+                        transaction.date
+                    );
+
+
+                return date.startsWith(
+                    month
+                );
+
+            }
+        )
+        .reduce(
+            (
+                total,
+                transaction
+            ) => {
+
+                return (
+                    total +
+                    (
+                        Number(
+                            transaction.amount
+                        ) || 0
+                    )
+                );
+
+            },
+            0
+        );
 
 }
 
@@ -1786,16 +1852,58 @@ function normalizeExpenseDate(
     return (
 
         parsed.getFullYear() +
+
         "-" +
+
         String(
             parsed.getMonth() + 1
         ).padStart(
             2,
             "0"
         ) +
+
         "-" +
+
         String(
             parsed.getDate()
+        ).padStart(
+            2,
+            "0"
+        )
+
+    );
+
+}
+
+
+
+/* =========================================================
+   GET TODAY STRING
+========================================================= */
+
+function getTodayString() {
+
+    const now =
+        new Date();
+
+
+    return (
+
+        now.getFullYear() +
+
+        "-" +
+
+        String(
+            now.getMonth() + 1
+        ).padStart(
+            2,
+            "0"
+        ) +
+
+        "-" +
+
+        String(
+            now.getDate()
         ).padStart(
             2,
             "0"
@@ -1821,6 +1929,11 @@ function formatExpenseMoney(
         ) || 0;
 
 
+    /*
+       app.js मधील formatMoney()
+       available असल्यास ते वापरा.
+    */
+
     if (
         typeof formatMoney ===
         "function"
@@ -1836,6 +1949,7 @@ function formatExpenseMoney(
     return (
 
         "₹" +
+
         value.toLocaleString(
             "en-IN",
             {
@@ -1847,6 +1961,306 @@ function formatExpenseMoney(
     );
 
 }
+
+
+
+/* =========================================================
+   SUCCESS MESSAGE
+========================================================= */
+
+function showExpenseSuccess() {
+
+    /*
+       HTML मध्ये success element असेल तर वापरा.
+    */
+
+    const element =
+        document.getElementById(
+            "expenseSuccessMessage"
+        );
+
+
+    if (!element) {
+
+        return;
+
+    }
+
+
+    element.style.display =
+        "block";
+
+
+    element.innerHTML = `
+
+        <i class="fa-solid fa-circle-check"></i>
+
+        खर्च यशस्वीपणे नोंदवला आहे.
+
+    `;
+
+
+    setTimeout(
+        function () {
+
+            element.style.display =
+                "none";
+
+        },
+        3000
+    );
+
+}
+
+
+
+/* =========================================================
+   TRANSACTION UPDATED EVENT
+========================================================= */
+
+function dispatchTransactionsUpdated() {
+
+    try {
+
+        window.dispatchEvent(
+            new CustomEvent(
+                "rdkhTransactionsUpdated"
+            )
+        );
+
+    }
+
+    catch {
+
+        /*
+           जुन्या browser साठी fallback
+        */
+
+        try {
+
+            const event =
+                document.createEvent(
+                    "Event"
+                );
+
+
+            event.initEvent(
+                "rdkhTransactionsUpdated",
+                true,
+                true
+            );
+
+
+            window.dispatchEvent(
+                event
+            );
+
+        }
+
+        catch {
+
+            /* Ignore */
+
+        }
+
+    }
+
+}
+
+
+
+/* =========================================================
+   FALLBACK STORAGE
+========================================================= */
+
+function getExpenseTransactionsFallback() {
+
+    const possibleKeys = [
+
+        "rdkh_transactions",
+
+        "rdkh_transaction",
+
+        "transactions",
+
+        "income_expense_transactions"
+
+    ];
+
+
+    for (
+        const key of possibleKeys
+    ) {
+
+        try {
+
+            const stored =
+                localStorage.getItem(
+                    key
+                );
+
+
+            if (!stored) {
+
+                continue;
+
+            }
+
+
+            const parsed =
+                JSON.parse(
+                    stored
+                );
+
+
+            if (
+                Array.isArray(
+                    parsed
+                )
+            ) {
+
+                return parsed;
+
+            }
+
+        }
+
+        catch {
+
+            continue;
+
+        }
+
+    }
+
+
+    return [];
+
+}
+
+
+
+/* =========================================================
+   FALLBACK SAVE
+========================================================= */
+
+function saveExpenseTransactionsFallback(
+    transactions
+) {
+
+    try {
+
+        localStorage.setItem(
+
+            "rdkh_transactions",
+
+            JSON.stringify(
+                transactions
+            )
+
+        );
+
+
+        return true;
+
+    }
+
+    catch {
+
+        return false;
+
+    }
+
+}
+
+
+
+/* =========================================================
+   STORAGE SYNC
+========================================================= */
+
+window.addEventListener(
+    "storage",
+    function (event) {
+
+        /*
+           Accounts बदलले असल्यास
+        */
+
+        if (
+            !event.key ||
+            event.key.includes(
+                "account"
+            )
+        ) {
+
+            loadExpenseAccounts();
+
+        }
+
+
+        /*
+           Transactions बदलले असल्यास
+        */
+
+        updateExpenseSummary();
+
+
+        /*
+           Categories बदलले असल्यास
+        */
+
+        if (
+            !event.key ||
+            event.key ===
+            "rdkh_budget_categories"
+        ) {
+
+            loadExpenseCategories();
+
+        }
+
+    }
+);
+
+
+
+/* =========================================================
+   SAME PAGE TRANSACTION UPDATE
+========================================================= */
+
+window.addEventListener(
+    "rdkhTransactionsUpdated",
+    function () {
+
+        updateExpenseSummary();
+
+        loadExpenseAccounts();
+
+    }
+);
+
+
+
+/* =========================================================
+   BUDGET CATEGORY STORAGE UPDATE
+========================================================= */
+
+window.addEventListener(
+    "storage",
+    function (event) {
+
+        if (
+            event.key ===
+            "rdkh_budget_categories"
+        ) {
+
+            loadExpenseCategories();
+
+        }
+
+    }
+);
 
 
 
@@ -1882,14 +2296,6 @@ function goToTransactions() {
 
     window.location.href =
         "transactions.html";
-
-}
-
-
-function goToBudget() {
-
-    window.location.href =
-        "monthly-budget.html";
 
 }
 
@@ -1949,43 +2355,3 @@ function openQuickAdd() {
     }
 
 }
-
-
-
-/* =========================================================
-   STORAGE SYNC
-========================================================= */
-
-window.addEventListener(
-    "storage",
-    function () {
-
-        loadExpenseAccounts();
-
-        loadExpenseCategories();
-
-        updateExpenseSummary();
-
-        updateSelectedCategoryBudget();
-
-    }
-);
-
-
-
-/* =========================================================
-   TRANSACTION UPDATE EVENT
-========================================================= */
-
-window.addEventListener(
-    "rdkhTransactionsUpdated",
-    function () {
-
-        loadExpenseCategories();
-
-        updateExpenseSummary();
-
-        updateSelectedCategoryBudget();
-
-    }
-);
