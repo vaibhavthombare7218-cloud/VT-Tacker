@@ -25,7 +25,57 @@
    - rdkh_login_session
 ========================================================= */
 
+/* =========================================================
+   AUTHENTICATION CHECK
+   Login शिवाय application वापरता येणार नाही.
+========================================================= */
 
+(function checkAuthentication() {
+
+    const loggedIn =
+        localStorage.getItem(
+            "rdkh_logged_in"
+        );
+
+
+    /*
+       login.html वर असताना
+       पुन्हा redirect करू नका.
+    */
+
+    const currentPage =
+        window.location.pathname
+            .split("/")
+            .pop()
+            .toLowerCase();
+
+
+    if (
+        currentPage ===
+        "login.html"
+    ) {
+
+        return;
+
+    }
+
+
+    /*
+       Login केलेला नसेल तर
+       Login page वर पाठवा.
+    */
+
+    if (
+        loggedIn !== "true"
+    ) {
+
+        window.location.replace(
+            "login.html"
+        );
+
+    }
+
+})();
 /* =========================================================
    STORAGE KEYS
 ========================================================= */
