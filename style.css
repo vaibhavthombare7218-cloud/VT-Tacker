@@ -3473,3 +3473,1164 @@ button {
     }
 
 }
+/* =========================================================
+   TRANSACTIONS PAGE
+   रोजचा जमा खर्च अहवाल
+   DESIGN ONLY
+   Compatible with existing app.js / transactions.js
+========================================================= */
+
+
+/* =========================================================
+   PAGE CONTAINER
+========================================================= */
+
+.page-container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 18px 16px 100px;
+}
+
+
+/* =========================================================
+   SUMMARY GRID
+========================================================= */
+
+.summary-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+    margin-bottom: 18px;
+}
+
+
+.summary-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    background: #ffffff;
+    border: 1px solid #eeeeee;
+
+    border-radius: 16px;
+
+    padding: 16px;
+
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.06);
+
+    min-height: 86px;
+
+    transition:
+        transform 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
+
+.summary-card:hover {
+    transform: translateY(-2px);
+
+    box-shadow:
+        0 7px 20px rgba(0, 0, 0, 0.09);
+}
+
+
+.summary-icon {
+    width: 46px;
+    height: 46px;
+
+    min-width: 46px;
+
+    border-radius: 13px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    font-size: 19px;
+}
+
+
+.summary-card span {
+    display: block;
+
+    font-size: 13px;
+
+    color: #777;
+
+    margin-bottom: 4px;
+}
+
+
+.summary-card strong {
+    display: block;
+
+    font-size: 20px;
+
+    font-weight: 700;
+
+    color: #222;
+}
+
+
+/* Income */
+
+.income-card .summary-icon {
+    background: #e8f7ef;
+    color: #18864b;
+}
+
+
+/* Expense */
+
+.expense-card .summary-icon {
+    background: #fdecec;
+    color: #c62828;
+}
+
+
+/* Balance */
+
+.balance-card .summary-icon {
+    background: #f4e8ec;
+    color: #5b0b18;
+}
+
+
+/* =========================================================
+   CONTENT CARD
+========================================================= */
+
+.content-card {
+    background: #ffffff;
+
+    border: 1px solid #eeeeee;
+
+    border-radius: 18px;
+
+    padding: 20px;
+
+    margin-bottom: 22px;
+
+    box-shadow:
+        0 4px 16px rgba(0, 0, 0, 0.05);
+}
+
+
+/* =========================================================
+   SECTION TITLE
+========================================================= */
+
+.section-title {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    margin-bottom: 18px;
+}
+
+
+.section-title h2 {
+    margin: 0;
+
+    font-size: 19px;
+
+    color: #222;
+}
+
+
+.section-title p {
+    margin: 5px 0 0;
+
+    color: #777;
+
+    font-size: 13px;
+}
+
+
+/* =========================================================
+   FORM
+========================================================= */
+
+.form-grid {
+    display: grid;
+
+    grid-template-columns:
+        repeat(4, 1fr);
+
+    gap: 13px;
+}
+
+
+.form-group {
+    margin-bottom: 14px;
+}
+
+
+.form-grid .form-group {
+    margin-bottom: 0;
+}
+
+
+.form-group label {
+    display: block;
+
+    font-size: 13px;
+
+    font-weight: 600;
+
+    color: #444;
+
+    margin-bottom: 7px;
+}
+
+
+.form-group label i {
+    color: #5b0b18;
+
+    margin-right: 4px;
+}
+
+
+.form-group input,
+.form-group select {
+    width: 100%;
+
+    box-sizing: border-box;
+
+    min-height: 44px;
+
+    padding: 10px 12px;
+
+    border: 1px solid #dcdcdc;
+
+    border-radius: 10px;
+
+    background: #ffffff;
+
+    color: #222;
+
+    font-size: 14px;
+
+    outline: none;
+
+    transition:
+        border-color 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
+
+.form-group input:focus,
+.form-group select:focus {
+
+    border-color: #5b0b18;
+
+    box-shadow:
+        0 0 0 3px rgba(91, 11, 24, 0.10);
+}
+
+
+/* Search */
+
+#transactionSearch {
+    min-height: 46px;
+
+    border-radius: 12px;
+}
+
+
+/* =========================================================
+   FILTER ACTIONS
+========================================================= */
+
+.filter-actions {
+
+    display: flex;
+
+    gap: 10px;
+
+    margin-top: 16px;
+}
+
+
+.btn {
+
+    border: none;
+
+    border-radius: 10px;
+
+    min-height: 42px;
+
+    padding: 9px 16px;
+
+    font-size: 14px;
+
+    font-weight: 600;
+
+    cursor: pointer;
+
+    display: inline-flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    gap: 7px;
+
+    transition:
+        transform 0.15s ease,
+        opacity 0.15s ease,
+        box-shadow 0.15s ease;
+}
+
+
+.btn:active {
+    transform: scale(0.97);
+}
+
+
+.btn-primary {
+
+    background: #5b0b18;
+
+    color: #ffffff;
+
+    box-shadow:
+        0 3px 9px rgba(91, 11, 24, 0.20);
+}
+
+
+.btn-primary:hover {
+    opacity: 0.92;
+}
+
+
+.btn-secondary {
+
+    background: #f1f1f1;
+
+    color: #444;
+}
+
+
+.btn-secondary:hover {
+    background: #e7e7e7;
+}
+
+
+.btn-danger {
+
+    background: #c62828;
+
+    color: #ffffff;
+
+    box-shadow:
+        0 3px 9px rgba(198, 40, 40, 0.18);
+}
+
+
+.btn-danger:hover {
+    opacity: 0.92;
+}
+
+
+/* =========================================================
+   TRANSACTION LIST HEADER
+========================================================= */
+
+.transaction-list-header {
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 10px;
+
+    margin: 4px 0 14px;
+}
+
+
+.transaction-list-header > div {
+
+    flex: 1;
+}
+
+
+.transaction-list-header h2 {
+
+    margin: 0;
+
+    font-size: 19px;
+
+    color: #222;
+}
+
+
+.transaction-list-header span {
+
+    display: block;
+
+    margin-top: 3px;
+
+    color: #777;
+
+    font-size: 12px;
+}
+
+
+/* =========================================================
+   TRANSACTION LIST
+========================================================= */
+
+.transaction-list {
+
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 10px;
+}
+
+
+/* =========================================================
+   TRANSACTION CARD
+   This supports dynamically generated transaction items
+========================================================= */
+
+.transaction-item,
+.transaction-card {
+
+    background: #ffffff;
+
+    border: 1px solid #eeeeee;
+
+    border-radius: 14px;
+
+    padding: 14px 15px;
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 13px;
+
+    box-shadow:
+        0 3px 12px rgba(0, 0, 0, 0.045);
+
+    transition:
+        transform 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
+
+.transaction-item:hover,
+.transaction-card:hover {
+
+    transform: translateY(-1px);
+
+    box-shadow:
+        0 6px 17px rgba(0, 0, 0, 0.07);
+}
+
+
+/* Transaction icon */
+
+.transaction-icon {
+
+    width: 44px;
+
+    height: 44px;
+
+    min-width: 44px;
+
+    border-radius: 12px;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    font-size: 17px;
+}
+
+
+.transaction-income .transaction-icon,
+.income-transaction .transaction-icon {
+
+    background: #e8f7ef;
+
+    color: #18864b;
+}
+
+
+.transaction-expense .transaction-icon,
+.expense-transaction .transaction-icon {
+
+    background: #fdecec;
+
+    color: #c62828;
+}
+
+
+/* Transaction content */
+
+.transaction-details {
+
+    flex: 1;
+
+    min-width: 0;
+}
+
+
+.transaction-details h3 {
+
+    margin: 0;
+
+    font-size: 15px;
+
+    font-weight: 650;
+
+    color: #222;
+
+    white-space: nowrap;
+
+    overflow: hidden;
+
+    text-overflow: ellipsis;
+}
+
+
+.transaction-details p {
+
+    margin: 4px 0 0;
+
+    font-size: 12px;
+
+    color: #777;
+}
+
+
+.transaction-amount {
+
+    font-size: 16px;
+
+    font-weight: 700;
+
+    white-space: nowrap;
+}
+
+
+.transaction-income .transaction-amount,
+.income-transaction .transaction-amount {
+
+    color: #18864b;
+}
+
+
+.transaction-expense .transaction-amount,
+.expense-transaction .transaction-amount {
+
+    color: #c62828;
+}
+
+
+/* Delete button */
+
+.transaction-delete,
+.delete-transaction {
+
+    width: 36px;
+
+    height: 36px;
+
+    border: none;
+
+    border-radius: 9px;
+
+    background: #fff0f0;
+
+    color: #c62828;
+
+    cursor: pointer;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    transition: 0.2s ease;
+}
+
+
+.transaction-delete:hover,
+.delete-transaction:hover {
+
+    background: #c62828;
+
+    color: #ffffff;
+}
+
+
+/* =========================================================
+   EMPTY STATE
+========================================================= */
+
+.empty-state {
+
+    background: #ffffff;
+
+    border: 1px dashed #d8d8d8;
+
+    border-radius: 18px;
+
+    padding: 38px 20px;
+
+    text-align: center;
+
+    color: #666;
+}
+
+
+.empty-icon {
+
+    width: 62px;
+
+    height: 62px;
+
+    margin: 0 auto 14px;
+
+    border-radius: 18px;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    background: #f4e8ec;
+
+    color: #5b0b18;
+
+    font-size: 25px;
+}
+
+
+.empty-state h3 {
+
+    margin: 0;
+
+    color: #333;
+
+    font-size: 17px;
+}
+
+
+.empty-state p {
+
+    margin: 7px 0 18px;
+
+    font-size: 13px;
+
+    color: #777;
+}
+
+
+.empty-actions {
+
+    display: flex;
+
+    justify-content: center;
+
+    gap: 10px;
+
+    flex-wrap: wrap;
+}
+
+
+/* =========================================================
+   DELETE MODAL
+========================================================= */
+
+.modal-overlay {
+
+    position: fixed;
+
+    inset: 0;
+
+    z-index: 9999;
+
+    background:
+        rgba(0, 0, 0, 0.55);
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    padding: 18px;
+}
+
+
+.modal-card {
+
+    width: 100%;
+
+    max-width: 390px;
+
+    background: #ffffff;
+
+    border-radius: 20px;
+
+    padding: 25px 20px;
+
+    text-align: center;
+
+    box-shadow:
+        0 18px 50px rgba(0, 0, 0, 0.22);
+
+    animation: modalIn 0.18s ease-out;
+}
+
+
+@keyframes modalIn {
+
+    from {
+        opacity: 0;
+        transform: scale(0.94) translateY(8px);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+
+}
+
+
+.modal-icon {
+
+    width: 58px;
+
+    height: 58px;
+
+    margin: 0 auto 14px;
+
+    border-radius: 16px;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    background: #fff0f0;
+
+    color: #c62828;
+
+    font-size: 23px;
+}
+
+
+.modal-card h3 {
+
+    margin: 0;
+
+    color: #222;
+
+    font-size: 18px;
+}
+
+
+.modal-card p {
+
+    margin: 8px 0 20px;
+
+    color: #777;
+
+    font-size: 13px;
+
+    line-height: 1.5;
+}
+
+
+.modal-actions {
+
+    display: flex;
+
+    justify-content: center;
+
+    gap: 10px;
+}
+
+
+/* =========================================================
+   BOTTOM NAVIGATION
+========================================================= */
+
+.bottom-nav {
+
+    position: fixed;
+
+    left: 0;
+
+    right: 0;
+
+    bottom: 0;
+
+    z-index: 1000;
+
+    height: 66px;
+
+    background: rgba(255, 255, 255, 0.97);
+
+    border-top: 1px solid #e5e5e5;
+
+    display: grid;
+
+    grid-template-columns:
+        repeat(5, 1fr);
+
+    box-shadow:
+        0 -4px 15px rgba(0, 0, 0, 0.06);
+
+    backdrop-filter: blur(10px);
+}
+
+
+.nav-item {
+
+    border: none;
+
+    background: transparent;
+
+    color: #777;
+
+    cursor: pointer;
+
+    display: flex;
+
+    flex-direction: column;
+
+    align-items: center;
+
+    justify-content: center;
+
+    gap: 4px;
+
+    font-size: 11px;
+
+    transition: 0.2s ease;
+}
+
+
+.nav-item i {
+
+    font-size: 18px;
+}
+
+
+.nav-item span {
+
+    font-size: 10px;
+
+    font-weight: 600;
+}
+
+
+.nav-item.active {
+
+    color: #5b0b18;
+
+    font-weight: 700;
+}
+
+
+.nav-item.active i {
+
+    transform: translateY(-1px);
+}
+
+
+/* =========================================================
+   TABLET
+========================================================= */
+
+@media (max-width: 850px) {
+
+    .form-grid {
+
+        grid-template-columns:
+            repeat(2, 1fr);
+    }
+
+}
+
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
+@media (max-width: 600px) {
+
+    .page-container {
+
+        padding:
+            14px 12px 92px;
+    }
+
+
+    .summary-grid {
+
+        grid-template-columns:
+            1fr;
+
+        gap: 10px;
+    }
+
+
+    .summary-card {
+
+        min-height: 70px;
+
+        padding: 13px;
+    }
+
+
+    .summary-icon {
+
+        width: 42px;
+
+        height: 42px;
+
+        min-width: 42px;
+    }
+
+
+    .summary-card strong {
+
+        font-size: 18px;
+    }
+
+
+    .content-card {
+
+        padding: 15px;
+
+        border-radius: 15px;
+    }
+
+
+    .section-title h2 {
+
+        font-size: 17px;
+    }
+
+
+    .form-grid {
+
+        grid-template-columns:
+            1fr;
+
+        gap: 0;
+    }
+
+
+    .form-grid .form-group {
+
+        margin-bottom: 13px;
+    }
+
+
+    .filter-actions {
+
+        display: grid;
+
+        grid-template-columns:
+            1fr 1fr;
+    }
+
+
+    .transaction-list-header {
+
+        flex-wrap: wrap;
+
+        gap: 7px;
+    }
+
+
+    .transaction-list-header > div {
+
+        width: 100%;
+
+        flex-basis: 100%;
+
+        margin-bottom: 4px;
+    }
+
+
+    .transaction-list-header .btn {
+
+        flex: 1;
+    }
+
+
+    .transaction-item,
+    .transaction-card {
+
+        padding: 12px;
+
+        gap: 9px;
+    }
+
+
+    .transaction-icon {
+
+        width: 40px;
+
+        height: 40px;
+
+        min-width: 40px;
+    }
+
+
+    .transaction-details h3 {
+
+        font-size: 14px;
+    }
+
+
+    .transaction-amount {
+
+        font-size: 14px;
+    }
+
+
+    .empty-state {
+
+        padding:
+            32px 15px;
+    }
+
+
+    .empty-actions {
+
+        display: grid;
+
+        grid-template-columns:
+            1fr;
+
+        max-width: 250px;
+
+        margin: auto;
+    }
+
+
+    .bottom-nav {
+
+        height: 62px;
+    }
+
+
+    .nav-item i {
+
+        font-size: 17px;
+    }
+
+
+    .nav-item span {
+
+        font-size: 9px;
+    }
+
+}
+
+
+/* =========================================================
+   SMALL MOBILE
+========================================================= */
+
+@media (max-width: 380px) {
+
+    .page-container {
+
+        padding-left: 9px;
+
+        padding-right: 9px;
+    }
+
+
+    .summary-card {
+
+        padding: 11px;
+    }
+
+
+    .summary-card strong {
+
+        font-size: 17px;
+    }
+
+
+    .transaction-list-header .btn {
+
+        font-size: 12px;
+
+        padding-left: 9px;
+
+        padding-right: 9px;
+    }
+
+}
+
+
+/* =========================================================
+   DARK MODE COMPATIBILITY
+   If existing app supports dark mode
+========================================================= */
+
+@media (prefers-color-scheme: dark) {
+
+    body.dark-mode .summary-card,
+    body.dark-mode .content-card,
+    body.dark-mode .transaction-item,
+    body.dark-mode .transaction-card,
+    body.dark-mode .empty-state,
+    body.dark-mode .modal-card {
+
+        background: #1f1f1f;
+
+        border-color: #333;
+    }
+
+
+    body.dark-mode .summary-card strong,
+    body.dark-mode .section-title h2,
+    body.dark-mode .transaction-list-header h2,
+    body.dark-mode .transaction-details h3,
+    body.dark-mode .modal-card h3 {
+
+        color: #f1f1f1;
+    }
+
+
+    body.dark-mode .form-group input,
+    body.dark-mode .form-group select {
+
+        background: #252525;
+
+        color: #ffffff;
+
+        border-color: #444;
+    }
+
+
+    body.dark-mode .bottom-nav {
+
+        background: #1d1d1d;
+
+        border-color: #333;
+    }
+
+}
