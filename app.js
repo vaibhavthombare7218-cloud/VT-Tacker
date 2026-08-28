@@ -2,11 +2,27 @@
    app.js
    रोजचा जमा खर्च अहवाल
 
-   CENTRAL DATA + CALCULATION SYSTEM
+   CENTRAL APPLICATION SYSTEM
+   =========================================================
 
-   IMPORTANT:
-   सर्व modules याच central transaction structure वर
-   काम करतील.
+   CONNECTED MODULES:
+   - index.html
+   - income.html / income.js
+   - expense.html / expense.js
+   - accounts.html / accounts.js
+   - transactions.html / transactions.js
+   - monthly-budget.html / monthly-budget.js
+   - reports.html / reports.js
+   - settings.html / settings.js
+   - login.html / login.js
+
+   STORAGE:
+   - rdkh_transactions
+   - rdkh_accounts
+   - rdkh_monthly_budgets
+   - rdkh_budget_categories
+   - rdkh_settings
+   - rdkh_login_session
 ========================================================= */
 
 
@@ -25,15 +41,21 @@ const STORAGE_KEYS = {
     budgets:
         "rdkh_monthly_budgets",
 
+    budgetCategories:
+        "rdkh_budget_categories",
+
     settings:
-        "rdkh_settings"
+        "rdkh_settings",
+
+    loginSession:
+        "rdkh_login_session"
 
 };
 
 
 
 /* =========================================================
-   DEFAULT DATA
+   DEFAULT ACCOUNTS
 ========================================================= */
 
 const DEFAULT_ACCOUNTS = [
@@ -42,21 +64,24 @@ const DEFAULT_ACCOUNTS = [
         id: "cash",
         name: "Cash",
         type: "cash",
-        openingBalance: 0
+        openingBalance: 0,
+        createdAt: null
     },
 
     {
         id: "bank",
         name: "Bank",
         type: "bank",
-        openingBalance: 0
+        openingBalance: 0,
+        createdAt: null
     },
 
     {
         id: "upi",
         name: "UPI",
         type: "upi",
-        openingBalance: 0
+        openingBalance: 0,
+        createdAt: null
     }
 
 ];
@@ -64,26 +89,31 @@ const DEFAULT_ACCOUNTS = [
 
 
 /* =========================================================
-   BASIC STORAGE FUNCTIONS
+   BASIC STORAGE
 ========================================================= */
 
-function getData(key, defaultValue = []) {
+function getData(
+    key,
+    defaultValue = []
+) {
 
     try {
 
         const data =
             localStorage.getItem(key);
 
-        if (!data) {
+
+        if (
+            data === null ||
+            data === ""
+        ) {
 
             return defaultValue;
 
         }
 
-        const parsed =
-            JSON.parse(data);
 
-        return parsed;
+        return JSON.parse(data);
 
     }
 
@@ -91,6 +121,7 @@ function getData(key, defaultValue = []) {
 
         console.error(
             "Storage Read Error:",
+            key,
             error
         );
 
@@ -102,7 +133,10 @@ function getData(key, defaultValue = []) {
 
 
 
-function saveData(key, data) {
+function saveData(
+    key,
+    data
+) {
 
     try {
 
@@ -119,6 +153,32 @@ function saveData(key, data) {
 
         console.error(
             "Storage Save Error:",
+            key,
+            error
+        );
+
+        return false;
+
+    }
+
+}
+
+
+
+function removeData(key) {
+
+    try {
+
+        localStorage.removeItem(key);
+
+        return true;
+
+    }
+
+    catch (error) {
+
+        console.error(
+            "Storage Remove Error:",
             error
         );
 
@@ -136,21 +196,82 @@ function saveData(key, data) {
 
 function getTransactions() {
 
-    return getData(
-        STORAGE_KEYS.transactions,
-        []
-    );
+    const transactions =
+        getData(
+            STORAGE_KEYS.transactions,
+            []
+        );
+
+
+    return Array.isArray(
+        transactions
+    )
+        ? transactions
+        : [];
 
 }
 
 
 
-function saveTransactions(transactions) {
+function saveTransactions(
+    transactions
+) {
 
-    return saveData(
-        STORAGE_KEYS.transactions,
-        transactions
-    );
+    if (
+        !Array.isArray(
+            transactions
+        )
+    ) {
+
+        return false;
+
+    }
+
+
+    const saved =
+        saveData(
+            STORAGE_KEYS.transactions,
+            transactions
+        );
+
+
+    if (saved) {
+
+        dispatchTransactionsUpdated();
+
+    }
+
+
+    return saved;
+
+}
+
+
+
+/* =========================================================
+   TRANSACTION EVENT
+========================================================= */
+
+function dispatchTransactionsUpdated() {
+
+    try {
+
+        window.dispatchEvent(
+            new CustomEvent(
+                "rdkhTransactionsUpdated"
+            )
+        );
+
+    }
+
+    catch (error) {
+
+        console.error(
+            "Transaction event error:",
+            error
+        );
+
+    }
 
 }
 
@@ -169,7 +290,9 @@ function getAccounts() {
         );
 
 
-    if (!Array.isArray(accounts)) {
+    if (
+        !Array.isArray(accounts)
+    ) {
 
         accounts = [];
 
@@ -182,7 +305,20 @@ function getAccounts() {
 
 
 
-function saveAccounts(accounts) {
+function saveAccounts(
+    accounts
+) {
+
+    if (
+        !Array.isArray(
+            accounts
+        )
+    ) {
+
+        return false;
+
+    }
+
 
     return saveData(
         STORAGE_KEYS.accounts,
@@ -199,17 +335,76 @@ function saveAccounts(accounts) {
 
 function initializeAccounts() {
 
-    const accounts =
+    let accounts =
         getAccounts();
 
 
-    if (accounts.length === 0) {
+    if (
+        accounts.length === 0
+    ) {
+
+        accounts =
+            DEFAULT_ACCOUNTS.map(
+                account => ({
+
+                    ...account,
+
+                    createdAt:
+                        new Date().toISOString()
+
+                })
+            );
+
 
         saveAccounts(
-            DEFAULT_ACCOUNTS
+            accounts
         );
 
+        return accounts;
+
     }
+
+
+
+    /*
+       जर Cash / Bank / UPI
+       missing असतील तर add करा.
+    */
+
+    DEFAULT_ACCOUNTS.forEach(
+        defaultAccount => {
+
+            const exists =
+                accounts.some(
+                    account =>
+                        account.id ===
+                        defaultAccount.id
+                );
+
+
+            if (!exists) {
+
+                accounts.push({
+
+                    ...defaultAccount,
+
+                    createdAt:
+                        new Date().toISOString()
+
+                });
+
+            }
+
+        }
+    );
+
+
+    saveAccounts(
+        accounts
+    );
+
+
+    return accounts;
 
 }
 
@@ -221,21 +416,271 @@ function initializeAccounts() {
 
 function getBudgets() {
 
-    return getData(
+    const data =
+        getData(
+            STORAGE_KEYS.budgets,
+            []
+        );
+
+
+    /*
+       monthly-budget.js मध्ये
+       object structure वापरले आहे.
+
+       त्यामुळे object असेल तर त्याला
+       compatible array मध्ये convert करू.
+    */
+
+    if (
+        Array.isArray(data)
+    ) {
+
+        return data;
+
+    }
+
+
+    if (
+        data &&
+        typeof data === "object"
+    ) {
+
+        return Object.keys(data)
+            .map(
+                month =>
+                    data[month]
+            );
+
+    }
+
+
+    return [];
+
+}
+
+
+
+function saveBudgets(
+    budgets
+) {
+
+    return saveData(
         STORAGE_KEYS.budgets,
-        []
+        budgets
     );
 
 }
 
 
 
-function saveBudgets(budgets) {
+/* =========================================================
+   CURRENT MONTH BUDGET
+========================================================= */
 
-    return saveData(
-        STORAGE_KEYS.budgets,
-        budgets
-    );
+function getCurrentMonthBudget() {
+
+    const month =
+        getCurrentMonth();
+
+
+    const raw =
+        getData(
+            STORAGE_KEYS.budgets,
+            {}
+        );
+
+
+    /*
+       New monthly-budget.js structure
+    */
+
+    if (
+        raw &&
+        typeof raw === "object" &&
+        !Array.isArray(raw)
+    ) {
+
+        if (
+            raw[month]
+        ) {
+
+            const budget =
+                raw[month];
+
+
+            return normalizeBudget(
+                budget,
+                month
+            );
+
+        }
+
+    }
+
+
+
+    /*
+       Old array structure compatibility
+    */
+
+    if (
+        Array.isArray(raw)
+    ) {
+
+        const budget =
+            raw.find(
+                item =>
+                    item &&
+                    item.month === month
+            );
+
+
+        if (budget) {
+
+            return normalizeBudget(
+                budget,
+                month
+            );
+
+        }
+
+    }
+
+
+
+    return {
+
+        month: month,
+
+        plannedMoney: 0,
+
+        incomePlan: 0,
+
+        expenseBudget: 0,
+
+        savingTarget: 0,
+
+        alertPercent: 80,
+
+        categories: {},
+
+        createdAt: null,
+
+        updatedAt: null
+
+    };
+
+}
+
+
+
+function normalizeBudget(
+    budget,
+    month
+) {
+
+    const source =
+        budget || {};
+
+
+    let categories =
+        source.categories;
+
+
+    if (
+        Array.isArray(categories)
+    ) {
+
+        const converted = {};
+
+
+        categories.forEach(
+            item => {
+
+                if (
+                    item &&
+                    item.id
+                ) {
+
+                    converted[
+                        item.id
+                    ] =
+                        Number(
+                            item.amount || 0
+                        );
+
+                }
+
+            }
+        );
+
+
+        categories =
+            converted;
+
+    }
+
+
+    if (
+        !categories ||
+        typeof categories !== "object"
+    ) {
+
+        categories = {};
+
+    }
+
+
+    return {
+
+        month:
+            source.month ||
+            month,
+
+        plannedMoney:
+            Number(
+                source.plannedMoney ||
+                source.incomePlan ||
+                0
+            ),
+
+        incomePlan:
+            Number(
+                source.incomePlan ||
+                source.plannedMoney ||
+                0
+            ),
+
+        expenseBudget:
+            Number(
+                source.expenseBudget ||
+                0
+            ),
+
+        savingTarget:
+            Number(
+                source.savingTarget ||
+                0
+            ),
+
+        alertPercent:
+            Number(
+                source.alertPercent ||
+                80
+            ),
+
+        categories:
+            categories,
+
+        createdAt:
+            source.createdAt ||
+            null,
+
+        updatedAt:
+            source.updatedAt ||
+            null
+
+    };
 
 }
 
@@ -250,21 +695,36 @@ function getTodayString() {
     const today =
         new Date();
 
+
     const year =
         today.getFullYear();
+
 
     const month =
         String(
             today.getMonth() + 1
-        ).padStart(2, "0");
+        ).padStart(
+            2,
+            "0"
+        );
+
 
     const day =
         String(
             today.getDate()
-        ).padStart(2, "0");
+        ).padStart(
+            2,
+            "0"
+        );
 
 
-    return `${year}-${month}-${day}`;
+    return (
+        year +
+        "-" +
+        month +
+        "-" +
+        day
+    );
 
 }
 
@@ -275,39 +735,164 @@ function getCurrentMonth() {
     const today =
         new Date();
 
+
     const year =
         today.getFullYear();
+
 
     const month =
         String(
             today.getMonth() + 1
-        ).padStart(2, "0");
+        ).padStart(
+            2,
+            "0"
+        );
 
 
-    return `${year}-${month}`;
+    return (
+        year +
+        "-" +
+        month
+    );
+
+}
+
+
+
+function normalizeDate(
+    date
+) {
+
+    if (!date) {
+
+        return "";
+
+    }
+
+
+    const value =
+        String(date);
+
+
+    /*
+       YYYY-MM-DD
+    */
+
+    if (
+        /^\d{4}-\d{2}-\d{2}$/
+            .test(value)
+    ) {
+
+        return value;
+
+    }
+
+
+    const parsed =
+        new Date(date);
+
+
+    if (
+        isNaN(
+            parsed.getTime()
+        )
+    ) {
+
+        return "";
+
+    }
+
+
+    return (
+
+        parsed.getFullYear() +
+        "-" +
+        String(
+            parsed.getMonth() + 1
+        ).padStart(
+            2,
+            "0"
+        ) +
+        "-" +
+        String(
+            parsed.getDate()
+        ).padStart(
+            2,
+            "0"
+        )
+
+    );
+
+}
+
+
+
+function formatDisplayDate(
+    dateString
+) {
+
+    const date =
+        normalizeDate(
+            dateString
+        );
+
+
+    if (!date) {
+
+        return "";
+
+    }
+
+
+    const parts =
+        date.split("-");
+
+
+    if (
+        parts.length !== 3
+    ) {
+
+        return date;
+
+    }
+
+
+    return (
+
+        parts[2] +
+        "-" +
+        parts[1] +
+        "-" +
+        parts[0]
+
+    );
 
 }
 
 
 
 /* =========================================================
-   CURRENCY FORMAT
+   CURRENCY
 ========================================================= */
 
-function formatMoney(amount) {
+function formatMoney(
+    amount
+) {
 
     const value =
         Number(amount) || 0;
 
 
-    return "₹" +
+    return (
+        "₹" +
         value.toLocaleString(
             "en-IN",
             {
                 minimumFractionDigits: 2,
                 maximumFractionDigits: 2
             }
-        );
+        )
+    );
 
 }
 
@@ -319,19 +904,25 @@ function formatMoney(amount) {
 
 function getTotalIncome() {
 
-    const transactions =
-        getTransactions();
+    return getTransactions()
 
-
-    return transactions
         .filter(
             transaction =>
-                transaction.type === "income"
+                transaction.type ===
+                "income"
         )
+
         .reduce(
-            (total, transaction) =>
+            (
+                total,
+                transaction
+            ) =>
                 total +
-                Number(transaction.amount || 0),
+                (
+                    Number(
+                        transaction.amount
+                    ) || 0
+                ),
             0
         );
 
@@ -345,19 +936,25 @@ function getTotalIncome() {
 
 function getTotalExpense() {
 
-    const transactions =
-        getTransactions();
+    return getTransactions()
 
-
-    return transactions
         .filter(
             transaction =>
-                transaction.type === "expense"
+                transaction.type ===
+                "expense"
         )
+
         .reduce(
-            (total, transaction) =>
+            (
+                total,
+                transaction
+            ) =>
                 total +
-                Number(transaction.amount || 0),
+                (
+                    Number(
+                        transaction.amount
+                    ) || 0
+                ),
             0
         );
 
@@ -375,7 +972,8 @@ function getTotalBalance() {
         getAccounts();
 
 
-    let openingBalance = 0;
+    let openingBalance =
+        0;
 
 
     accounts.forEach(
@@ -383,7 +981,8 @@ function getTotalBalance() {
 
             openingBalance +=
                 Number(
-                    account.openingBalance || 0
+                    account.openingBalance ||
+                    0
                 );
 
         }
@@ -391,9 +990,11 @@ function getTotalBalance() {
 
 
     return (
+
         openingBalance +
         getTotalIncome() -
         getTotalExpense()
+
     );
 
 }
@@ -414,14 +1015,24 @@ function getTodayIncome() {
 
         .filter(
             transaction =>
-                transaction.type === "income" &&
-                transaction.date === today
+                transaction.type ===
+                "income" &&
+                normalizeDate(
+                    transaction.date
+                ) === today
         )
 
         .reduce(
-            (total, transaction) =>
+            (
+                total,
+                transaction
+            ) =>
                 total +
-                Number(transaction.amount || 0),
+                (
+                    Number(
+                        transaction.amount
+                    ) || 0
+                ),
             0
         );
 
@@ -443,14 +1054,24 @@ function getTodayExpense() {
 
         .filter(
             transaction =>
-                transaction.type === "expense" &&
-                transaction.date === today
+                transaction.type ===
+                "expense" &&
+                normalizeDate(
+                    transaction.date
+                ) === today
         )
 
         .reduce(
-            (total, transaction) =>
+            (
+                total,
+                transaction
+            ) =>
                 total +
-                Number(transaction.amount || 0),
+                (
+                    Number(
+                        transaction.amount
+                    ) || 0
+                ),
             0
         );
 
@@ -465,37 +1086,11 @@ function getTodayExpense() {
 function getTodaySaving() {
 
     return (
+
         getTodayIncome() -
         getTodayExpense()
+
     );
-
-}
-
-
-
-/* =========================================================
-   MONTH EXPENSE
-========================================================= */
-
-function getMonthExpense(
-    month = getCurrentMonth()
-) {
-
-    return getTransactions()
-
-        .filter(
-            transaction =>
-                transaction.type === "expense" &&
-                transaction.date &&
-                transaction.date.startsWith(month)
-        )
-
-        .reduce(
-            (total, transaction) =>
-                total +
-                Number(transaction.amount || 0),
-            0
-        );
 
 }
 
@@ -512,16 +1107,39 @@ function getMonthIncome(
     return getTransactions()
 
         .filter(
-            transaction =>
-                transaction.type === "income" &&
-                transaction.date &&
-                transaction.date.startsWith(month)
+            transaction => {
+
+                const date =
+                    normalizeDate(
+                        transaction.date
+                    );
+
+
+                return (
+
+                    transaction.type ===
+                    "income" &&
+
+                    date.startsWith(
+                        month
+                    )
+
+                );
+
+            }
         )
 
         .reduce(
-            (total, transaction) =>
+            (
+                total,
+                transaction
+            ) =>
                 total +
-                Number(transaction.amount || 0),
+                (
+                    Number(
+                        transaction.amount
+                    ) || 0
+                ),
             0
         );
 
@@ -530,39 +1148,51 @@ function getMonthIncome(
 
 
 /* =========================================================
-   MONTHLY BUDGET
+   MONTH EXPENSE
 ========================================================= */
 
-function getCurrentMonthBudget() {
+function getMonthExpense(
+    month = getCurrentMonth()
+) {
 
-    const month =
-        getCurrentMonth();
+    return getTransactions()
+
+        .filter(
+            transaction => {
+
+                const date =
+                    normalizeDate(
+                        transaction.date
+                    );
 
 
-    const budgets =
-        getBudgets();
+                return (
 
+                    transaction.type ===
+                    "expense" &&
 
-    const budget =
-        budgets.find(
-            item =>
-                item.month === month
+                    date.startsWith(
+                        month
+                    )
+
+                );
+
+            }
+        )
+
+        .reduce(
+            (
+                total,
+                transaction
+            ) =>
+                total +
+                (
+                    Number(
+                        transaction.amount
+                    ) || 0
+                ),
+            0
         );
-
-
-    return budget || {
-
-        month: month,
-
-        incomePlan: 0,
-
-        expenseBudget: 0,
-
-        savingTarget: 0,
-
-        categories: []
-
-    };
 
 }
 
@@ -583,9 +1213,13 @@ function getBudgetRemaining() {
 
 
     return (
+
         Number(
-            budget.expenseBudget || 0
-        ) - spent
+            budget.expenseBudget ||
+            0
+        ) -
+        spent
+
     );
 
 }
@@ -604,11 +1238,14 @@ function getBudgetPercentage() {
 
     const planned =
         Number(
-            budget.expenseBudget || 0
+            budget.expenseBudget ||
+            0
         );
 
 
-    if (planned <= 0) {
+    if (
+        planned <= 0
+    ) {
 
         return 0;
 
@@ -621,8 +1258,180 @@ function getBudgetPercentage() {
 
     return Math.min(
         100,
-        (spent / planned) * 100
+        (
+            spent /
+            planned
+        ) *
+        100
     );
+
+}
+
+
+
+/* =========================================================
+   ACCOUNT BALANCE
+========================================================= */
+
+function getAccountBalance(
+    accountId
+) {
+
+    const account =
+        getAccounts().find(
+            item =>
+                item.id ===
+                accountId
+        );
+
+
+    if (!account) {
+
+        return 0;
+
+    }
+
+
+    let balance =
+        Number(
+            account.openingBalance ||
+            0
+        );
+
+
+    getTransactions()
+        .forEach(
+            transaction => {
+
+                if (
+                    transaction.accountId !==
+                    accountId
+                ) {
+
+                    return;
+
+                }
+
+
+                const amount =
+                    Number(
+                        transaction.amount ||
+                        0
+                    );
+
+
+                if (
+                    transaction.type ===
+                    "income"
+                ) {
+
+                    balance +=
+                        amount;
+
+                }
+
+                else if (
+                    transaction.type ===
+                    "expense"
+                ) {
+
+                    balance -=
+                        amount;
+
+                }
+
+            }
+        );
+
+
+    return balance;
+
+}
+
+
+
+/* =========================================================
+   ALL ACCOUNT BALANCES
+========================================================= */
+
+function getAllAccountBalances() {
+
+    return getAccounts()
+        .map(
+            account => ({
+
+                ...account,
+
+                balance:
+                    getAccountBalance(
+                        account.id
+                    )
+
+            })
+        );
+
+}
+
+
+
+/* =========================================================
+   RECENT TRANSACTIONS
+========================================================= */
+
+function getRecentTransactions(
+    limit = 5
+) {
+
+    return [...getTransactions()]
+
+        .sort(
+            (
+                a,
+                b
+            ) => {
+
+                const dateA =
+                    normalizeDate(
+                        a.date
+                    );
+
+                const dateB =
+                    normalizeDate(
+                        b.date
+                    );
+
+
+                if (
+                    dateA !==
+                    dateB
+                ) {
+
+                    return dateB
+                        .localeCompare(
+                            dateA
+                        );
+
+                }
+
+
+                return (
+                    new Date(
+                        b.createdAt ||
+                        0
+                    ) -
+                    new Date(
+                        a.createdAt ||
+                        0
+                    )
+                );
+
+            }
+        )
+
+        .slice(
+            0,
+            limit
+        );
 
 }
 
@@ -634,123 +1443,83 @@ function getBudgetPercentage() {
 
 function updateDashboard() {
 
+    updateMainBalance();
 
-    /* TOTAL */
-
-    const totalBalance =
-        document.getElementById(
-            "totalBalance"
-        );
-
-    const totalIncome =
-        document.getElementById(
-            "totalIncome"
-        );
-
-    const totalExpense =
-        document.getElementById(
-            "totalExpense"
-        );
-
-
-    if (totalBalance) {
-
-        totalBalance.textContent =
-            formatMoney(
-                getTotalBalance()
-            );
-
-    }
-
-
-    if (totalIncome) {
-
-        totalIncome.textContent =
-            formatMoney(
-                getTotalIncome()
-            );
-
-    }
-
-
-    if (totalExpense) {
-
-        totalExpense.textContent =
-            formatMoney(
-                getTotalExpense()
-            );
-
-    }
-
-
-
-    /* TODAY */
-
-    const todayIncome =
-        document.getElementById(
-            "todayIncome"
-        );
-
-    const todayExpense =
-        document.getElementById(
-            "todayExpense"
-        );
-
-    const todaySaving =
-        document.getElementById(
-            "todaySaving"
-        );
-
-
-    if (todayIncome) {
-
-        todayIncome.textContent =
-            formatMoney(
-                getTodayIncome()
-            );
-
-    }
-
-
-    if (todayExpense) {
-
-        todayExpense.textContent =
-            formatMoney(
-                getTodayExpense()
-            );
-
-    }
-
-
-    if (todaySaving) {
-
-        todaySaving.textContent =
-            formatMoney(
-                getTodaySaving()
-            );
-
-    }
-
-
-
-    /* BUDGET */
+    updateTodaySummary();
 
     updateBudgetDashboard();
 
-
-    /* ACCOUNTS */
-
     updateAccountDashboard();
-
-
-    /* RECENT TRANSACTIONS */
 
     updateRecentTransactions();
 
-
-    /* REMINDER */
-
     updateReminder();
+
+}
+
+
+
+/* =========================================================
+   MAIN BALANCE
+========================================================= */
+
+function updateMainBalance() {
+
+    setElementText(
+        "totalBalance",
+        formatMoney(
+            getTotalBalance()
+        )
+    );
+
+
+    setElementText(
+        "totalIncome",
+        formatMoney(
+            getTotalIncome()
+        )
+    );
+
+
+    setElementText(
+        "totalExpense",
+        formatMoney(
+            getTotalExpense()
+        )
+    );
+
+}
+
+
+
+/* =========================================================
+   TODAY SUMMARY
+========================================================= */
+
+function updateTodaySummary() {
+
+    setElementText(
+        "todayIncome",
+        formatMoney(
+            getTodayIncome()
+        )
+    );
+
+
+    setElementText(
+        "todayExpense",
+        formatMoney(
+            getTodayExpense()
+        )
+    );
+
+
+    setElementText(
+        "todaySaving",
+        formatMoney(
+            getTodaySaving()
+        )
+    );
 
 }
 
@@ -771,186 +1540,98 @@ function updateBudgetDashboard() {
 
 
     const remaining =
-        getBudgetRemaining();
+        Number(
+            budget.expenseBudget ||
+            0
+        ) -
+        spent;
 
 
-    const percentage =
-        getBudgetPercentage();
+    let percentage =
+        0;
 
 
-    const monthBudget =
-        document.getElementById(
-            "monthBudget"
+    if (
+        budget.expenseBudget > 0
+    ) {
+
+        percentage =
+            (
+                spent /
+                budget.expenseBudget
+            ) *
+            100;
+
+    }
+
+
+    percentage =
+        Math.min(
+            100,
+            Math.max(
+                0,
+                percentage
+            )
         );
 
-    const budgetAmount =
-        document.getElementById(
-            "budgetAmount"
-        );
 
-    const budgetSpent =
-        document.getElementById(
-            "budgetSpent"
-        );
+    setElementText(
+        "monthBudget",
+        formatMoney(
+            budget.expenseBudget
+        )
+    );
 
-    const budgetRemaining =
-        document.getElementById(
-            "budgetRemaining"
-        );
 
-    const budgetProgress =
+    setElementText(
+        "budgetAmount",
+        formatMoney(
+            budget.expenseBudget
+        )
+    );
+
+
+    setElementText(
+        "budgetSpent",
+        formatMoney(
+            spent
+        )
+    );
+
+
+    setElementText(
+        "budgetRemaining",
+        formatMoney(
+            Math.max(
+                0,
+                remaining
+            )
+        )
+    );
+
+
+    const progress =
         document.getElementById(
             "budgetProgress"
         );
 
-    const budgetPercentage =
-        document.getElementById(
-            "budgetPercentage"
-        );
 
+    if (progress) {
 
-    if (monthBudget) {
-
-        monthBudget.textContent =
-            formatMoney(
-                budget.expenseBudget
-            );
+        progress.style.width =
+            percentage +
+            "%";
 
     }
 
 
-    if (budgetAmount) {
-
-        budgetAmount.textContent =
-            formatMoney(
-                budget.expenseBudget
-            );
-
-    }
-
-
-    if (budgetSpent) {
-
-        budgetSpent.textContent =
-            formatMoney(
-                spent
-            );
-
-    }
-
-
-    if (budgetRemaining) {
-
-        budgetRemaining.textContent =
-            formatMoney(
-                Math.max(
-                    0,
-                    remaining
-                )
-            );
-
-    }
-
-
-    if (budgetProgress) {
-
-        budgetProgress.style.width =
-            percentage + "%";
-
-    }
-
-
-    if (budgetPercentage) {
-
-        budgetPercentage.textContent =
-            Math.round(percentage) +
-            "% वापरले";
-
-    }
-
-}
-
-
-
-/* =========================================================
-   ACCOUNT BALANCES
-========================================================= */
-
-function getAccountBalance(
-    accountId
-) {
-
-    const accounts =
-        getAccounts();
-
-
-    const account =
-        accounts.find(
-            item =>
-                item.id === accountId
-        );
-
-
-    if (!account) {
-
-        return 0;
-
-    }
-
-
-    const transactions =
-        getTransactions();
-
-
-    let balance =
-        Number(
-            account.openingBalance || 0
-        );
-
-
-    transactions.forEach(
-        transaction => {
-
-            if (
-                transaction.accountId !==
-                accountId
-            ) {
-
-                return;
-
-            }
-
-
-            const amount =
-                Number(
-                    transaction.amount || 0
-                );
-
-
-            if (
-                transaction.type ===
-                "income"
-            ) {
-
-                balance += amount;
-
-            }
-
-
-            if (
-                transaction.type ===
-                "expense"
-            ) {
-
-                balance -= amount;
-
-            }
-
-        }
+    setElementText(
+        "budgetPercentage",
+        Math.round(
+            percentage
+        ) +
+        "% वापरले"
     );
-
-
-    return balance;
 
 }
 
@@ -979,18 +1660,42 @@ function updateAccountDashboard() {
         getAccounts();
 
 
-    if (accounts.length === 0) {
+    if (
+        accounts.length === 0
+    ) {
+
+        container.innerHTML = `
+
+            <div class="empty-card">
+
+                <i class="fa-solid fa-building-columns"></i>
+
+                <p>
+                    खाते जोडलेले नाही.
+                </p>
+
+                <button onclick="goToAccounts()">
+                    खाते जोडा
+                </button>
+
+            </div>
+
+        `;
 
         return;
 
     }
 
 
-    container.innerHTML = "";
+    container.innerHTML =
+        "";
 
 
     accounts
-        .slice(0, 4)
+        .slice(
+            0,
+            4
+        )
         .forEach(
             account => {
 
@@ -1014,13 +1719,17 @@ function updateAccountDashboard() {
 
                     <div class="account-name">
 
-                        ${escapeHTML(account.name)}
+                        ${escapeHTML(
+                            account.name
+                        )}
 
                     </div>
 
                     <div class="account-balance">
 
-                        ${formatMoney(balance)}
+                        ${formatMoney(
+                            balance
+                        )}
 
                     </div>
 
@@ -1058,34 +1767,39 @@ function updateRecentTransactions() {
 
 
     const transactions =
-        getTransactions();
+        getRecentTransactions(
+            5
+        );
 
 
-    if (transactions.length === 0) {
+    if (
+        transactions.length === 0
+    ) {
+
+        container.innerHTML = `
+
+            <div class="empty-card">
+
+                <i class="fa-solid fa-receipt"></i>
+
+                <p>
+                    अजून कोणतेही व्यवहार नाहीत.
+                </p>
+
+            </div>
+
+        `;
 
         return;
 
     }
 
 
-    const recent =
-        [...transactions]
-            .sort(
-                (a, b) =>
-                    new Date(
-                        b.date
-                    ) -
-                    new Date(
-                        a.date
-                    )
-            )
-            .slice(0, 5);
+    container.innerHTML =
+        "";
 
 
-    container.innerHTML = "";
-
-
-    recent.forEach(
+    transactions.forEach(
         transaction => {
 
             const item =
@@ -1103,25 +1817,44 @@ function updateRecentTransactions() {
                 "income";
 
 
+            const icon =
+                isIncome
+                    ? "fa-arrow-down"
+                    : "fa-arrow-up";
+
+
+            const defaultCategory =
+                isIncome
+                    ? "जमा"
+                    : "खर्च";
+
+
+            const category =
+                transaction.category ||
+                defaultCategory;
+
+
             item.innerHTML = `
 
                 <div class="transaction-icon"
                      style="
                         background:
-                        ${isIncome
-                            ? "#e8f5ed"
-                            : "#fdeaea"};
+                        ${
+                            isIncome
+                                ? "#e8f5ed"
+                                : "#fdeaea"
+                        };
 
                         color:
-                        ${isIncome
-                            ? "#16803c"
-                            : "#c62828"};
+                        ${
+                            isIncome
+                                ? "#16803c"
+                                : "#c62828"
+                        };
                      ">
 
                     <i class="fa-solid
-                        ${isIncome
-                            ? "fa-arrow-down"
-                            : "fa-arrow-up"}">
+                        ${icon}">
                     </i>
 
                 </div>
@@ -1132,12 +1865,7 @@ function updateRecentTransactions() {
                     <strong>
 
                         ${escapeHTML(
-                            transaction.category ||
-                            (
-                                isIncome
-                                    ? "जमा"
-                                    : "खर्च"
-                            )
+                            category
                         )}
 
                     </strong>
@@ -1166,9 +1894,11 @@ function updateRecentTransactions() {
                 <div class="transaction-amount"
                      style="
                         color:
-                        ${isIncome
-                            ? "#16803c"
-                            : "#c62828"};
+                        ${
+                            isIncome
+                                ? "#16803c"
+                                : "#c62828"
+                        };
                      ">
 
                     ${
@@ -1198,160 +1928,6 @@ function updateRecentTransactions() {
 
 
 /* =========================================================
-   DATE DISPLAY
-========================================================= */
-
-function formatDisplayDate(
-    dateString
-) {
-
-    if (!dateString) {
-
-        return "";
-
-    }
-
-
-    const parts =
-        dateString.split("-");
-
-
-    if (parts.length !== 3) {
-
-        return dateString;
-
-    }
-
-
-    return (
-        parts[2] +
-        "-" +
-        parts[1] +
-        "-" +
-        parts[0]
-    );
-
-}
-
-
-
-/* =========================================================
-   HTML SAFETY
-========================================================= */
-
-function escapeHTML(value) {
-
-    return String(
-        value ?? ""
-    )
-    .replace(
-        /&/g,
-        "&amp;"
-    )
-    .replace(
-        /</g,
-        "&lt;"
-    )
-    .replace(
-        />/g,
-        "&gt;"
-    )
-    .replace(
-        /"/g,
-        "&quot;"
-    )
-    .replace(
-        /'/g,
-        "&#039;"
-    );
-
-}
-
-
-
-/* =========================================================
-   BALANCE VISIBILITY
-========================================================= */
-
-let balanceHidden =
-    false;
-
-
-function toggleBalance() {
-
-    balanceHidden =
-        !balanceHidden;
-
-
-    const ids = [
-
-        "totalBalance",
-        "totalIncome",
-        "totalExpense",
-        "todayIncome",
-        "todayExpense",
-        "todaySaving"
-
-    ];
-
-
-    ids.forEach(
-        id => {
-
-            const element =
-                document.getElementById(
-                    id
-                );
-
-
-            if (!element) {
-
-                return;
-
-            }
-
-
-            if (balanceHidden) {
-
-                element.dataset.original =
-                    element.textContent;
-
-                element.textContent =
-                    "₹••••";
-
-
-            } else {
-
-                element.textContent =
-                    element.dataset.original ||
-                    "₹0.00";
-
-            }
-
-        }
-    );
-
-
-    const eye =
-        document.getElementById(
-            "balanceEye"
-        );
-
-
-    if (eye) {
-
-        eye.className =
-            balanceHidden
-                ? "fa-solid fa-eye-slash"
-                : "fa-solid fa-eye";
-
-    }
-
-}
-
-
-
-/* =========================================================
    REMINDER
 ========================================================= */
 
@@ -1374,12 +1950,21 @@ function updateReminder() {
         getTodayExpense();
 
 
-    if (todayExpense <= 0) {
+    /*
+       आज खर्च नोंदवला नसेल
+       तर notification dot दाखवा.
+    */
+
+    if (
+        todayExpense <= 0
+    ) {
 
         dot.style.display =
             "block";
 
-    } else {
+    }
+
+    else {
 
         dot.style.display =
             "none";
@@ -1389,9 +1974,176 @@ function updateReminder() {
 }
 
 
+
 function openReminder() {
 
     goToExpense();
+
+}
+
+
+
+/* =========================================================
+   BALANCE VISIBILITY
+========================================================= */
+
+let balanceHidden =
+    false;
+
+
+function toggleBalance() {
+
+    balanceHidden =
+        !balanceHidden;
+
+
+    const ids = [
+
+        "totalBalance",
+
+        "totalIncome",
+
+        "totalExpense",
+
+        "todayIncome",
+
+        "todayExpense",
+
+        "todaySaving"
+
+    ];
+
+
+    ids.forEach(
+        id => {
+
+            const element =
+                document.getElementById(
+                    id
+                );
+
+
+            if (!element) {
+
+                return;
+
+            }
+
+
+            if (
+                balanceHidden
+            ) {
+
+                if (
+                    !element.dataset.original
+                ) {
+
+                    element.dataset.original =
+                        element.textContent;
+
+                }
+
+
+                element.textContent =
+                    "₹••••";
+
+            }
+
+            else {
+
+                element.textContent =
+                    element.dataset.original ||
+                    "₹0.00";
+
+            }
+
+        }
+    );
+
+
+    const eye =
+        document.getElementById(
+            "balanceEye"
+        );
+
+
+    if (eye) {
+
+        eye.className =
+            balanceHidden
+
+                ? "fa-solid fa-eye-slash"
+
+                : "fa-solid fa-eye";
+
+    }
+
+}
+
+
+
+/* =========================================================
+   HTML SAFETY
+========================================================= */
+
+function escapeHTML(
+    value
+) {
+
+    return String(
+        value ?? ""
+    )
+
+        .replace(
+            /&/g,
+            "&amp;"
+        )
+
+        .replace(
+            /</g,
+            "&lt;"
+        )
+
+        .replace(
+            />/g,
+            "&gt;"
+        )
+
+        .replace(
+            /"/g,
+            "&quot;"
+        )
+
+        .replace(
+            /'/g,
+            "&#039;"
+        );
+
+}
+
+
+
+/* =========================================================
+   ELEMENT TEXT HELPER
+========================================================= */
+
+function setElementText(
+    id,
+    value
+) {
+
+    const element =
+        document.getElementById(
+            id
+        );
+
+
+    if (element) {
+
+        element.textContent =
+            value;
+
+    }
 
 }
 
@@ -1409,12 +2161,14 @@ function goHome() {
 }
 
 
+
 function goToIncome() {
 
     window.location.href =
         "income.html";
 
 }
+
 
 
 function goToExpense() {
@@ -1425,12 +2179,14 @@ function goToExpense() {
 }
 
 
+
 function goToAccounts() {
 
     window.location.href =
         "accounts.html";
 
 }
+
 
 
 function goToTransactions() {
@@ -1441,6 +2197,7 @@ function goToTransactions() {
 }
 
 
+
 function goToBudget() {
 
     window.location.href =
@@ -1449,12 +2206,14 @@ function goToBudget() {
 }
 
 
+
 function goToReports() {
 
     window.location.href =
         "reports.html";
 
 }
+
 
 
 function goToSettings() {
@@ -1478,9 +2237,59 @@ function showAddMenu() {
         );
 
 
-    if (menu) {
+    if (!menu) {
 
-        menu.classList.add(
+        return;
+
+    }
+
+
+    menu.classList.add(
+        "show"
+    );
+
+}
+
+
+
+function closeAddMenu(
+    event
+) {
+
+    const menu =
+        document.getElementById(
+            "addMenu"
+        );
+
+
+    if (!menu) {
+
+        return;
+
+    }
+
+
+    /*
+       खाली click असल्यास menu close.
+    */
+
+    if (!event) {
+
+        menu.classList.remove(
+            "show"
+        );
+
+        return;
+
+    }
+
+
+    if (
+        event.target.id ===
+        "addMenu"
+    ) {
+
+        menu.classList.remove(
             "show"
         );
 
@@ -1489,74 +2298,155 @@ function showAddMenu() {
 }
 
 
-function closeAddMenu(event) {
 
-    if (
-        !event ||
-        event.target.id ===
-        "addMenu"
-    ) {
+/* =========================================================
+   TODAY DATE
+========================================================= */
 
-        const menu =
-            document.getElementById(
-                "addMenu"
-            );
+function updateTodayDate() {
+
+    const element =
+        document.getElementById(
+            "todayDate"
+        );
 
 
-        if (menu) {
+    if (!element) {
 
-            menu.classList.remove(
-                "show"
-            );
-
-        }
+        return;
 
     }
+
+
+    const today =
+        new Date();
+
+
+    element.textContent =
+        today.toLocaleDateString(
+            "mr-IN",
+            {
+                weekday:
+                    "long",
+
+                day:
+                    "2-digit",
+
+                month:
+                    "long",
+
+                year:
+                    "numeric"
+
+            }
+        );
 
 }
 
 
 
 /* =========================================================
-   INITIALIZATION
+   LOGIN SESSION
+========================================================= */
+
+function isLoggedIn() {
+
+    const session =
+        getData(
+            STORAGE_KEYS.loginSession,
+            null
+        );
+
+
+    if (!session) {
+
+        return false;
+
+    }
+
+
+    /*
+       login.js मध्ये
+       {loggedIn:true,...}
+       किंवा
+       {isLoggedIn:true,...}
+       दोन्ही support.
+    */
+
+    return Boolean(
+
+        session.loggedIn === true ||
+
+        session.isLoggedIn === true
+
+    );
+
+}
+
+
+
+function getLoginSession() {
+
+    return getData(
+        STORAGE_KEYS.loginSession,
+        null
+    );
+
+}
+
+
+
+function logoutUser() {
+
+    removeData(
+        STORAGE_KEYS.loginSession
+    );
+
+
+    window.location.href =
+        "login.html";
+
+}
+
+
+
+/* =========================================================
+   OPTIONAL LOGIN PROTECTION
+========================================================= */
+
+function requireLogin() {
+
+    if (
+        !isLoggedIn()
+    ) {
+
+        window.location.href =
+            "login.html";
+
+        return false;
+
+    }
+
+
+    return true;
+
+}
+
+
+
+/* =========================================================
+   APPLICATION INITIALIZATION
 ========================================================= */
 
 document.addEventListener(
     "DOMContentLoaded",
     function () {
 
-
         initializeAccounts();
 
-
-        const todayDate =
-            document.getElementById(
-                "todayDate"
-            );
-
-
-        if (todayDate) {
-
-            const today =
-                new Date();
-
-
-            todayDate.textContent =
-                today.toLocaleDateString(
-                    "mr-IN",
-                    {
-                        weekday: "long",
-                        day: "2-digit",
-                        month: "long",
-                        year: "numeric"
-                    }
-                );
-
-        }
-
+        updateTodayDate();
 
         updateDashboard();
-
 
     }
 );
@@ -1564,14 +2454,104 @@ document.addEventListener(
 
 
 /* =========================================================
-   AUTO REFRESH
+   STORAGE SYNC
 ========================================================= */
 
 window.addEventListener(
     "storage",
+    function (event) {
+
+        /*
+           दुसऱ्या tab/page मधून
+           data बदलल्यास dashboard refresh.
+        */
+
+        if (
+            !event.key ||
+            Object.values(
+                STORAGE_KEYS
+            ).includes(
+                event.key
+            )
+        ) {
+
+            updateDashboard();
+
+        }
+
+    }
+);
+
+
+
+/* =========================================================
+   SAME PAGE TRANSACTION UPDATE
+========================================================= */
+
+window.addEventListener(
+    "rdkhTransactionsUpdated",
     function () {
 
         updateDashboard();
 
     }
+);
+
+
+
+/* =========================================================
+   SAME PAGE ACCOUNT UPDATE
+========================================================= */
+
+window.addEventListener(
+    "rdkhAccountsUpdated",
+    function () {
+
+        updateDashboard();
+
+    }
+);
+
+
+
+/* =========================================================
+   SAME PAGE BUDGET UPDATE
+========================================================= */
+
+window.addEventListener(
+    "rdkhBudgetUpdated",
+    function () {
+
+        updateDashboard();
+
+    }
+);
+
+
+
+/* =========================================================
+   GLOBAL ERROR LOG
+========================================================= */
+
+window.addEventListener(
+    "error",
+    function (event) {
+
+        console.error(
+            "Application Error:",
+            event.error ||
+            event.message
+        );
+
+    }
+);
+
+
+
+/* =========================================================
+   CONSOLE INFORMATION
+========================================================= */
+
+console.log(
+    "रोजचा जमा खर्च अहवाल - app.js loaded successfully."
 );
