@@ -1,13 +1,11 @@
-/* =========================================================
-   service-worker.js
-   रोजचा जमा खर्च अहवाल
-========================================================= */
-
 const CACHE_NAME = "rdkh-app-v1";
 
 const FILES_TO_CACHE = [
 
     "./",
+    "./login.html",
+    "./login.js",
+
     "./index.html",
     "./style.css",
     "./app.js",
@@ -18,14 +16,14 @@ const FILES_TO_CACHE = [
     "./expense.html",
     "./expense.js",
 
+    "./transactions.html",
+    "./transactions.js",
+
     "./accounts.html",
     "./accounts.js",
 
     "./monthly-budget.html",
     "./monthly-budget.js",
-
-    "./transactions.html",
-    "./transactions.js",
 
     "./reports.html",
     "./reports.js",
@@ -33,17 +31,10 @@ const FILES_TO_CACHE = [
     "./settings.html",
     "./settings.js",
 
-    "./manifest.json",
-
-    "./icon-192.png",
-    "./icon-512.png"
+    "./manifest.json"
 
 ];
 
-
-/* =========================================================
-   INSTALL
-========================================================= */
 
 self.addEventListener(
     "install",
@@ -71,10 +62,6 @@ self.addEventListener(
     }
 );
 
-
-/* =========================================================
-   ACTIVATE
-========================================================= */
 
 self.addEventListener(
     "activate",
@@ -114,10 +101,6 @@ self.addEventListener(
 );
 
 
-/* =========================================================
-   FETCH
-========================================================= */
-
 self.addEventListener(
     "fetch",
     event => {
@@ -138,43 +121,6 @@ self.addEventListener(
 
                     return fetch(
                         event.request
-                    )
-                    .then(
-                        response => {
-
-                            if (
-                                !response ||
-                                response.status !== 200 ||
-                                response.type ===
-                                "opaque"
-                            ) {
-
-                                return response;
-
-                            }
-
-                            const responseClone =
-                                response.clone();
-
-
-                            caches.open(
-                                CACHE_NAME
-                            )
-                            .then(
-                                cache => {
-
-                                    cache.put(
-                                        event.request,
-                                        responseClone
-                                    );
-
-                                }
-                            );
-
-
-                            return response;
-
-                        }
                     );
 
                 }
