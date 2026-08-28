@@ -2,35 +2,23 @@
    login.js
 
    रोजचा जमा खर्च अहवाल
-   LOGIN MANAGEMENT
-
-   FEATURES
-   ---------------------------------------------------------
-   ✅ User ID + Password
-   ✅ Remember Login
-   ✅ Login Session
-   ✅ Password Show / Hide
-   ✅ Wrong Login Message
-   ✅ Successful Login
-   ✅ Auto Redirect
-   ✅ Logout
-   ========================================================= */
+   LOGIN / AUTHENTICATION SYSTEM
+========================================================= */
 
 
 /* =========================================================
-   LOGIN SETTINGS
+   LOGIN STORAGE KEYS
 ========================================================= */
 
-const LOGIN_CONFIG = {
+const LOGIN_KEYS = {
 
-    userId: "admin",
+    loggedIn:
+        "rdkh_logged_in",
 
-    password: "1234",
+    userId:
+        "rdkh_logged_user",
 
-    sessionKey:
-        "rdkh_login_session",
-
-    rememberKey:
+    remember:
         "rdkh_remember_login"
 
 };
@@ -38,7 +26,27 @@ const LOGIN_CONFIG = {
 
 
 /* =========================================================
-   PAGE INITIALIZATION
+   DEFAULT LOGIN
+
+   User ID:
+   vaibhav
+
+   Password:
+   1234
+
+   हे तुम्ही नंतर बदलू शकता.
+========================================================= */
+
+const LOGIN_USER_ID =
+    "vaibhav";
+
+const LOGIN_PASSWORD =
+    "1234";
+
+
+
+/* =========================================================
+   PAGE LOAD
 ========================================================= */
 
 document.addEventListener(
@@ -47,9 +55,7 @@ document.addEventListener(
 
         checkExistingLogin();
 
-        setupLoginForm();
-
-        setupPasswordToggle();
+        setupEnterKey();
 
     }
 );
@@ -62,69 +68,24 @@ document.addEventListener(
 
 function checkExistingLogin() {
 
-    const session =
+    const loggedIn =
         localStorage.getItem(
-            LOGIN_CONFIG.sessionKey
+            LOGIN_KEYS.loggedIn
         );
 
 
     if (
-        session === "true"
+        loggedIn === "true"
     ) {
 
-        window.location.href =
-            "index.html";
+        /*
+           User आधी Login असेल तर
+           थेट Dashboard वर जा.
+        */
 
-        return;
-
-    }
-
-
-    const remember =
-        localStorage.getItem(
-            LOGIN_CONFIG.rememberKey
+        window.location.replace(
+            "index.html"
         );
-
-
-    if (
-        remember === "true"
-    ) {
-
-        const userIdInput =
-            document.getElementById(
-                "userId"
-            );
-
-
-        const storedUserId =
-            localStorage.getItem(
-                "rdkh_user_id"
-            );
-
-
-        if (
-            userIdInput &&
-            storedUserId
-        ) {
-
-            userIdInput.value =
-                storedUserId;
-
-        }
-
-
-        const checkbox =
-            document.getElementById(
-                "rememberLogin"
-            );
-
-
-        if (checkbox) {
-
-            checkbox.checked =
-                true;
-
-        }
 
     }
 
@@ -133,240 +94,152 @@ function checkExistingLogin() {
 
 
 /* =========================================================
-   SETUP LOGIN FORM
+   LOGIN
 ========================================================= */
 
-function setupLoginForm() {
-
-    const form =
-        document.getElementById(
-            "loginForm"
-        );
-
-
-    if (!form) {
-
-        return;
-
-    }
-
-
-    form.addEventListener(
-        "submit",
-        handleLogin
-    );
-
-}
-
-
-
-/* =========================================================
-   HANDLE LOGIN
-========================================================= */
-
-function handleLogin(event) {
-
-    event.preventDefault();
-
-
-    const userIdInput =
-        document.getElementById(
-            "userId"
-        );
-
-
-    const passwordInput =
-        document.getElementById(
-            "password"
-        );
-
-
-    const rememberCheckbox =
-        document.getElementById(
-            "rememberLogin"
-        );
-
-
-    if (
-        !userIdInput ||
-        !passwordInput
-    ) {
-
-        return;
-
-    }
-
+function loginUser() {
 
     const userId =
-        userIdInput.value.trim();
+        document.getElementById(
+            "loginUserId"
+        )?.value.trim();
 
 
     const password =
-        passwordInput.value;
+        document.getElementById(
+            "loginPassword"
+        )?.value;
 
 
     const remember =
-        rememberCheckbox
-            ? rememberCheckbox.checked
-            : false;
+        document.getElementById(
+            "rememberLogin"
+        )?.checked;
 
 
-
-    /* =====================================================
-       CLEAR OLD MESSAGE
-    ===================================================== */
-
-    hideLoginMessages();
+    const error =
+        document.getElementById(
+            "loginError"
+        );
 
 
+    if (error) {
 
-    /* =====================================================
-       VALIDATION
-    ===================================================== */
+        error.textContent = "";
+
+    }
+
+
+    /* USER ID EMPTY */
 
     if (!userId) {
 
         showLoginError(
-            "कृपया User ID टाका."
+            "कृपया User ID भरा."
         );
-
-        userIdInput.focus();
 
         return;
 
     }
 
+
+    /* PASSWORD EMPTY */
 
     if (!password) {
 
         showLoginError(
-            "कृपया Password टाका."
+            "कृपया Password भरा."
         );
-
-        passwordInput.focus();
 
         return;
 
     }
 
 
-
-    /* =====================================================
-       CHECK USER ID + PASSWORD
-    ===================================================== */
+    /* CHECK LOGIN */
 
     if (
-        userId !==
-        LOGIN_CONFIG.userId ||
+        userId.toLowerCase() !==
+        LOGIN_USER_ID.toLowerCase() ||
         password !==
-        LOGIN_CONFIG.password
+        LOGIN_PASSWORD
     ) {
 
         showLoginError(
             "User ID किंवा Password चुकीचा आहे."
         );
 
+        return;
 
-        passwordInput.value = "";
+    }
 
 
-        passwordInput.focus();
+    /* LOGIN SUCCESS */
 
+    localStorage.setItem(
+        LOGIN_KEYS.loggedIn,
+        "true"
+    );
+
+
+    localStorage.setItem(
+        LOGIN_KEYS.userId,
+        userId
+    );
+
+
+    localStorage.setItem(
+        LOGIN_KEYS.remember,
+        remember
+            ? "true"
+            : "false"
+    );
+
+
+    /*
+       Dashboard
+    */
+
+    window.location.replace(
+        "index.html"
+    );
+
+}
+
+
+
+/* =========================================================
+   ERROR MESSAGE
+========================================================= */
+
+function showLoginError(
+    message
+) {
+
+    const error =
+        document.getElementById(
+            "loginError"
+        );
+
+
+    if (!error) {
 
         return;
 
     }
 
 
+    error.innerHTML = `
 
-    /* =====================================================
-       LOGIN SUCCESS
-    ===================================================== */
+        <i class="fa-solid fa-circle-exclamation"></i>
 
-    localStorage.setItem(
-        LOGIN_CONFIG.sessionKey,
-        "true"
-    );
+        ${escapeLoginHTML(message)}
+
+    `;
 
 
-    localStorage.setItem(
-        "rdkh_user_id",
-        userId
-    );
-
-
-
-    /* =====================================================
-       REMEMBER LOGIN
-    ===================================================== */
-
-    if (remember) {
-
-        localStorage.setItem(
-            LOGIN_CONFIG.rememberKey,
-            "true"
-        );
-
-    }
-
-    else {
-
-        localStorage.removeItem(
-            LOGIN_CONFIG.rememberKey
-        );
-
-    }
-
-
-
-    /* =====================================================
-       SHOW SUCCESS
-    ===================================================== */
-
-    showLoginSuccess();
-
-
-
-    /* =====================================================
-       DISABLE BUTTON
-    ===================================================== */
-
-    const button =
-        document.getElementById(
-            "loginButton"
-        );
-
-
-    if (button) {
-
-        button.disabled =
-            true;
-
-
-        button.innerHTML = `
-
-            <i class="fa-solid fa-spinner fa-spin"></i>
-
-            Login होत आहे...
-
-        `;
-
-    }
-
-
-
-    /* =====================================================
-       REDIRECT
-    ===================================================== */
-
-    setTimeout(
-        function () {
-
-            window.location.href =
-                "index.html";
-
-        },
-        700
+    error.classList.add(
+        "show"
     );
 
 }
@@ -377,116 +250,57 @@ function handleLogin(event) {
    PASSWORD SHOW / HIDE
 ========================================================= */
 
-function setupPasswordToggle() {
-
-    const toggle =
-        document.getElementById(
-            "togglePassword"
-        );
-
+function togglePassword() {
 
     const password =
         document.getElementById(
-            "password"
+            "loginPassword"
         );
 
 
-    if (
-        !toggle ||
-        !password
-    ) {
+    const eye =
+        document.getElementById(
+            "passwordEye"
+        );
+
+
+    if (!password) {
 
         return;
 
     }
 
 
-    toggle.addEventListener(
-        "click",
-        function () {
+    if (
+        password.type ===
+        "password"
+    ) {
 
-            if (
-                password.type ===
-                "password"
-            ) {
-
-                password.type =
-                    "text";
+        password.type =
+            "text";
 
 
-                toggle.innerHTML = `
+        if (eye) {
 
-                    <i class="fa-solid fa-eye-slash"></i>
-
-                `;
-
-
-                toggle.setAttribute(
-                    "aria-label",
-                    "Password लपवा"
-                );
-
-            }
-
-            else {
-
-                password.type =
-                    "password";
-
-
-                toggle.innerHTML = `
-
-                    <i class="fa-solid fa-eye"></i>
-
-                `;
-
-
-                toggle.setAttribute(
-                    "aria-label",
-                    "Password दाखवा"
-                );
-
-            }
+            eye.className =
+                "fa-solid fa-eye-slash";
 
         }
-    );
-
-}
-
-
-
-/* =========================================================
-   SHOW LOGIN ERROR
-========================================================= */
-
-function showLoginError(
-    message
-) {
-
-    const errorBox =
-        document.getElementById(
-            "loginError"
-        );
-
-
-    const errorText =
-        document.getElementById(
-            "loginErrorText"
-        );
-
-
-    if (errorText) {
-
-        errorText.textContent =
-            message;
 
     }
 
+    else {
 
-    if (errorBox) {
+        password.type =
+            "password";
 
-        errorBox.style.display =
-            "flex";
+
+        if (eye) {
+
+            eye.className =
+                "fa-solid fa-eye";
+
+        }
 
     }
 
@@ -495,76 +309,52 @@ function showLoginError(
 
 
 /* =========================================================
-   SHOW LOGIN SUCCESS
+   ENTER KEY LOGIN
 ========================================================= */
 
-function showLoginSuccess() {
+function setupEnterKey() {
 
-    const successBox =
+    const password =
         document.getElementById(
-            "loginSuccess"
+            "loginPassword"
         );
 
 
-    if (successBox) {
-
-        successBox.style.display =
-            "flex";
-
-    }
-
-}
-
-
-
-/* =========================================================
-   HIDE LOGIN MESSAGES
-========================================================= */
-
-function hideLoginMessages() {
-
-    const errorBox =
+    const userId =
         document.getElementById(
-            "loginError"
+            "loginUserId"
         );
 
 
-    const successBox =
-        document.getElementById(
-            "loginSuccess"
+    [userId, password]
+        .forEach(
+            input => {
+
+                if (!input) {
+
+                    return;
+
+                }
+
+
+                input.addEventListener(
+                    "keydown",
+                    function (event) {
+
+                        if (
+                            event.key ===
+                            "Enter"
+                        ) {
+
+                            loginUser();
+
+                        }
+
+                    }
+                );
+
+            }
         );
-
-
-    if (errorBox) {
-
-        errorBox.style.display =
-            "none";
-
-    }
-
-
-    if (successBox) {
-
-        successBox.style.display =
-            "none";
-
-    }
-
-}
-
-
-
-/* =========================================================
-   CHECK LOGIN STATUS
-========================================================= */
-
-function isLoggedIn() {
-
-    return (
-        localStorage.getItem(
-            LOGIN_CONFIG.sessionKey
-        ) === "true"
-    );
 
 }
 
@@ -574,56 +364,83 @@ function isLoggedIn() {
    LOGOUT
 ========================================================= */
 
-function logout() {
-
-    const confirmLogout =
-        confirm(
-            "तुम्हाला Logout करायचे आहे का?"
-        );
-
-
-    if (!confirmLogout) {
-
-        return;
-
-    }
-
+function logoutUser() {
 
     localStorage.removeItem(
-        LOGIN_CONFIG.sessionKey
+        LOGIN_KEYS.loggedIn
+    );
+
+    localStorage.removeItem(
+        LOGIN_KEYS.userId
+    );
+
+    localStorage.removeItem(
+        LOGIN_KEYS.remember
     );
 
 
-    /*
-       Remember Login ON असेल तर
-       User ID ठेवली जाईल.
-    */
-
-    window.location.href =
-        "login.html";
+    window.location.replace(
+        "login.html"
+    );
 
 }
 
 
 
 /* =========================================================
-   PROTECT APP PAGES
+   AUTH CHECK
+
+   प्रत्येक protected page वर
+   app.js मधून वापरता येईल.
 ========================================================= */
 
-function requireLogin() {
+function isUserLoggedIn() {
 
-    if (
-        !isLoggedIn()
-    ) {
+    return (
+        localStorage.getItem(
+            LOGIN_KEYS.loggedIn
+        ) === "true"
+    );
 
-        window.location.href =
-            "login.html";
-
-        return false;
-
-    }
+}
 
 
-    return true;
+
+/* =========================================================
+   HTML SECURITY
+========================================================= */
+
+function escapeLoginHTML(
+    value
+) {
+
+    return String(
+        value ?? ""
+    )
+
+    .replace(
+        /&/g,
+        "&amp;"
+    )
+
+    .replace(
+        /</g,
+        "&lt;"
+    )
+
+    .replace(
+        />/g,
+        "&gt;"
+    )
+
+    .replace(
+        /"/g,
+        "&quot;"
+    )
+
+    .replace(
+        /'/g,
+        "&#039;"
+    );
 
 }
