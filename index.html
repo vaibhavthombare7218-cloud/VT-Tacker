@@ -527,6 +527,7 @@
 </main>
 
 
+खालील Bottom Navigation चा भाग तुमच्या सध्याच्या कोडमध्ये replace करा:
 
 <!-- =====================================================
      BOTTOM NAVIGATION
@@ -547,17 +548,21 @@
     </button>
 
 
-    <button class="nav-item"
-            onclick="goToTransactions()">
+    <!-- BUDGET -->
 
-        <i class="fa-solid fa-list"></i>
+    <button class="nav-item"
+            onclick="goToBudget()">
+
+        <i class="fa-solid fa-bullseye"></i>
 
         <span>
-            व्यवहार
+            Budget
         </span>
 
     </button>
 
+
+    <!-- ADD -->
 
     <button class="nav-add"
             onclick="showAddMenu()">
@@ -567,17 +572,21 @@
     </button>
 
 
+    <!-- REPORT -->
+
     <button class="nav-item"
             onclick="goToReports()">
 
         <i class="fa-solid fa-chart-pie"></i>
 
         <span>
-            अहवाल
+            Report
         </span>
 
     </button>
 
+
+    <!-- SETTINGS -->
 
     <button class="nav-item"
             onclick="goToSettings()">
@@ -592,7 +601,6 @@
 
 
 </nav>
-
 
 
 <!-- =====================================================
