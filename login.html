@@ -11,43 +11,20 @@
     <meta name="theme-color"
           content="#5b0b18">
 
-    <meta name="description"
-          content="रोजचा जमा खर्च अहवाल - Personal Finance Tracker">
-
     <title>Login | रोजचा जमा खर्च अहवाल</title>
 
-    <!-- Font Awesome -->
     <link rel="stylesheet"
           href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 
-    <!-- Main CSS -->
     <link rel="stylesheet"
           href="style.css">
-<link rel="manifest" href="manifest.json">
 
-<meta name="theme-color" content="#5b0b18">
-
-<meta name="mobile-web-app-capable"
-      content="yes">
-
-<meta name="apple-mobile-web-app-capable"
-      content="yes">
-
-<meta name="apple-mobile-web-app-status-bar-style"
-      content="default">
-
-<link rel="apple-touch-icon"
-      href="icons/icon-192.png">
 </head>
 
 <body class="login-page">
 
 
-<!-- =====================================================
-     LOGIN CONTAINER
-===================================================== -->
-
-<main class="login-container">
+<div class="login-container">
 
 
     <!-- LOGO -->
@@ -63,217 +40,139 @@
     </div>
 
 
-
     <!-- TITLE -->
 
-    <div class="login-header">
+    <h1>
+        रोजचा जमा खर्च अहवाल
+    </h1>
 
-        <h1>
-            रोजचा जमा खर्च अहवाल
-        </h1>
-
-        <p>
-            Personal Finance Tracker
-        </p>
-
-    </div>
-
+    <p class="login-subtitle">
+        Personal Finance Tracker
+    </p>
 
 
     <!-- LOGIN CARD -->
 
-    <section class="login-card">
+    <div class="login-card">
 
 
-        <div class="login-title">
+        <h2>
+            <i class="fa-solid fa-right-to-bracket"></i>
+            Login
+        </h2>
 
-            <h2>
-                स्वागत आहे 👋
-            </h2>
 
-            <p>
-                पुढे जाण्यासाठी Login करा
-            </p>
+        <!-- USER ID -->
+
+        <div class="login-input-group">
+
+            <label>
+                User ID
+            </label>
+
+            <div class="login-input">
+
+                <i class="fa-solid fa-user"></i>
+
+                <input
+                    type="text"
+                    id="loginUserId"
+                    placeholder="User ID"
+                    autocomplete="username"
+                >
+
+            </div>
 
         </div>
 
 
+        <!-- PASSWORD -->
 
-        <!-- LOGIN ERROR -->
+        <div class="login-input-group">
 
-        <div id="loginError"
-             class="login-message error"
-             style="display:none;">
+            <label>
+                Password
+            </label>
 
-            <i class="fa-solid fa-circle-exclamation"></i>
+            <div class="login-input">
 
-            <span id="loginErrorText">
-                चुकीचा User ID किंवा Password.
-            </span>
+                <i class="fa-solid fa-lock"></i>
+
+                <input
+                    type="password"
+                    id="loginPassword"
+                    placeholder="Password"
+                    autocomplete="current-password"
+                >
+
+                <button
+                    type="button"
+                    class="password-toggle"
+                    onclick="togglePassword()">
+
+                    <i id="passwordEye"
+                       class="fa-solid fa-eye">
+                    </i>
+
+                </button>
+
+            </div>
 
         </div>
 
 
+        <!-- REMEMBER -->
 
-        <!-- LOGIN SUCCESS -->
+        <label class="remember-login">
 
-        <div id="loginSuccess"
-             class="login-message success"
-             style="display:none;">
-
-            <i class="fa-solid fa-circle-check"></i>
+            <input
+                type="checkbox"
+                id="rememberLogin"
+            >
 
             <span>
-                Login successful.
+                मला Login ठेवावे
             </span>
+
+        </label>
+
+
+        <!-- ERROR -->
+
+        <div id="loginError"
+             class="login-error">
 
         </div>
 
 
+        <!-- LOGIN BUTTON -->
 
-        <!-- FORM -->
+        <button
+            type="button"
+            class="login-button"
+            onclick="loginUser()">
 
-        <form id="loginForm"
-              autocomplete="off">
+            <i class="fa-solid fa-right-to-bracket"></i>
 
+            Login
 
-            <!-- USER ID -->
+        </button>
 
-            <div class="form-group">
-
-                <label for="userId">
-
-                    <i class="fa-solid fa-user"></i>
-
-                    User ID
-
-                </label>
-
-
-                <div class="input-wrapper">
-
-                    <i class="fa-solid fa-user input-icon"></i>
-
-                    <input
-                        type="text"
-                        id="userId"
-                        name="userId"
-                        placeholder="User ID टाका"
-                        autocomplete="username"
-                        maxlength="50"
-                        required>
-
-                </div>
-
-            </div>
-
-
-
-            <!-- PASSWORD -->
-
-            <div class="form-group">
-
-                <label for="password">
-
-                    <i class="fa-solid fa-lock"></i>
-
-                    Password
-
-                </label>
-
-
-                <div class="input-wrapper">
-
-                    <i class="fa-solid fa-lock input-icon"></i>
-
-
-                    <input
-                        type="password"
-                        id="password"
-                        name="password"
-                        placeholder="Password टाका"
-                        autocomplete="current-password"
-                        maxlength="100"
-                        required>
-
-
-                    <button
-                        type="button"
-                        id="togglePassword"
-                        class="password-toggle"
-                        aria-label="Password दाखवा">
-
-                        <i class="fa-solid fa-eye"></i>
-
-                    </button>
-
-                </div>
-
-            </div>
-
-
-
-            <!-- REMEMBER LOGIN -->
-
-            <div class="login-options">
-
-                <label class="remember-option">
-
-                    <input
-                        type="checkbox"
-                        id="rememberLogin">
-
-                    <span>
-                        मला Login ठेवायचे आहे
-                    </span>
-
-                </label>
-
-            </div>
-
-
-
-            <!-- LOGIN BUTTON -->
-
-            <button
-                type="submit"
-                id="loginButton"
-                class="login-button">
-
-                <i class="fa-solid fa-right-to-bracket"></i>
-
-                Login
-
-            </button>
-
-
-        </form>
-
-    </section>
-
-
-
-    <!-- FOOTER -->
-
-    <div class="login-footer">
-
-        <i class="fa-solid fa-shield-halved"></i>
-
-        तुमची माहिती तुमच्या Device वर सुरक्षित ठेवली जाते.
 
     </div>
 
 
-</main>
+    <p class="login-footer">
+
+        सुरक्षित Personal Finance Tracker
+
+    </p>
 
 
+</div>
 
-<!-- =====================================================
-     LOGIN JS
-===================================================== -->
 
 <script src="login.js"></script>
-
 
 </body>
 
