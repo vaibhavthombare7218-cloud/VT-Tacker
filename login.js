@@ -1,209 +1,53 @@
 /* =========================================================
    login.js
    रोजचा जमा खर्च अहवाल
+
    LOGIN SYSTEM
+   ========================================================= */
+
+"use strict";
+
+/* =========================================================
+   LOGIN SETTINGS
 ========================================================= */
 
-const LOGIN_KEY = "rdkh_logged_in";
-const USER_KEY = "rdkh_logged_user";
+const LOGIN_CONFIG = {
+
+    userId: "admin",
+
+    password: "1234",
+
+    sessionKey: "rdkh_login_session",
+
+    loginFlagKey: "rdkh_logged_in"
+
+};
 
 
 /* =========================================================
-   PAGE LOAD
+   ELEMENTS
 ========================================================= */
 
-document.addEventListener("DOMContentLoaded", function () {
+const loginForm =
+    document.getElementById("loginForm");
 
-    // आधीच login असेल तर dashboard
-    if (localStorage.getItem(LOGIN_KEY) === "true") {
+const userIdInput =
+    document.getElementById("userId");
 
-        window.location.replace("index.html");
-        return;
+const passwordInput =
+    document.getElementById("password");
 
-    }
+const passwordToggle =
+    document.getElementById("passwordToggle");
 
-    setupLogin();
+const rememberMe =
+    document.getElementById("rememberMe");
 
-});
+const loginError =
+    document.getElementById("loginError");
 
-
-/* =========================================================
-   LOGIN SETUP
-========================================================= */
-
-function setupLogin() {
-
-    const userInput =
-        document.getElementById("loginUserId");
-
-    const passwordInput =
-        document.getElementById("loginPassword");
-
-
-    if (userInput) {
-
-        userInput.addEventListener(
-            "keydown",
-            function (event) {
-
-                if (event.key === "Enter") {
-
-                    loginUser();
-
-                }
-
-            }
-        );
-
-    }
-
-
-    if (passwordInput) {
-
-        passwordInput.addEventListener(
-            "keydown",
-            function (event) {
-
-                if (event.key === "Enter") {
-
-                    loginUser();
-
-                }
-
-            }
-        );
-
-    }
-
-}
-
-
-/* =========================================================
-   LOGIN
-========================================================= */
-
-function loginUser() {
-
-    const userInput =
-        document.getElementById("loginUserId");
-
-    const passwordInput =
-        document.getElementById("loginPassword");
-
-
-    const userId =
-        userInput
-            ? userInput.value.trim()
-            : "";
-
-
-    const password =
-        passwordInput
-            ? passwordInput.value
-            : "";
-
-
-    /* Clear previous error */
-
-    hideLoginError();
-
-
-    /* Validate */
-
-    if (!userId) {
-
-        showLoginError(
-            "कृपया User ID भरा."
-        );
-
-        userInput?.focus();
-
-        return;
-
-    }
-
-
-    if (!password) {
-
-        showLoginError(
-            "कृपया Password भरा."
-        );
-
-        passwordInput?.focus();
-
-        return;
-
-    }
-
-
-    /* =====================================================
-       LOGIN CREDENTIALS
-    ===================================================== */
-
-    const correctUserId =
-        "vaibhav";
-
-    const correctPassword =
-        "1234";
-
-
-    /* =====================================================
-       CHECK
-    ===================================================== */
-
-    if (
-        userId.toLowerCase() !==
-        correctUserId.toLowerCase()
-    ) {
-
-        showLoginError(
-            "User ID चुकीचा आहे."
-        );
-
-        return;
-
-    }
-
-
-    if (
-        password !==
-        correctPassword
-    ) {
-
-        showLoginError(
-            "Password चुकीचा आहे."
-        );
-
-        return;
-
-    }
-
-
-    /* =====================================================
-       LOGIN SUCCESS
-    ===================================================== */
-
-    localStorage.setItem(
-        LOGIN_KEY,
-        "true"
-    );
-
-
-    localStorage.setItem(
-        USER_KEY,
-        userId
-    );
-
-
-    /* =====================================================
-       GO TO DASHBOARD
-    ===================================================== */
-
-    window.location.replace(
-        "index.html"
-    );
-
-}
+const loginButton =
+    document.getElementById("loginButton");
 
 
 /* =========================================================
@@ -212,29 +56,13 @@ function loginUser() {
 
 function showLoginError(message) {
 
-    const error =
-        document.getElementById(
-            "loginError"
-        );
-
-
-    if (!error) {
-
-        alert(message);
-
+    if (!loginError) {
         return;
-
     }
 
+    loginError.textContent = message;
 
-    error.innerHTML =
-
-        '<i class="fa-solid fa-circle-exclamation"></i> ' +
-        escapeLoginHTML(message);
-
-
-    error.style.display =
-        "block";
+    loginError.classList.add("show");
 
 }
 
@@ -245,81 +73,363 @@ function showLoginError(message) {
 
 function hideLoginError() {
 
-    const error =
-        document.getElementById(
-            "loginError"
-        );
-
-
-    if (error) {
-
-        error.innerHTML = "";
-
-        error.style.display =
-            "none";
-
+    if (!loginError) {
+        return;
     }
+
+    loginError.textContent = "";
+
+    loginError.classList.remove("show");
 
 }
 
 
 /* =========================================================
-   SHOW / HIDE PASSWORD
+   PASSWORD SHOW / HIDE
 ========================================================= */
 
-function togglePassword() {
+if (passwordToggle) {
 
-    const password =
-        document.getElementById(
-            "loginPassword"
+    passwordToggle.addEventListener(
+        "click",
+        function () {
+
+            if (!passwordInput) {
+                return;
+            }
+
+            if (
+                passwordInput.type ===
+                "password"
+            ) {
+
+                passwordInput.type =
+                    "text";
+
+                passwordToggle.innerHTML =
+                    '<i class="fa-solid fa-eye-slash"></i>';
+
+                passwordToggle.setAttribute(
+                    "aria-label",
+                    "Hide Password"
+                );
+
+            }
+
+            else {
+
+                passwordInput.type =
+                    "password";
+
+                passwordToggle.innerHTML =
+                    '<i class="fa-solid fa-eye"></i>';
+
+                passwordToggle.setAttribute(
+                    "aria-label",
+                    "Show Password"
+                );
+
+            }
+
+        }
+    );
+
+}
+
+
+/* =========================================================
+   INPUT ERROR CLEAR
+========================================================= */
+
+if (userIdInput) {
+
+    userIdInput.addEventListener(
+        "input",
+        hideLoginError
+    );
+
+}
+
+
+if (passwordInput) {
+
+    passwordInput.addEventListener(
+        "input",
+        hideLoginError
+    );
+
+}
+
+
+/* =========================================================
+   CHECK EXISTING LOGIN
+========================================================= */
+
+function alreadyLoggedIn() {
+
+    const session =
+        localStorage.getItem(
+            LOGIN_CONFIG.sessionKey
         );
 
-
-    const eye =
-        document.getElementById(
-            "passwordEye"
+    const flag =
+        localStorage.getItem(
+            LOGIN_CONFIG.loginFlagKey
         );
-
-
-    if (!password) {
-
-        return;
-
-    }
-
 
     if (
-        password.type ===
-        "password"
+        flag === "true" &&
+        session
     ) {
 
-        password.type =
-            "text";
+        try {
 
+            const data =
+                JSON.parse(session);
 
-        if (eye) {
+            if (
+                data &&
+                data.loggedIn === true
+            ) {
 
-            eye.className =
-                "fa-solid fa-eye-slash";
+                return true;
+
+            }
+
+        }
+
+        catch (error) {
+
+            console.error(
+                "Session Error:",
+                error
+            );
 
         }
 
     }
 
-    else {
+    return false;
 
-        password.type =
-            "password";
+}
 
 
-        if (eye) {
+/* =========================================================
+   REDIRECT IF ALREADY LOGIN
+========================================================= */
 
-            eye.className =
-                "fa-solid fa-eye";
+if (alreadyLoggedIn()) {
+
+    window.location.replace(
+        "index.html"
+    );
+
+}
+
+
+/* =========================================================
+   CREATE SESSION
+========================================================= */
+
+function createLoginSession(userId) {
+
+    const session = {
+
+        loggedIn: true,
+
+        userId: userId,
+
+        loginTime:
+            new Date().toISOString()
+
+    };
+
+
+    localStorage.setItem(
+
+        LOGIN_CONFIG.sessionKey,
+
+        JSON.stringify(session)
+
+    );
+
+
+    localStorage.setItem(
+
+        LOGIN_CONFIG.loginFlagKey,
+
+        "true"
+
+    );
+
+}
+
+
+/* =========================================================
+   LOGIN
+========================================================= */
+
+if (loginForm) {
+
+    loginForm.addEventListener(
+        "submit",
+        function (event) {
+
+            /*
+               IMPORTANT:
+               Page reload होऊ देऊ नका.
+            */
+
+            event.preventDefault();
+
+            event.stopPropagation();
+
+
+            hideLoginError();
+
+
+            const enteredId =
+                userIdInput
+                    ? userIdInput.value.trim()
+                    : "";
+
+
+            const enteredPassword =
+                passwordInput
+                    ? passwordInput.value
+                    : "";
+
+
+            /* =================================================
+               EMPTY ID
+            ================================================= */
+
+            if (!enteredId) {
+
+                showLoginError(
+                    "कृपया User ID टाका."
+                );
+
+                if (userIdInput) {
+                    userIdInput.focus();
+                }
+
+                return;
+
+            }
+
+
+            /* =================================================
+               EMPTY PASSWORD
+            ================================================= */
+
+            if (!enteredPassword) {
+
+                showLoginError(
+                    "कृपया Password टाका."
+                );
+
+                if (passwordInput) {
+                    passwordInput.focus();
+                }
+
+                return;
+
+            }
+
+
+            /* =================================================
+               VALIDATION
+            ================================================= */
+
+            const validId =
+                enteredId ===
+                LOGIN_CONFIG.userId;
+
+
+            const validPassword =
+                enteredPassword ===
+                LOGIN_CONFIG.password;
+
+
+            /* =================================================
+               WRONG LOGIN
+            ================================================= */
+
+            if (
+                !validId ||
+                !validPassword
+            ) {
+
+                showLoginError(
+                    "User ID किंवा Password चुकीचा आहे."
+                );
+
+
+                /*
+                   Password clear करा.
+                   Page reload करू नका.
+                */
+
+                if (passwordInput) {
+
+                    passwordInput.value = "";
+
+                    passwordInput.focus();
+
+                }
+
+
+                return;
+
+            }
+
+
+            /* =================================================
+               SUCCESS
+            ================================================= */
+
+            createLoginSession(
+                enteredId
+            );
+
+
+            /*
+               Remember Me नसल्यास sessionStorage
+               वापरण्याची गरज नाही.
+               आपल्या app साठी localStorage session
+               ठेवत आहोत.
+            */
+
+
+            if (loginButton) {
+
+                loginButton.disabled =
+                    true;
+
+                loginButton.innerHTML =
+                    '<i class="fa-solid fa-spinner fa-spin"></i> Login होत आहे...';
+
+            }
+
+
+            /*
+               थोडा delay दिल्यामुळे UI smooth दिसतो.
+            */
+
+            setTimeout(
+                function () {
+
+                    window.location.replace(
+                        "index.html"
+                    );
+
+                },
+                250
+            );
 
         }
-
-    }
+    );
 
 }
 
@@ -330,13 +440,30 @@ function togglePassword() {
 
 function logoutUser() {
 
-    localStorage.removeItem(
-        LOGIN_KEY
-    );
+    try {
 
-    localStorage.removeItem(
-        USER_KEY
-    );
+        localStorage.removeItem(
+            LOGIN_CONFIG.sessionKey
+        );
+
+        localStorage.removeItem(
+            LOGIN_CONFIG.loginFlagKey
+        );
+
+        sessionStorage.removeItem(
+            LOGIN_CONFIG.sessionKey
+        );
+
+    }
+
+    catch (error) {
+
+        console.error(
+            "Logout Error:",
+            error
+        );
+
+    }
 
 
     window.location.replace(
@@ -346,32 +473,58 @@ function logoutUser() {
 }
 
 
+/*
+   HTML मधून onclick="logoutUser()"
+   वापरता यावे म्हणून.
+*/
+
+window.logoutUser =
+    logoutUser;
+
+
 /* =========================================================
-   CHECK LOGIN
+   ENTER KEY SUPPORT
 ========================================================= */
 
-function isUserLoggedIn() {
+if (passwordInput) {
 
-    return (
-        localStorage.getItem(
-            LOGIN_KEY
-        ) === "true"
+    passwordInput.addEventListener(
+        "keydown",
+        function (event) {
+
+            if (
+                event.key === "Enter"
+            ) {
+
+                event.preventDefault();
+
+                if (loginForm) {
+
+                    loginForm.requestSubmit();
+
+                }
+
+            }
+
+        }
     );
 
 }
 
 
 /* =========================================================
-   HTML SECURITY
+   PAGE LOAD
 ========================================================= */
 
-function escapeLoginHTML(value) {
+document.addEventListener(
+    "DOMContentLoaded",
+    function () {
 
-    return String(value ?? "")
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#039;");
+        if (userIdInput) {
 
-}
+            userIdInput.focus();
+
+        }
+
+    }
+);
