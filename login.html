@@ -6,173 +6,336 @@
     <meta charset="UTF-8">
 
     <meta name="viewport"
-          content="width=device-width, initial-scale=1.0">
+          content="width=device-width,
+                   initial-scale=1.0,
+                   maximum-scale=1.0,
+                   user-scalable=no">
 
     <meta name="theme-color"
           content="#5b0b18">
 
+    <meta name="description"
+          content="रोजचा जमा खर्च अहवाल - Personal Finance Tracker">
+
+    <meta name="mobile-web-app-capable"
+          content="yes">
+
+    <meta name="apple-mobile-web-app-capable"
+          content="yes">
+
+    <meta name="apple-mobile-web-app-status-bar-style"
+          content="black-translucent">
+
     <title>Login | रोजचा जमा खर्च अहवाल</title>
+
+
+    <!-- =====================================================
+         FONT AWESOME
+    ====================================================== -->
 
     <link rel="stylesheet"
           href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 
+
+    <!-- =====================================================
+         LOGIN CSS
+    ====================================================== -->
+
     <link rel="stylesheet"
-          href="style.css">
+          href="login.css">
 
 </head>
 
-<body class="login-page">
+
+<body>
 
 
-<div class="login-container">
+<!-- =========================================================
+     LOGIN PAGE
+========================================================= -->
+
+<div class="login-page">
 
 
-    <!-- LOGO -->
+    <!-- =====================================================
+         BACKGROUND DECORATION
+    ====================================================== -->
 
-    <div class="login-logo">
+    <div class="background-circle circle-one"></div>
 
-        <div class="login-logo-icon">
+    <div class="background-circle circle-two"></div>
 
-            <i class="fa-solid fa-wallet"></i>
-
-        </div>
-
-    </div>
+    <div class="background-circle circle-three"></div>
 
 
-    <!-- TITLE -->
 
-    <h1>
-        रोजचा जमा खर्च अहवाल
-    </h1>
+    <!-- =====================================================
+         MAIN LOGIN CONTAINER
+    ====================================================== -->
 
-    <p class="login-subtitle">
-        Personal Finance Tracker
-    </p>
+    <main class="login-container">
 
 
-    <!-- LOGIN CARD -->
+        <!-- =================================================
+             APP BRAND
+        ================================================== -->
 
-    <div class="login-card">
-
-
-        <h2>
-            <i class="fa-solid fa-right-to-bracket"></i>
-            Login
-        </h2>
+        <section class="brand-section">
 
 
-        <!-- USER ID -->
+            <div class="app-logo">
 
-        <div class="login-input-group">
-
-            <label>
-                User ID
-            </label>
-
-            <div class="login-input">
-
-                <i class="fa-solid fa-user"></i>
-
-                <input
-                    type="text"
-                    id="loginUserId"
-                    placeholder="User ID"
-                    autocomplete="username"
-                >
+                <i class="fa-solid fa-wallet"></i>
 
             </div>
 
-        </div>
+
+            <h1>
+                रोजचा जमा खर्च अहवाल
+            </h1>
 
 
-        <!-- PASSWORD -->
+            <p>
+                Personal Finance Tracker
+            </p>
 
-        <div class="login-input-group">
 
-            <label>
-                Password
-            </label>
+        </section>
 
-            <div class="login-input">
 
-                <i class="fa-solid fa-lock"></i>
 
-                <input
-                    type="password"
-                    id="loginPassword"
-                    placeholder="Password"
-                    autocomplete="current-password"
-                >
+        <!-- =================================================
+             LOGIN CARD
+        ================================================== -->
 
-                <button
-                    type="button"
-                    class="password-toggle"
-                    onclick="togglePassword()">
+        <section class="login-card">
 
-                    <i id="passwordEye"
-                       class="fa-solid fa-eye">
-                    </i>
+
+            <!-- LOGIN TITLE -->
+
+            <div class="login-title">
+
+                <div class="login-title-icon">
+
+                    <i class="fa-solid fa-right-to-bracket"></i>
+
+                </div>
+
+                <h2>
+                    Login
+                </h2>
+
+            </div>
+
+
+
+            <!-- =================================================
+                 ERROR MESSAGE
+            ================================================== -->
+
+            <div id="loginError"
+                 class="login-error"
+                 role="alert"
+                 aria-live="polite">
+
+                <i class="fa-solid fa-circle-exclamation"></i>
+
+                <span id="loginErrorText"></span>
+
+            </div>
+
+
+
+            <!-- =================================================
+                 LOGIN FORM
+            ================================================== -->
+
+            <form id="loginForm"
+                  autocomplete="on"
+                  novalidate>
+
+
+
+                <!-- =================================================
+                     USER ID
+                ================================================== -->
+
+                <div class="form-group">
+
+
+                    <label for="userId">
+
+                        User ID
+
+                    </label>
+
+
+                    <div class="input-wrapper">
+
+
+                        <i class="fa-solid fa-user input-icon"></i>
+
+
+                        <input type="text"
+                               id="userId"
+                               name="username"
+                               placeholder="User ID"
+                               autocomplete="username"
+                               autocapitalize="none"
+                               spellcheck="false"
+                               maxlength="50">
+
+
+                    </div>
+
+
+                    <small id="userIdError"
+                           class="field-error">
+                    </small>
+
+
+                </div>
+
+
+
+                <!-- =================================================
+                     PASSWORD
+                ================================================== -->
+
+                <div class="form-group">
+
+
+                    <label for="password">
+
+                        Password
+
+                    </label>
+
+
+                    <div class="input-wrapper">
+
+
+                        <i class="fa-solid fa-lock input-icon"></i>
+
+
+                        <input type="password"
+                               id="password"
+                               name="password"
+                               placeholder="Password"
+                               autocomplete="current-password"
+                               maxlength="100">
+
+
+                        <button type="button"
+                                id="passwordToggle"
+                                class="password-toggle"
+                                aria-label="Show Password"
+                                tabindex="0">
+
+                            <i class="fa-solid fa-eye"></i>
+
+                        </button>
+
+
+                    </div>
+
+
+                    <small id="passwordError"
+                           class="field-error">
+                    </small>
+
+
+                </div>
+
+
+
+                <!-- =================================================
+                     REMEMBER ME
+                ================================================== -->
+
+                <div class="remember-row">
+
+
+                    <label class="remember-label">
+
+
+                        <input type="checkbox"
+                               id="rememberMe">
+
+
+                        <span class="custom-checkbox">
+
+                            <i class="fa-solid fa-check"></i>
+
+                        </span>
+
+
+                        <span>
+                            मला Login ठेवावे
+                        </span>
+
+
+                    </label>
+
+
+                </div>
+
+
+
+                <!-- =================================================
+                     LOGIN BUTTON
+                ================================================== -->
+
+                <button type="submit"
+                        id="loginButton"
+                        class="login-button">
+
+
+                    <span id="loginButtonContent">
+
+                        <i class="fa-solid fa-right-to-bracket"></i>
+
+                        Login
+
+                    </span>
+
 
                 </button>
 
-            </div>
-
-        </div>
 
 
-        <!-- REMEMBER -->
-
-        <label class="remember-login">
-
-            <input
-                type="checkbox"
-                id="rememberLogin"
-            >
-
-            <span>
-                मला Login ठेवावे
-            </span>
-
-        </label>
+            </form>
 
 
-        <!-- ERROR -->
-
-        <div id="loginError"
-             class="login-error">
-
-        </div>
+        </section>
 
 
-        <!-- LOGIN BUTTON -->
 
-        <button
-            type="button"
-            class="login-button"
-            onclick="loginUser()">
+        <!-- =================================================
+             FOOTER
+        ================================================== -->
 
-            <i class="fa-solid fa-right-to-bracket"></i>
+        <footer class="login-footer">
 
-            Login
+            <i class="fa-solid fa-shield-halved"></i>
 
-        </button>
+            सुरक्षित Personal Finance Tracker
 
-
-    </div>
+        </footer>
 
 
-    <p class="login-footer">
-
-        सुरक्षित Personal Finance Tracker
-
-    </p>
-
+    </main>
 
 </div>
 
 
+
+<!-- =========================================================
+     LOGIN JS
+========================================================= -->
+
 <script src="login.js"></script>
+
 
 </body>
 
