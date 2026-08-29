@@ -27,21 +27,9 @@
 
 /* =========================================================
    AUTHENTICATION CHECK
-   Login शिवाय application वापरता येणार नाही.
-========================================================= */
+   ========================================================= */
 
 (function checkAuthentication() {
-
-    const loggedIn =
-        localStorage.getItem(
-            "rdkh_logged_in"
-        );
-
-
-    /*
-       login.html वर असताना
-       पुन्हा redirect करू नका.
-    */
 
     const currentPage =
         window.location.pathname
@@ -50,9 +38,11 @@
             .toLowerCase();
 
 
+    /* Login page ला protection लागू नाही */
+
     if (
-        currentPage ===
-        "login.html"
+        currentPage === "" ||
+        currentPage === "login.html"
     ) {
 
         return;
@@ -60,14 +50,37 @@
     }
 
 
-    /*
-       Login केलेला नसेल तर
-       Login page वर पाठवा.
-    */
+    /* Login session तपासा */
 
-    if (
-        loggedIn !== "true"
-    ) {
+    let session = null;
+
+    try {
+
+        session =
+            JSON.parse(
+                localStorage.getItem(
+                    "rdkh_login_session"
+                )
+            );
+
+    } catch (error) {
+
+        session = null;
+
+    }
+
+
+    const loggedIn =
+        session &&
+        (
+            session.loggedIn === true ||
+            session.isLoggedIn === true
+        );
+
+
+    /* Login नसेल तर Login page */
+
+    if (!loggedIn) {
 
         window.location.replace(
             "login.html"
