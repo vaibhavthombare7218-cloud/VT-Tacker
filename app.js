@@ -1270,23 +1270,18 @@ function getBudgetRemaining() {
     const budget =
         getCurrentMonthBudget();
 
-
     const spent =
         getMonthExpense();
 
-
-    return (
-
+    const planned =
         Number(
-            budget.expenseBudget ||
+            budget.plannedMoney ||
             0
-        ) -
-        spent
+        );
 
-    );
+    return planned - spent;
 
 }
-
 
 
 /* =========================================================
@@ -1298,39 +1293,30 @@ function getBudgetPercentage() {
     const budget =
         getCurrentMonthBudget();
 
-
     const planned =
         Number(
-            budget.expenseBudget ||
+            budget.plannedMoney ||
             0
         );
 
-
-    if (
-        planned <= 0
-    ) {
+    if (planned <= 0) {
 
         return 0;
 
     }
 
-
     const spent =
         getMonthExpense();
-
 
     return Math.min(
         100,
         (
             spent /
             planned
-        ) *
-        100
+        ) * 100
     );
 
 }
-
-
 
 /* =========================================================
    ACCOUNT BALANCE
@@ -1598,32 +1584,49 @@ function updateBudgetDashboard() {
         getCurrentMonthBudget();
 
 
+    /* ===============================
+       TOTAL MONTHLY BUDGET
+    =============================== */
+
+    const totalBudget =
+        Number(
+            budget.plannedMoney ||
+            0
+        );
+
+
+    /* ===============================
+       ACTUAL MONTH EXPENSE
+    =============================== */
+
     const spent =
         getMonthExpense();
 
 
+    /* ===============================
+       REMAINING
+    =============================== */
+
     const remaining =
-        Number(
-            budget.expenseBudget ||
-            0
-        ) -
+        totalBudget -
         spent;
 
+
+    /* ===============================
+       USED %
+    =============================== */
 
     let percentage =
         0;
 
 
-    if (
-        budget.expenseBudget > 0
-    ) {
+    if (totalBudget > 0) {
 
         percentage =
             (
                 spent /
-                budget.expenseBudget
-            ) *
-            100;
+                totalBudget
+            ) * 100;
 
     }
 
@@ -1638,18 +1641,14 @@ function updateBudgetDashboard() {
         );
 
 
-    setElementText(
-        "monthBudget",
-        formatMoney(
-            budget.expenseBudget
-        )
-    );
-
+    /* ===============================
+       UPDATE INDEX
+    =============================== */
 
     setElementText(
         "budgetAmount",
         formatMoney(
-            budget.expenseBudget
+            totalBudget
         )
     );
 
@@ -1662,16 +1661,23 @@ function updateBudgetDashboard() {
     );
 
 
+    /*
+       Negative balance असल्यास
+       ₹0 दाखवू नका.
+       Actual negative value दाखवा.
+    */
+
     setElementText(
         "budgetRemaining",
         formatMoney(
-            Math.max(
-                0,
-                remaining
-            )
+            remaining
         )
     );
 
+
+    /* ===============================
+       PROGRESS BAR
+    =============================== */
 
     const progress =
         document.getElementById(
@@ -1688,6 +1694,10 @@ function updateBudgetDashboard() {
     }
 
 
+    /* ===============================
+       PERCENTAGE TEXT
+    =============================== */
+
     setElementText(
         "budgetPercentage",
         Math.round(
@@ -1696,10 +1706,36 @@ function updateBudgetDashboard() {
         "% वापरले"
     );
 
+
+    /* ===============================
+       REMAINING COLOR
+    =============================== */
+
+    const remainingElement =
+        document.getElementById(
+            "budgetRemaining"
+        );
+
+
+    if (remainingElement) {
+
+        if (remaining < 0) {
+
+            remainingElement.style.color =
+                "var(--expense)";
+
+        }
+
+        else {
+
+            remainingElement.style.color =
+                "var(--income)";
+
+        }
+
+    }
+
 }
-
-
-
 /* =========================================================
    ACCOUNT DASHBOARD
 ========================================================= */
