@@ -1,0 +1,858 @@
+<!DOCTYPE html>
+<html lang="mr">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <meta name="theme-color"
+          content="#5b0b18">
+
+    <meta name="description"
+          content="Daily Work Plan - रोजची कामाची योजना">
+
+    <title>Daily Work Plan | रोजचा जमा खर्च अहवाल</title>
+
+    <!-- Existing Main CSS -->
+    <link rel="stylesheet"
+          href="style.css">
+
+    <!-- Daily Work CSS -->
+    <link rel="stylesheet"
+          href="work-plan.css">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+</head>
+
+
+<body class="work-plan-page">
+
+
+<!-- =====================================================
+     HEADER
+===================================================== -->
+
+<header class="wp-header">
+
+    <div class="wp-header-left">
+
+        <button class="wp-back-btn"
+                onclick="goBack()"
+                aria-label="Back">
+
+            <i class="fa-solid fa-arrow-left"></i>
+
+        </button>
+
+        <div class="wp-logo">
+
+            <i class="fa-solid fa-briefcase"></i>
+
+        </div>
+
+        <div class="wp-header-title">
+
+            <h1>रोजचा जमा खर्च अहवाल</h1>
+
+            <span>Personal Finance Tracker</span>
+
+        </div>
+
+    </div>
+
+
+    <button class="wp-notification"
+            onclick="showNotificationMessage()"
+            aria-label="Notifications">
+
+        <i class="fa-regular fa-bell"></i>
+
+        <span class="wp-notification-dot"></span>
+
+    </button>
+
+</header>
+
+
+
+<!-- =====================================================
+     MAIN
+===================================================== -->
+
+<main class="wp-container">
+
+
+    <!-- =================================================
+         PAGE TITLE
+    ================================================== -->
+
+    <section class="wp-page-heading">
+
+        <div>
+
+            <div class="wp-heading-icon">
+
+                <i class="fa-solid fa-calendar-check"></i>
+
+            </div>
+
+            <div class="wp-heading-text">
+
+                <h2>Daily Work Plan</h2>
+
+                <p>आजची कामाची योजना</p>
+
+            </div>
+
+        </div>
+
+
+        <button class="wp-add-btn"
+                onclick="openAddWorkModal()">
+
+            <i class="fa-solid fa-plus"></i>
+
+            <span>Add Work</span>
+
+        </button>
+
+    </section>
+
+
+
+    <!-- =================================================
+         DATE BAR
+    ================================================== -->
+
+    <section class="wp-date-card">
+
+        <div class="wp-date-left">
+
+            <div class="wp-date-icon">
+
+                <i class="fa-regular fa-calendar-days"></i>
+
+            </div>
+
+            <div>
+
+                <label for="workDate">Work Date</label>
+
+                <input type="date"
+                       id="workDate"
+                       onchange="changeWorkDate(this.value)">
+
+            </div>
+
+        </div>
+
+
+        <button class="wp-today-btn"
+                onclick="goToToday()">
+
+            <i class="fa-solid fa-calendar-day"></i>
+
+            Today
+
+        </button>
+
+    </section>
+
+
+
+    <!-- =================================================
+         SUMMARY
+    ================================================== -->
+
+    <section class="wp-summary-grid">
+
+
+        <div class="wp-summary-card total">
+
+            <div class="wp-summary-icon">
+
+                <i class="fa-solid fa-list-check"></i>
+
+            </div>
+
+            <div>
+
+                <span>Total Work</span>
+
+                <strong id="totalWork">0</strong>
+
+            </div>
+
+        </div>
+
+
+        <div class="wp-summary-card completed">
+
+            <div class="wp-summary-icon">
+
+                <i class="fa-solid fa-circle-check"></i>
+
+            </div>
+
+            <div>
+
+                <span>Completed</span>
+
+                <strong id="completedWork">0</strong>
+
+            </div>
+
+        </div>
+
+
+        <div class="wp-summary-card pending">
+
+            <div class="wp-summary-icon">
+
+                <i class="fa-regular fa-clock"></i>
+
+            </div>
+
+            <div>
+
+                <span>Pending</span>
+
+                <strong id="pendingWork">0</strong>
+
+            </div>
+
+        </div>
+
+
+        <div class="wp-summary-card high">
+
+            <div class="wp-summary-icon">
+
+                <i class="fa-solid fa-flag"></i>
+
+            </div>
+
+            <div>
+
+                <span>High Priority</span>
+
+                <strong id="highPriorityWork">0</strong>
+
+            </div>
+
+        </div>
+
+
+    </section>
+
+
+
+    <!-- =================================================
+         PROGRESS
+    ================================================== -->
+
+    <section class="wp-progress-card">
+
+        <div class="wp-progress-top">
+
+            <div>
+
+                <strong>Today's Completion</strong>
+
+                <span id="completionText">
+                    0% completed
+                </span>
+
+            </div>
+
+            <strong id="completionPercentage">
+                0%
+            </strong>
+
+        </div>
+
+
+        <div class="wp-progress-track">
+
+            <div class="wp-progress-bar"
+                 id="completionProgress">
+            </div>
+
+        </div>
+
+    </section>
+
+
+
+    <!-- =================================================
+         FILTER + SEARCH
+    ================================================== -->
+
+    <section class="wp-tools">
+
+
+        <div class="wp-filter-tabs">
+
+            <button class="wp-filter active"
+                    data-filter="all"
+                    onclick="setFilter('all', this)">
+
+                All
+
+            </button>
+
+            <button class="wp-filter"
+                    data-filter="pending"
+                    onclick="setFilter('pending', this)">
+
+                Pending
+
+            </button>
+
+            <button class="wp-filter"
+                    data-filter="in-progress"
+                    onclick="setFilter('in-progress', this)">
+
+                In Progress
+
+            </button>
+
+            <button class="wp-filter"
+                    data-filter="completed"
+                    onclick="setFilter('completed', this)">
+
+                Completed
+
+            </button>
+
+            <button class="wp-filter"
+                    data-filter="high"
+                    onclick="setFilter('high', this)">
+
+                High Priority
+
+            </button>
+
+        </div>
+
+
+        <div class="wp-search">
+
+            <i class="fa-solid fa-magnifying-glass"></i>
+
+            <input type="search"
+                   id="workSearch"
+                   placeholder="Search work..."
+                   oninput="renderWorkList()">
+
+        </div>
+
+
+    </section>
+
+
+
+    <!-- =================================================
+         WORK LIST HEADER
+    ================================================== -->
+
+    <section class="wp-list-heading">
+
+        <div>
+
+            <h3>
+
+                <i class="fa-solid fa-list-check"></i>
+
+                आजची कामे
+
+            </h3>
+
+            <span id="workCountText">
+                0 कामे
+            </span>
+
+        </div>
+
+
+        <button class="wp-small-add"
+                onclick="openAddWorkModal()">
+
+            <i class="fa-solid fa-plus"></i>
+
+            Add Work
+
+        </button>
+
+    </section>
+
+
+
+    <!-- =================================================
+         WORK LIST
+    ================================================== -->
+
+    <section id="workList"
+             class="wp-work-list">
+
+        <!-- Tasks generated by JavaScript -->
+
+    </section>
+
+
+
+    <!-- =================================================
+         EMPTY STATE
+    ================================================== -->
+
+    <section id="emptyState"
+             class="wp-empty-state">
+
+        <div class="wp-empty-icon">
+
+            <i class="fa-solid fa-clipboard-check"></i>
+
+        </div>
+
+        <h3>No work found</h3>
+
+        <p>
+            या दिवसासाठी अजून कोणतेही काम add केलेले नाही.
+        </p>
+
+        <button onclick="openAddWorkModal()">
+
+            <i class="fa-solid fa-plus"></i>
+
+            Add First Work
+
+        </button>
+
+    </section>
+
+
+</main>
+
+
+
+<!-- =====================================================
+     ADD / EDIT WORK MODAL
+===================================================== -->
+
+<div id="workModal"
+     class="wp-modal">
+
+    <div class="wp-modal-overlay"
+         onclick="closeWorkModal()">
+    </div>
+
+
+    <div class="wp-modal-box">
+
+
+        <div class="wp-modal-header">
+
+            <div>
+
+                <div class="wp-modal-icon">
+
+                    <i class="fa-solid fa-briefcase"></i>
+
+                </div>
+
+                <div>
+
+                    <h3 id="modalTitle">
+                        Add New Work
+                    </h3>
+
+                    <span>
+                        Daily Work Plan
+                    </span>
+
+                </div>
+
+            </div>
+
+
+            <button onclick="closeWorkModal()"
+                    class="wp-modal-close">
+
+                <i class="fa-solid fa-xmark"></i>
+
+            </button>
+
+        </div>
+
+
+
+        <!-- FORM -->
+
+        <form id="workForm"
+              onsubmit="saveWork(event)">
+
+            <input type="hidden"
+                   id="editWorkId">
+
+
+            <!-- Work -->
+
+            <div class="wp-form-group">
+
+                <label for="workTitle">
+
+                    Work / Task
+
+                    <span>*</span>
+
+                </label>
+
+                <div class="wp-input-icon">
+
+                    <i class="fa-solid fa-pen"></i>
+
+                    <input type="text"
+                           id="workTitle"
+                           placeholder="उदा. Daily MIS Check"
+                           maxlength="150"
+                           required>
+
+                </div>
+
+            </div>
+
+
+
+            <!-- Date -->
+
+            <div class="wp-form-group">
+
+                <label for="modalWorkDate">
+
+                    Date
+
+                    <span>*</span>
+
+                </label>
+
+                <div class="wp-input-icon">
+
+                    <i class="fa-regular fa-calendar"></i>
+
+                    <input type="date"
+                           id="modalWorkDate"
+                           required>
+
+                </div>
+
+            </div>
+
+
+
+            <!-- Time -->
+
+            <div class="wp-form-row">
+
+
+                <div class="wp-form-group">
+
+                    <label for="startTime">
+                        Start Time
+                    </label>
+
+                    <div class="wp-input-icon">
+
+                        <i class="fa-regular fa-clock"></i>
+
+                        <input type="time"
+                               id="startTime">
+
+                    </div>
+
+                </div>
+
+
+                <div class="wp-form-group">
+
+                    <label for="endTime">
+                        End Time
+                    </label>
+
+                    <div class="wp-input-icon">
+
+                        <i class="fa-regular fa-clock"></i>
+
+                        <input type="time"
+                               id="endTime">
+
+                    </div>
+
+                </div>
+
+
+            </div>
+
+
+
+            <!-- Priority -->
+
+            <div class="wp-form-group">
+
+                <label for="priority">
+                    Priority
+                </label>
+
+                <div class="wp-select-wrapper">
+
+                    <i class="fa-solid fa-flag"></i>
+
+                    <select id="priority">
+
+                        <option value="high">
+                            🔴 High
+                        </option>
+
+                        <option value="medium"
+                                selected>
+                            🟠 Medium
+                        </option>
+
+                        <option value="low">
+                            🟢 Low
+                        </option>
+
+                    </select>
+
+                </div>
+
+            </div>
+
+
+
+            <!-- Status -->
+
+            <div class="wp-form-group">
+
+                <label for="status">
+                    Status
+                </label>
+
+                <div class="wp-select-wrapper">
+
+                    <i class="fa-solid fa-spinner"></i>
+
+                    <select id="status">
+
+                        <option value="pending">
+                            ⏳ Pending
+                        </option>
+
+                        <option value="in-progress">
+                            🔄 In Progress
+                        </option>
+
+                        <option value="completed">
+                            ✅ Completed
+                        </option>
+
+                    </select>
+
+                </div>
+
+            </div>
+
+
+
+            <!-- Remarks -->
+
+            <div class="wp-form-group">
+
+                <label for="remarks">
+                    Remarks
+                </label>
+
+                <textarea id="remarks"
+                          rows="3"
+                          maxlength="500"
+                          placeholder="Additional remarks..."></textarea>
+
+            </div>
+
+
+
+            <!-- Buttons -->
+
+            <div class="wp-form-actions">
+
+                <button type="button"
+                        class="wp-cancel-btn"
+                        onclick="closeWorkModal()">
+
+                    Cancel
+
+                </button>
+
+                <button type="submit"
+                        class="wp-save-btn">
+
+                    <i class="fa-solid fa-floppy-disk"></i>
+
+                    <span id="saveButtonText">
+                        Save Work
+                    </span>
+
+                </button>
+
+            </div>
+
+
+        </form>
+
+    </div>
+
+</div>
+
+
+
+<!-- =====================================================
+     CONFIRM DELETE MODAL
+===================================================== -->
+
+<div id="deleteModal"
+     class="wp-modal">
+
+    <div class="wp-modal-overlay"></div>
+
+
+    <div class="wp-confirm-box">
+
+        <div class="wp-confirm-icon">
+
+            <i class="fa-solid fa-trash"></i>
+
+        </div>
+
+        <h3>Delete Work?</h3>
+
+        <p>
+            हे काम कायमचे delete होईल.
+        </p>
+
+
+        <div class="wp-confirm-actions">
+
+            <button onclick="closeDeleteModal()"
+                    class="wp-cancel-btn">
+
+                Cancel
+
+            </button>
+
+            <button onclick="confirmDelete()"
+                    class="wp-delete-confirm">
+
+                <i class="fa-solid fa-trash"></i>
+
+                Delete
+
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+
+<!-- =====================================================
+     TOAST
+===================================================== -->
+
+<div id="wpToast"
+     class="wp-toast">
+
+    <i id="toastIcon"
+       class="fa-solid fa-circle-check"></i>
+
+    <span id="toastMessage">
+        Saved successfully
+    </span>
+
+</div>
+
+
+
+<!-- =====================================================
+     BOTTOM NAVIGATION
+===================================================== -->
+
+<nav class="wp-bottom-nav">
+
+
+    <button onclick="goHome()">
+
+        <i class="fa-solid fa-house"></i>
+
+        <span>Home</span>
+
+    </button>
+
+
+    <button onclick="goToBudget()">
+
+        <i class="fa-solid fa-chart-pie"></i>
+
+        <span>Budget</span>
+
+    </button>
+
+
+    <button class="wp-nav-add"
+            onclick="openAddWorkModal()">
+
+        <span>
+
+            <i class="fa-solid fa-plus"></i>
+
+        </span>
+
+        <small>Add</small>
+
+    </button>
+
+
+    <button class="active"
+            onclick="scrollToWorkList()">
+
+        <i class="fa-solid fa-list-check"></i>
+
+        <span>Work</span>
+
+    </button>
+
+
+    <button onclick="goToSettings()">
+
+        <i class="fa-solid fa-gear"></i>
+
+        <span>Settings</span>
+
+    </button>
+
+
+</nav>
+
+
+
+<script src="work-plan.js"></script>
+
+</body>
+
+</html>
