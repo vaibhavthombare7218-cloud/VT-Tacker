@@ -23,24 +23,28 @@
     <!-- CSS -->
     <link rel="stylesheet"
           href="style.css">
-<link rel="manifest"
-      href="manifest.json">
 
-<meta name="theme-color"
-      content="#5b0b18">
+    <!-- PWA Manifest -->
+    <link rel="manifest"
+          href="manifest.json">
 
-<meta name="mobile-web-app-capable"
-      content="yes">
+    <meta name="theme-color"
+          content="#5b0b18">
 
-<meta name="apple-mobile-web-app-capable"
-      content="yes">
+    <meta name="mobile-web-app-capable"
+          content="yes">
 
-<meta name="apple-mobile-web-app-status-bar-style"
-      content="default">
+    <meta name="apple-mobile-web-app-capable"
+          content="yes">
 
-<meta name="apple-mobile-web-app-title"
-      content="जमा खर्च">
+    <meta name="apple-mobile-web-app-status-bar-style"
+          content="default">
+
+    <meta name="apple-mobile-web-app-title"
+          content="जमा खर्च">
+
 </head>
+
 
 <body>
 
@@ -90,7 +94,9 @@
 <main class="container">
 
 
-    <!-- DATE -->
+    <!-- =================================================
+         DATE
+    ================================================== -->
 
     <section class="date-card">
 
@@ -117,7 +123,9 @@
 
 
 
-    <!-- TOTAL BALANCE -->
+    <!-- =================================================
+         TOTAL BALANCE
+    ================================================== -->
 
     <section class="balance-card">
 
@@ -182,7 +190,9 @@
 
 
 
-    <!-- TODAY -->
+    <!-- =================================================
+         TODAY REPORT
+    ================================================== -->
 
     <h3 class="section-title">
         आजचा अहवाल
@@ -290,7 +300,9 @@
 
 
 
-    <!-- MONTHLY BUDGET -->
+    <!-- =================================================
+         MONTHLY BUDGET
+    ================================================== -->
 
     <section class="budget-card">
 
@@ -386,7 +398,9 @@
 
 
 
-    <!-- QUICK ACTIONS -->
+    <!-- =================================================
+         QUICK ACTIONS
+    ================================================== -->
 
     <h3 class="section-title">
         जलद नोंद
@@ -435,7 +449,9 @@
 
 
 
-    <!-- ACCOUNTS -->
+    <!-- =================================================
+         ACCOUNTS
+    ================================================== -->
 
     <div class="section-heading">
 
@@ -444,8 +460,11 @@
         </h3>
 
         <button onclick="goToAccounts()">
+
             सर्व पहा
+
             <i class="fa-solid fa-chevron-right"></i>
+
         </button>
 
     </div>
@@ -472,7 +491,9 @@
 
 
 
-    <!-- RECENT TRANSACTIONS -->
+    <!-- =================================================
+         RECENT TRANSACTIONS
+    ================================================== -->
 
     <div class="section-heading">
 
@@ -508,7 +529,9 @@
 
 
 
-    <!-- REMINDER -->
+    <!-- =================================================
+         REMINDER
+    ================================================== -->
 
     <section id="reminderCard"
              class="reminder-card">
@@ -543,7 +566,13 @@
 </main>
 
 
-वैभव विनायक ठोंबरे 
+
+<!--
+    App Owner
+    वैभव विनायक ठोंबरे
+-->
+
+
 
 <!-- =====================================================
      BOTTOM NAVIGATION
@@ -619,6 +648,7 @@
 </nav>
 
 
+
 <!-- =====================================================
      ADD MENU
 ===================================================== -->
@@ -678,6 +708,7 @@
 ===================================================== -->
 
 <script src="app.js"></script>
+
 
 </body>
 
