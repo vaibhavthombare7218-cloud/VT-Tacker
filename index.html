@@ -67,7 +67,7 @@
 
             <h1>रोजचा जमा खर्च अहवाल</h1>
 
-            <p>Personal Finance Tracker</p>
+            <p>वैभव विनायक ठोंबरे</p>
 
         </div>
 
@@ -201,31 +201,6 @@
 
     <section class="summary-grid">
 
-
-        <div class="summary-card income-card">
-
-            <div class="summary-icon">
-
-                <i class="fa-solid fa-arrow-down"></i>
-
-            </div>
-
-            <div>
-
-                <span>
-                    आजची जमा
-                </span>
-
-                <strong id="todayIncome">
-                    ₹0.00
-                </strong>
-
-            </div>
-
-        </div>
-
-
-
         <div class="summary-card expense-card">
 
             <div class="summary-icon">
@@ -249,31 +224,7 @@
         </div>
 
 
-
-        <div class="summary-card saving-card">
-
-            <div class="summary-icon">
-
-                <i class="fa-solid fa-piggy-bank"></i>
-
-            </div>
-
-            <div>
-
-                <span>
-                    आजची शिल्लक
-                </span>
-
-                <strong id="todaySaving">
-                    ₹0.00
-                </strong>
-
-            </div>
-
-        </div>
-
-
-
+l
         <div class="summary-card budget-card">
 
             <div class="summary-icon">
@@ -444,7 +395,18 @@
             </span>
 
         </button>
+<!-- WORK PLAN -->
 
+<button class="quick-btn work-plan-btn"
+        onclick="goToWorkPlan()">
+
+    <i class="fa-solid fa-calendar-check"></i>
+
+    <span>
+        Work Plan
+    </span>
+
+</button>
     </section>
 
 
@@ -708,7 +670,13 @@
 ===================================================== -->
 
 <script src="app.js"></script>
+<script>
 
+function goToWorkPlan() {
+    window.location.href = "work-plan.html";
+}
+
+</script>
 
 </body>
 
