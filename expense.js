@@ -151,6 +151,58 @@ const EXPENSE_CATEGORIES = [
 
 
 /* =========================================================
+   LEGACY CATEGORY MAP
+   ---------------------------------------------------------
+   जुन्या expense records मधील category IDs ला
+   नवीन MASTER category IDs मध्ये convert करण्यासाठी.
+   ========================================================= */
+
+const LEGACY_CATEGORY_MAP = {
+
+    "daily-grocery": "daily_grocery",
+
+    "monthly-grocery": "monthly_grocery",
+
+    "travel": "travel",
+
+    "shopping": "shopping",
+
+    "outside-food": "outside_food",
+
+    "light-bill": "electricity",
+
+    "electricity-bill": "electricity",
+
+    "electricity": "electricity",
+
+    "medicine": "medicine",
+
+    "home-emi": "home_emi",
+
+    "home-maintenance": "home_maintenance",
+
+    "insurance": "insurance",
+
+    "other-loan": "other_loan",
+
+    "mobile": "mobile_bill",
+
+    "mobile-bill": "mobile_bill",
+
+    "other": "other_expense",
+
+    "other-expense": "other_expense",
+
+    "gas": "monthly_gas",
+
+    "monthly-gas": "monthly_gas",
+
+    "fish": "fish"
+
+};
+
+
+/* =========================================================
    STORAGE HELPERS
    ========================================================= */
 
@@ -164,11 +216,14 @@ function getExpenses() {
             );
 
         if (!raw) {
+
             return [];
         }
 
+
         const data =
             JSON.parse(raw);
+
 
         return Array.isArray(data)
             ? data
@@ -237,22 +292,37 @@ function getCategoryIcon(categoryId) {
 /* =========================================================
    BACKWARD COMPATIBILITY
    ---------------------------------------------------------
-   Old records may contain:
-   category
-   categoryId
-   categoryName
-   type
-   etc.
+   Old + New expense records support
    ========================================================= */
 
 function normalizeExpenseCategory(expense) {
 
     if (!expense) {
+
         return "other_expense";
     }
 
 
-    /* New format */
+    /* =====================================================
+       1. OLD CATEGORY MAP
+       ===================================================== */
+
+    if (
+        expense.category &&
+        LEGACY_CATEGORY_MAP[
+            expense.category
+        ]
+    ) {
+
+        return LEGACY_CATEGORY_MAP[
+            expense.category
+        ];
+    }
+
+
+    /* =====================================================
+       2. NEW CATEGORY ID
+       ===================================================== */
 
     if (expense.category) {
 
@@ -262,14 +332,29 @@ function normalizeExpenseCategory(expense) {
             );
 
         if (category) {
+
             return category.id;
         }
     }
 
 
-    /* Old categoryId */
+    /* =====================================================
+       3. OLD CATEGORY ID
+       ===================================================== */
 
     if (expense.categoryId) {
+
+        if (
+            LEGACY_CATEGORY_MAP[
+                expense.categoryId
+            ]
+        ) {
+
+            return LEGACY_CATEGORY_MAP[
+                expense.categoryId
+            ];
+        }
+
 
         const category =
             getCategoryById(
@@ -277,12 +362,15 @@ function normalizeExpenseCategory(expense) {
             );
 
         if (category) {
+
             return category.id;
         }
     }
 
 
-    /* Old categoryName */
+    /* =====================================================
+       4. CATEGORY NAME
+       ===================================================== */
 
     if (expense.categoryName) {
 
@@ -294,12 +382,15 @@ function normalizeExpenseCategory(expense) {
             );
 
         if (found) {
+
             return found.id;
         }
     }
 
 
-    /* Default */
+    /* =====================================================
+       5. DEFAULT
+       ===================================================== */
 
     return "other_expense";
 }
@@ -314,18 +405,28 @@ function getTodayDate() {
     const today =
         new Date();
 
+
     const year =
         today.getFullYear();
+
 
     const month =
         String(
             today.getMonth() + 1
-        ).padStart(2, "0");
+        ).padStart(
+            2,
+            "0"
+        );
+
 
     const day =
         String(
             today.getDate()
-        ).padStart(2, "0");
+        ).padStart(
+            2,
+            "0"
+        );
+
 
     return (
         `${year}-${month}-${day}`
@@ -338,10 +439,14 @@ function getCurrentMonth() {
     const today =
         new Date();
 
+
     return (
         `${today.getFullYear()}-${String(
             today.getMonth() + 1
-        ).padStart(2, "0")}`
+        ).padStart(
+            2,
+            "0"
+        )}`
     );
 }
 
@@ -355,8 +460,10 @@ function populateExpenseCategories(
 ) {
 
     if (!selectElement) {
+
         return;
     }
+
 
     const previousValue =
         selectElement.value;
@@ -379,23 +486,41 @@ function populateExpenseCategories(
                     "option"
                 );
 
+
             option.value =
                 category.id;
+
 
             option.textContent =
                 `${category.icon} ${category.name}`;
 
+
             selectElement.appendChild(
                 option
             );
+
         }
     );
 
 
     if (previousValue) {
 
-        selectElement.value =
-            previousValue;
+        if (
+            LEGACY_CATEGORY_MAP[
+                previousValue
+            ]
+        ) {
+
+            selectElement.value =
+                LEGACY_CATEGORY_MAP[
+                    previousValue
+                ];
+
+        } else {
+
+            selectElement.value =
+                previousValue;
+        }
     }
 }
 
@@ -411,7 +536,9 @@ function initializeExpenseForm() {
             "expenseForm"
         );
 
+
     if (!form) {
+
         return;
     }
 
@@ -420,6 +547,7 @@ function initializeExpenseForm() {
         document.getElementById(
             "expenseCategory"
         );
+
 
     const dateInput =
         document.getElementById(
@@ -447,7 +575,6 @@ function initializeExpenseForm() {
 
     /*
        Prevent duplicate event listener
-       if page/module refresh happens.
     */
 
     if (
@@ -457,6 +584,7 @@ function initializeExpenseForm() {
 
         return;
     }
+
 
     form.dataset.expenseInitialized =
         "true";
@@ -486,30 +614,36 @@ function saveNewExpense() {
             "expenseCategory"
         );
 
+
     const dateElement =
         document.getElementById(
             "expenseDate"
         );
+
 
     const amountElement =
         document.getElementById(
             "expenseAmount"
         );
 
+
     const descriptionElement =
         document.getElementById(
             "expenseDescription"
         );
+
 
     const paymentModeElement =
         document.getElementById(
             "expensePaymentMode"
         );
 
+
     const accountElement =
         document.getElementById(
             "expenseAccount"
         );
+
 
     const noteElement =
         document.getElementById(
@@ -562,7 +696,9 @@ function saveNewExpense() {
             : "";
 
 
-    /* Validation */
+    /* =====================================================
+       VALIDATION
+       ===================================================== */
 
     if (!category) {
 
@@ -597,15 +733,18 @@ function saveNewExpense() {
     }
 
 
-    /*
-       Description is recommended.
-       Empty description is allowed
-       for backward compatibility.
-    */
-
+    /* =====================================================
+       EXPENSE OBJECT
+       ===================================================== */
 
     const expenses =
         getExpenses();
+
+
+    const normalizedCategory =
+        normalizeExpenseCategory({
+            category: category
+        });
 
 
     const expense = {
@@ -618,18 +757,22 @@ function saveNewExpense() {
                 .toString(36)
                 .substring(2, 8),
 
-        date: date,
+        date:
+            date,
 
-        category: category,
+        category:
+            normalizedCategory,
 
-        categoryId: category,
+        categoryId:
+            normalizedCategory,
 
         categoryName:
             getCategoryName(
-                category
+                normalizedCategory
             ),
 
-        amount: amount,
+        amount:
+            amount,
 
         description:
             description,
@@ -659,27 +802,53 @@ function saveNewExpense() {
     );
 
 
+    /* =====================================================
+       LAST SAVED MESSAGE
+       ===================================================== */
+
+    const lastSaved =
+        document.getElementById(
+            "lastExpenseSaved"
+        );
+
+
+    const lastSavedText =
+        document.getElementById(
+            "lastExpenseSavedText"
+        );
+
+
+    if (lastSaved) {
+
+        lastSaved.style.display =
+            "flex";
+    }
+
+
+    if (lastSavedText) {
+
+        lastSavedText.textContent =
+            `${getCategoryName(
+                normalizedCategory
+            )} • ${formatMoney(
+                amount
+            )} • ${
+                description ||
+                "Description नाही"
+            }`;
+    }
+
+
     alert(
         "खर्च यशस्वीपणे सेव्ह झाला."
     );
 
 
-    const form =
-        document.getElementById(
-            "expenseForm"
-        );
+    /* =====================================================
+       RESET FORM
+       ===================================================== */
 
-    if (form) {
-
-        form.reset();
-    }
-
-
-    if (dateElement) {
-
-        dateElement.value =
-            getTodayDate();
-    }
+    resetExpenseForm();
 
 
     refreshExpenseUI();
@@ -687,7 +856,53 @@ function saveNewExpense() {
 
 
 /* =========================================================
-   MONTHLY CATEGORY EXPENSE
+   RESET EXPENSE FORM
+   ========================================================= */
+
+function resetExpenseForm() {
+
+    const form =
+        document.getElementById(
+            "expenseForm"
+        );
+
+
+    if (form) {
+
+        form.reset();
+    }
+
+
+    const dateInput =
+        document.getElementById(
+            "expenseDate"
+        );
+
+
+    if (dateInput) {
+
+        dateInput.value =
+            getTodayDate();
+    }
+
+
+    const categorySelect =
+        document.getElementById(
+            "expenseCategory"
+        );
+
+
+    if (categorySelect) {
+
+        categorySelect.value =
+            "";
+    }
+
+}
+
+
+/* =========================================================
+   CATEGORY EXPENSE TOTAL
    ========================================================= */
 
 function getCategoryExpenseTotal(
@@ -696,7 +911,8 @@ function getCategoryExpenseTotal(
 ) {
 
     const targetMonth =
-        month || getCurrentMonth();
+        month ||
+        getCurrentMonth();
 
 
     return getExpenses()
@@ -723,7 +939,8 @@ function getCategoryExpenseTotal(
 
                 const expenseDate =
                     String(
-                        expense.date || ""
+                        expense.date ||
+                        ""
                     );
 
 
@@ -740,7 +957,8 @@ function getCategoryExpenseTotal(
                 return (
                     total +
                     Number(
-                        expense.amount || 0
+                        expense.amount ||
+                        0
                     )
                 );
 
@@ -774,7 +992,8 @@ function getCurrentMonthCategoryTransactions(
 
                 const expenseDate =
                     String(
-                        expense.date || ""
+                        expense.date ||
+                        ""
                     );
 
 
@@ -796,15 +1015,18 @@ function getCurrentMonthCategoryTransactions(
 
                 const dateCompare =
                     new Date(
-                        b.date || 0
+                        b.date ||
+                        0
                     ) -
                     new Date(
-                        a.date || 0
+                        a.date ||
+                        0
                     );
 
 
                 if (
-                    dateCompare !== 0
+                    dateCompare !==
+                    0
                 ) {
 
                     return dateCompare;
@@ -813,13 +1035,16 @@ function getCurrentMonthCategoryTransactions(
 
                 return (
                     String(
-                        b.createdAt || ""
+                        b.createdAt ||
+                        ""
                     ).localeCompare(
                         String(
-                            a.createdAt || ""
+                            a.createdAt ||
+                            ""
                         )
                     )
                 );
+
             }
         );
 }
@@ -834,7 +1059,8 @@ function getMonthlyExpenseTotal(
 ) {
 
     const targetMonth =
-        month || getCurrentMonth();
+        month ||
+        getCurrentMonth();
 
 
     return getExpenses()
@@ -846,7 +1072,8 @@ function getMonthlyExpenseTotal(
 
                 const expenseDate =
                     String(
-                        expense.date || ""
+                        expense.date ||
+                        ""
                     );
 
 
@@ -875,6 +1102,145 @@ function getMonthlyExpenseTotal(
 
 
 /* =========================================================
+   TODAY EXPENSE TOTAL
+   ========================================================= */
+
+function getTodayExpenseTotal() {
+
+    const today =
+        getTodayDate();
+
+
+    return getExpenses()
+        .reduce(
+            (
+                total,
+                expense
+            ) => {
+
+                const expenseDate =
+                    String(
+                        expense.date ||
+                        ""
+                    );
+
+
+                if (
+                    expenseDate ===
+                    today
+                ) {
+
+                    return (
+                        total +
+                        Number(
+                            expense.amount ||
+                            0
+                        )
+                    );
+                }
+
+
+                return total;
+
+            },
+            0
+        );
+}
+
+
+/* =========================================================
+   TOTAL EXPENSE
+   ========================================================= */
+
+function getTotalExpense() {
+
+    return getExpenses()
+        .reduce(
+            (
+                total,
+                expense
+            ) => {
+
+                return (
+                    total +
+                    Number(
+                        expense.amount ||
+                        0
+                    )
+                );
+
+            },
+            0
+        );
+}
+
+
+/* =========================================================
+   EXPENSE SUMMARY CARDS
+   ========================================================= */
+
+function updateExpenseSummary() {
+
+    const todayTotal =
+        getTodayExpenseTotal();
+
+
+    const monthTotal =
+        getMonthlyExpenseTotal();
+
+
+    const totalExpense =
+        getTotalExpense();
+
+
+    const todayElement =
+        document.getElementById(
+            "todayExpense"
+        );
+
+
+    const monthElement =
+        document.getElementById(
+            "monthExpense"
+        );
+
+
+    const totalElement =
+        document.getElementById(
+            "totalExpense"
+        );
+
+
+    if (todayElement) {
+
+        todayElement.textContent =
+            formatMoney(
+                todayTotal
+            );
+    }
+
+
+    if (monthElement) {
+
+        monthElement.textContent =
+            formatMoney(
+                monthTotal
+            );
+    }
+
+
+    if (totalElement) {
+
+        totalElement.textContent =
+            formatMoney(
+                totalExpense
+            );
+    }
+
+}
+
+
+/* =========================================================
    CATEGORY SUMMARY
    ========================================================= */
 
@@ -883,7 +1249,8 @@ function getExpenseCategorySummary(
 ) {
 
     const targetMonth =
-        month || getCurrentMonth();
+        month ||
+        getCurrentMonth();
 
 
     return EXPENSE_CATEGORIES.map(
@@ -901,10 +1268,12 @@ function getExpenseCategorySummary(
                                 category.id
                             ) &&
                             String(
-                                expense.date || ""
+                                expense.date ||
+                                ""
                             ).startsWith(
                                 targetMonth
                             );
+
                         }
                     );
 
@@ -988,6 +1357,7 @@ function updateExpenseDashboard() {
 
 
     if (!container) {
+
         return;
     }
 
@@ -1073,6 +1443,24 @@ function openCategoryTransactions(
     categoryId
 ) {
 
+    /*
+       If old category ID is passed,
+       convert it to new category ID.
+    */
+
+    if (
+        LEGACY_CATEGORY_MAP[
+            categoryId
+        ]
+    ) {
+
+        categoryId =
+            LEGACY_CATEGORY_MAP[
+                categoryId
+            ];
+    }
+
+
     const category =
         getCategoryById(
             categoryId
@@ -1080,6 +1468,7 @@ function openCategoryTransactions(
 
 
     if (!category) {
+
         return;
     }
 
@@ -1376,6 +1765,9 @@ function deleteCategoryTransaction(
     );
 
 
+    refreshExpenseUI();
+
+
     /*
        Reopen modal so totals and list
        immediately refresh.
@@ -1384,9 +1776,6 @@ function deleteCategoryTransaction(
     openCategoryTransactions(
         categoryId
     );
-
-
-    refreshExpenseUI();
 }
 
 
@@ -1475,6 +1864,7 @@ function renderExpenseList() {
 
 
     if (!tbody) {
+
         return;
     }
 
@@ -1494,14 +1884,38 @@ function renderExpenseList() {
                 b
             ) => {
 
-                return (
+                const dateDifference =
                     new Date(
-                        b.date || 0
+                        b.date ||
+                        0
                     ) -
                     new Date(
-                        a.date || 0
+                        a.date ||
+                        0
+                    );
+
+
+                if (
+                    dateDifference !==
+                    0
+                ) {
+
+                    return dateDifference;
+                }
+
+
+                return (
+                    String(
+                        b.createdAt ||
+                        ""
+                    ).localeCompare(
+                        String(
+                            a.createdAt ||
+                            ""
+                        )
                     )
                 );
+
             }
         );
 
@@ -1566,55 +1980,76 @@ function renderExpenseList() {
                     ${index + 1}
                 </td>
 
+
                 <td>
                     ${formatDate(
                         expense.date
                     )}
                 </td>
 
+
                 <td>
+
                     ${getCategoryIcon(
                         categoryId
                     )}
+
                     ${escapeHTML(
                         getCategoryName(
                             categoryId
                         )
                     )}
+
                 </td>
 
+
                 <td>
+
                     ${escapeHTML(
                         description
                     )}
+
                 </td>
 
+
                 <td>
+
                     ${formatMoney(
                         expense.amount
                     )}
+
                 </td>
 
+
                 <td>
+
                     ${escapeHTML(
                         expense.paymentMode ||
                         "-"
                     )}
+
                 </td>
 
+
                 <td>
+
                     ${escapeHTML(
                         expense.account ||
                         "-"
                     )}
+
                 </td>
 
+
                 <td>
+
                     ${escapeHTML(
                         expense.note ||
                         "-"
                     )}
+
                 </td>
+
 
                 <td>
 
@@ -1697,6 +2132,8 @@ function deleteExpense(
 
 function refreshExpenseUI() {
 
+    updateExpenseSummary();
+
     renderExpenseList();
 
     updateExpenseDashboard();
@@ -1726,6 +2163,7 @@ function refreshExpenseUI() {
 
         window.updateDashboard();
     }
+
 }
 
 
@@ -1738,6 +2176,7 @@ function formatDate(
 ) {
 
     if (!dateString) {
+
         return "-";
     }
 
@@ -1868,6 +2307,8 @@ document.addEventListener(
 
         initializeExpenseForm();
 
+        updateExpenseSummary();
+
         renderExpenseList();
 
         updateExpenseDashboard();
@@ -1883,47 +2324,86 @@ document.addEventListener(
 window.EXPENSE_CATEGORIES =
     EXPENSE_CATEGORIES;
 
+
+window.LEGACY_CATEGORY_MAP =
+    LEGACY_CATEGORY_MAP;
+
+
 window.getExpenses =
     getExpenses;
+
 
 window.saveExpenses =
     saveExpenses;
 
+
 window.getCategoryById =
     getCategoryById;
+
 
 window.getCategoryName =
     getCategoryName;
 
+
 window.getCategoryIcon =
     getCategoryIcon;
+
+
+window.normalizeExpenseCategory =
+    normalizeExpenseCategory;
+
+
+window.getTodayExpenseTotal =
+    getTodayExpenseTotal;
+
+
+window.getTotalExpense =
+    getTotalExpense;
+
 
 window.getCategoryExpenseTotal =
     getCategoryExpenseTotal;
 
+
 window.getMonthlyExpenseTotal =
     getMonthlyExpenseTotal;
+
 
 window.getExpenseCategorySummary =
     getExpenseCategorySummary;
 
+
 window.getCurrentMonthCategoryTransactions =
     getCurrentMonthCategoryTransactions;
+
 
 window.openCategoryTransactions =
     openCategoryTransactions;
 
+
 window.closeCategoryTransactions =
     closeCategoryTransactions;
+
 
 window.deleteCategoryTransaction =
     deleteCategoryTransaction;
 
+
 window.deleteExpense =
     deleteExpense;
 
+
+window.resetExpenseForm =
+    resetExpenseForm;
+
+
 window.refreshExpenseUI =
     refreshExpenseUI;
+
+
+window.updateExpenseSummary =
+    updateExpenseSummary;
+
 
 window.formatMoney =
     formatMoney;
