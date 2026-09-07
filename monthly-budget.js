@@ -1,451 +1,86 @@
 /* =========================================================
    monthly-budget.js
-
    रोजचा जमा खर्च अहवाल
-   MONTHLY BUDGET MANAGEMENT
 
-   CONNECTED WITH:
-   - app.js
-   - income.js
-   - expense.js
-   - accounts.js
-   - transactions.js
+   MONTHLY BUDGET MANAGEMENT
 
    FEATURES:
    ---------------------------------------------------------
-   ✅ Monthly Planned Money
-   ✅ Category-wise Budget
-   ✅ Actual Expense automatic
+   ✅ Same 15 Categories As Expense
+   ✅ Monthly Budget
+   ✅ Category Budget
+   ✅ Actual Expense Automatic
    ✅ Remaining Budget
-   ✅ Budget Used %
-   ✅ Category-wise progress
-   ✅ Budget alert %
-   ✅ Default categories
-   ✅ Custom category
-   ✅ Edit category budget
-   ✅ Delete custom category
-   ✅ Monthly data separately saved
-   ✅ Previous month data preserved
+   ✅ Used %
+   ✅ Progress
+   ✅ Over Budget
+   ✅ Category Click
+   ✅ Current Month Transactions
    ========================================================= */
 
 
-/* =========================================================
-   STORAGE KEYS
-========================================================= */
-
 const MONTHLY_BUDGET_KEY =
-    "rdkh_monthly_budgets";
-
-const BUDGET_CATEGORY_KEY =
-    "rdkh_budget_categories";
-
+    "monthly_budgets";
 
 
 /* =========================================================
-   DEFAULT CATEGORIES
-========================================================= */
+   STORAGE
+   ========================================================= */
 
-const DEFAULT_BUDGET_CATEGORIES = [
-
-    {
-        id: "daily-grocery",
-        name: "दररोजचा किराणा खर्च",
-        icon: "fa-solid fa-basket-shopping"
-    },
-
-    {
-        id: "monthly-grocery",
-        name: "महिन्याचा किराणा खर्च",
-        icon: "fa-solid fa-cart-shopping"
-    },
-
-    {
-        id: "travel",
-        name: "प्रवास",
-        icon: "fa-solid fa-car"
-    },
-
-    {
-        id: "shopping",
-        name: "खरेदी",
-        icon: "fa-solid fa-bag-shopping"
-    },
-
-    {
-        id: "light-bill",
-        name: "लाईट बिल",
-        icon: "fa-solid fa-lightbulb"
-    },
-
-    {
-        id: "medicine",
-        name: "औषधे",
-        icon: "fa-solid fa-pills"
-    },
-
-    {
-        id: "mobile",
-        name: "मोबाईल",
-        icon: "fa-solid fa-mobile-screen-button"
-    },
-
-    {
-        id: "home-emi",
-        name: "घरचा EMI",
-        icon: "fa-solid fa-house"
-    },
-
-    {
-        id: "home-maintenance",
-        name: "घरचा मेंटेनन्स",
-        icon: "fa-solid fa-screwdriver-wrench"
-    },
-
-    {
-        id: "other-loan",
-        name: "इतर लोन",
-        icon: "fa-solid fa-money-check-dollar"
-    },
-
-    {
-        id: "other",
-        name: "Other",
-        icon: "fa-solid fa-box"
-    }
-
-];
-
-
-
-/* =========================================================
-   INITIALIZE
-========================================================= */
-
-document.addEventListener(
-    "DOMContentLoaded",
-    function () {
-
-        initializeMonthlyBudget();
-
-    }
-);
-
-
-
-/* =========================================================
-   MAIN INITIALIZATION
-========================================================= */
-
-function initializeMonthlyBudget() {
-
-    initializeBudgetCategories();
-
-    setCurrentMonth();
-
-    setupBudgetEvents();
-
-    loadBudgetForSelectedMonth();
-
-}
-
-
-
-/* =========================================================
-   INITIALIZE CATEGORY STORAGE
-========================================================= */
-
-function initializeBudgetCategories() {
-
-    const stored =
-        localStorage.getItem(
-            BUDGET_CATEGORY_KEY
-        );
-
-
-    if (!stored) {
-
-        localStorage.setItem(
-
-            BUDGET_CATEGORY_KEY,
-
-            JSON.stringify(
-                DEFAULT_BUDGET_CATEGORIES
-            )
-
-        );
-
-        return;
-
-    }
-
-
-    /*
-       Existing categories असल्यास
-       नवीन default categories missing
-       असतील तर त्या add करा.
-    */
-
-    let categories = [];
-
+function getMonthlyBudgets() {
 
     try {
 
-        categories =
-            JSON.parse(stored);
-
-    }
-
-    catch {
-
-        categories = [];
-
-    }
-
-
-    if (!Array.isArray(categories)) {
-
-        categories = [];
-
-    }
-
-
-    DEFAULT_BUDGET_CATEGORIES.forEach(
-        defaultCategory => {
-
-            const exists =
-                categories.some(
-                    category =>
-                        category.id ===
-                        defaultCategory.id
-                );
-
-
-            if (!exists) {
-
-                categories.push(
-                    defaultCategory
-                );
-
-            }
-
-        }
-    );
-
-
-    localStorage.setItem(
-
-        BUDGET_CATEGORY_KEY,
-
-        JSON.stringify(
-            categories
-        )
-
-    );
-
-}
-
-
-
-/* =========================================================
-   GET CATEGORIES
-========================================================= */
-
-function getBudgetCategories() {
-
-    try {
-
-        const stored =
+        const raw =
             localStorage.getItem(
-                BUDGET_CATEGORY_KEY
+                MONTHLY_BUDGET_KEY
             );
 
 
-        if (!stored) {
-
-            return [
-                ...DEFAULT_BUDGET_CATEGORIES
-            ];
-
+        if (!raw) {
+            return {};
         }
 
 
-        const categories =
-            JSON.parse(
-                stored
-            );
+        const data =
+            JSON.parse(raw);
 
 
-        return Array.isArray(categories)
-            ? categories
-            : [
-                ...DEFAULT_BUDGET_CATEGORIES
-            ];
+        return (
+            data &&
+            typeof data === "object"
+        )
+            ? data
+            : {};
 
+    } catch (error) {
+
+        console.error(
+            "Budget storage read error:",
+            error
+        );
+
+        return {};
     }
-
-    catch {
-
-        return [
-            ...DEFAULT_BUDGET_CATEGORIES
-        ];
-
-    }
-
 }
 
 
-
-/* =========================================================
-   SAVE CATEGORIES
-========================================================= */
-
-function saveBudgetCategories(
-    categories
+function saveMonthlyBudgets(
+    data
 ) {
 
     localStorage.setItem(
-
-        BUDGET_CATEGORY_KEY,
-
-        JSON.stringify(
-            categories
-        )
-
+        MONTHLY_BUDGET_KEY,
+        JSON.stringify(data)
     );
-
 }
 
 
-
 /* =========================================================
-   SET CURRENT MONTH
-========================================================= */
+   MONTH
+   ========================================================= */
 
-function setCurrentMonth() {
-
-    const monthInput =
-        document.getElementById(
-            "budgetMonth"
-        );
-
-
-    if (!monthInput) {
-
-        return;
-
-    }
-
-
-    /*
-       जर आधी value असेल तर
-       ती बदलू नका.
-    */
-
-    if (monthInput.value) {
-
-        return;
-
-    }
-
-
-    const now =
-        new Date();
-
-
-    const year =
-        now.getFullYear();
-
-
-    const month =
-        String(
-            now.getMonth() + 1
-        ).padStart(
-            2,
-            "0"
-        );
-
-
-    monthInput.value =
-        `${year}-${month}`;
-
-}
-
-
-
-/* =========================================================
-   SETUP EVENTS
-========================================================= */
-
-function setupBudgetEvents() {
-
-    const month =
-        document.getElementById(
-            "budgetMonth"
-        );
-
-
-    const plannedMoney =
-        document.getElementById(
-            "plannedMoney"
-        );
-
-
-    const alertPercent =
-        document.getElementById(
-            "budgetAlertPercent"
-        );
-
-
-    if (month) {
-
-        month.addEventListener(
-            "change",
-            function () {
-
-                loadBudgetForSelectedMonth();
-
-            }
-        );
-
-    }
-
-
-    if (plannedMoney) {
-
-        plannedMoney.addEventListener(
-            "input",
-            function () {
-
-                updateBudgetSummary();
-
-            }
-        );
-
-    }
-
-
-    if (alertPercent) {
-
-        alertPercent.addEventListener(
-            "change",
-            function () {
-
-                updateBudgetSummary();
-
-            }
-        );
-
-    }
-
-}
-
-
-
-/* =========================================================
-   GET SELECTED MONTH
-========================================================= */
-
-function getSelectedBudgetMonth() {
+function getBudgetMonth() {
 
     const input =
         document.getElementById(
@@ -459,262 +94,249 @@ function getSelectedBudgetMonth() {
     ) {
 
         return input.value;
-
     }
 
 
-    const now =
+    return getCurrentMonth();
+}
+
+
+/* =========================================================
+   CURRENT MONTH
+   ========================================================= */
+
+function getCurrentMonth() {
+
+    const today =
         new Date();
 
 
     return (
-
-        now.getFullYear() +
-        "-" +
-        String(
-            now.getMonth() + 1
-        ).padStart(
-            2,
-            "0"
-        )
-
+        `${today.getFullYear()}-${String(
+            today.getMonth() + 1
+        ).padStart(2, "0")}`
     );
-
 }
-
-
-
-/* =========================================================
-   GET ALL MONTHLY BUDGETS
-========================================================= */
-
-function getMonthlyBudgets() {
-
-    try {
-
-        const stored =
-            localStorage.getItem(
-                MONTHLY_BUDGET_KEY
-            );
-
-
-        if (!stored) {
-
-            return {};
-
-        }
-
-
-        const data =
-            JSON.parse(
-                stored
-            );
-
-
-        return (
-            data &&
-            typeof data === "object" &&
-            !Array.isArray(data)
-        )
-            ? data
-            : {};
-
-    }
-
-    catch {
-
-        return {};
-
-    }
-
-}
-
-
-
-/* =========================================================
-   SAVE ALL MONTHLY BUDGETS
-========================================================= */
-
-function saveMonthlyBudgets(
-    budgets
-) {
-
-    localStorage.setItem(
-
-        MONTHLY_BUDGET_KEY,
-
-        JSON.stringify(
-            budgets
-        )
-
-    );
-
-}
-
 
 
 /* =========================================================
    GET MONTH BUDGET
-========================================================= */
+   ========================================================= */
 
-function getMonthBudget(
+function getBudgetForMonth(
     month
 ) {
 
-    const budgets =
+    const allBudgets =
         getMonthlyBudgets();
 
 
-    return budgets[month] || null;
+    if (
+        !allBudgets[month]
+    ) {
 
+        allBudgets[month] = {
+
+            plannedTotal: 0,
+
+            categories: {}
+
+        };
+    }
+
+
+    if (
+        !allBudgets[month].categories
+    ) {
+
+        allBudgets[month].categories =
+            {};
+    }
+
+
+    return allBudgets[month];
 }
 
 
+/* =========================================================
+   FORM INITIALIZATION
+   ========================================================= */
+
+function initializeBudgetForm() {
+
+    const form =
+        document.getElementById(
+            "monthlyBudgetForm"
+        );
+
+
+    if (!form) {
+        return;
+    }
+
+
+    const monthInput =
+        document.getElementById(
+            "budgetMonth"
+        );
+
+
+    if (
+        monthInput &&
+        !monthInput.value
+    ) {
+
+        monthInput.value =
+            getCurrentMonth();
+    }
+
+
+    if (
+        form.dataset.budgetInitialized ===
+        "true"
+    ) {
+
+        return;
+    }
+
+
+    form.dataset.budgetInitialized =
+        "true";
+
+
+    form.addEventListener(
+        "submit",
+        function(event) {
+
+            event.preventDefault();
+
+            saveBudgetData();
+
+        }
+    );
+}
+
 
 /* =========================================================
-   CREATE NEW MONTH BUDGET
-========================================================= */
+   SAVE BUDGET
+   ========================================================= */
 
-function createEmptyMonthBudget(
-    month
-) {
+function saveBudgetData() {
 
-    const categories =
-        getBudgetCategories();
+    const month =
+        getBudgetMonth();
 
 
-    const categoryBudgets = {};
+    const plannedInput =
+        document.getElementById(
+            "plannedTotalBudget"
+        );
 
 
-    categories.forEach(
+    const plannedTotal =
+        Number(
+            plannedInput
+                ? plannedInput.value
+                : 0
+        );
+
+
+    const allBudgets =
+        getMonthlyBudgets();
+
+
+    const current =
+        allBudgets[month] || {
+
+            plannedTotal: 0,
+
+            categories: {}
+
+        };
+
+
+    current.plannedTotal =
+        plannedTotal;
+
+
+    if (
+        !current.categories
+    ) {
+
+        current.categories =
+            {};
+    }
+
+
+    /*
+       Save all 15 categories
+    */
+
+    EXPENSE_CATEGORIES.forEach(
         category => {
 
-            categoryBudgets[
-                category.id
-            ] = 0;
+            const input =
+                document.getElementById(
+                    `budget_${category.id}`
+                );
 
+
+            if (!input) {
+                return;
+            }
+
+
+            current.categories[
+                category.id
+            ] =
+                Number(
+                    input.value || 0
+                );
         }
     );
 
 
-    return {
-
-        month: month,
-
-        plannedMoney: 0,
-
-        alertPercent: 80,
-
-        categories:
-            categoryBudgets,
-
-        createdAt:
-            new Date().toISOString(),
-
-        updatedAt:
-            new Date().toISOString()
-
-    };
-
-}
+    allBudgets[month] =
+        current;
 
 
-
-/* =========================================================
-   LOAD SELECTED MONTH
-========================================================= */
-
-function loadBudgetForSelectedMonth() {
-
-    const month =
-        getSelectedBudgetMonth();
-
-
-    const monthBudget =
-        getMonthBudget(
-            month
-        );
-
-
-    const budget =
-        monthBudget ||
-        createEmptyMonthBudget(
-            month
-        );
-
-
-
-    /* =====================================================
-       PLANNED MONEY
-    ===================================================== */
-
-    const plannedMoney =
-        document.getElementById(
-            "plannedMoney"
-        );
-
-
-    if (plannedMoney) {
-
-        plannedMoney.value =
-            budget.plannedMoney || "";
-
-    }
-
-
-
-    /* =====================================================
-       ALERT %
-    ===================================================== */
-
-    const alertPercent =
-        document.getElementById(
-            "budgetAlertPercent"
-        );
-
-
-    if (alertPercent) {
-
-        alertPercent.value =
-            budget.alertPercent || 80;
-
-    }
-
-
-
-    /* =====================================================
-       RENDER CATEGORIES
-    ===================================================== */
-
-    renderBudgetCategories(
-        budget
+    saveMonthlyBudgets(
+        allBudgets
     );
 
 
-    updateBudgetSummary();
+    alert(
+        "Monthly Budget successfully saved."
+    );
 
+
+    renderMonthlyBudget();
+
+
+    if (
+        typeof window.updateDashboard ===
+        "function"
+    ) {
+
+        window.updateDashboard();
+    }
 }
 
 
-
 /* =========================================================
-   RENDER CATEGORY LIST
-========================================================= */
+   CREATE CATEGORY BUDGET INPUTS
+   ========================================================= */
 
-function renderBudgetCategories(
-    monthBudget
-) {
+function renderBudgetCategoryInputs() {
 
     const container =
         document.getElementById(
-            "budgetCategoriesList"
+            "budgetCategoryInputs"
         );
 
 
     if (!container) {
-
         return;
-
     }
 
 
@@ -722,1789 +344,677 @@ function renderBudgetCategories(
         "";
 
 
-    const categories =
-        getBudgetCategories();
-
-
-    categories.forEach(
+    EXPENSE_CATEGORIES.forEach(
         category => {
 
-            const budgetAmount =
-                Number(
-                    monthBudget.categories?.[
-                        category.id
-                    ]
-                ) || 0;
+            container.innerHTML += `
 
+                <div
+                    class="budget-category-input"
+                    onclick="
+                        openCategoryTransactions(
+                            '${category.id}'
+                        )
+                    "
+                    role="button"
+                    tabindex="0"
+                >
 
-            const actualExpense =
-                getCategoryActualExpense(
+                    <div
+                        class="budget-category-label">
 
-                    category.name,
+                        <span>
 
-                    getSelectedBudgetMonth()
-
-                );
-
-
-            const remaining =
-                budgetAmount -
-                actualExpense;
-
-
-            let percentage =
-                0;
-
-
-            if (
-                budgetAmount > 0
-            ) {
-
-                percentage =
-                    (
-                        actualExpense /
-                        budgetAmount
-                    ) * 100;
-
-            }
-
-
-            const displayPercentage =
-                Math.round(
-                    percentage * 100
-                ) / 100;
-
-
-            const progressWidth =
-                Math.min(
-                    Math.max(
-                        percentage,
-                        0
-                    ),
-                    100
-                );
-
-
-            const isOver =
-                actualExpense >
-                budgetAmount &&
-                budgetAmount > 0;
-
-
-            const card =
-                document.createElement(
-                    "div"
-                );
-
-
-            card.className =
-                "budget-category-card";
-
-
-            card.dataset.categoryId =
-                category.id;
-
-
-            card.innerHTML = `
-
-                <div class="budget-category-top">
-
-
-                    <div class="budget-category-icon">
-
-                        <i class="${escapeBudgetHTML(
-                            category.icon
-                        )}"></i>
-
-                    </div>
-
-
-                    <div class="budget-category-info">
-
-                        <h4>
+                            ${category.icon}
 
                             ${escapeBudgetHTML(
                                 category.name
                             )}
 
-                        </h4>
-
-
-                        <p>
-
-                            Actual:
-                            ${formatBudgetMoney(
-                                actualExpense
-                            )}
-
-                        </p>
-
-                    </div>
-
-
-                    <div class="budget-category-amount">
-
-                        <strong>
-
-                            ${formatBudgetMoney(
-                                budgetAmount
-                            )}
-
-                        </strong>
-
-
-                        <span>
-                            Budget
                         </span>
 
+
+                        <small>
+
+                            ${getFrequencyText(
+                                category.frequency
+                            )}
+
+                        </small>
+
                     </div>
 
-                </div>
-
-
-
-                <div class="budget-progress">
 
                     <div
-                        class="budget-progress-bar"
-                        style="width:${progressWidth}%"
-                    ></div>
-
-                </div>
-
-
-
-                <div class="budget-category-bottom">
-
-
-                    <span
-                        class="${
-                            isOver
-                                ? "over-budget"
-                                : "safe-budget"
-                        }"
+                        class="budget-input-wrapper"
+                        onclick="
+                            event.stopPropagation()
+                        "
                     >
 
-                        ${
-                            isOver
-                                ? "Budget Over: " +
-                                  formatBudgetMoney(
-                                      Math.abs(
-                                          remaining
-                                      )
-                                  )
-                                : "Remaining: " +
-                                  formatBudgetMoney(
-                                      remaining
-                                  )
-                        }
+                        <span>
+                            ₹
+                        </span>
 
-                    </span>
-
-
-                    <span>
-
-                        ${displayPercentage}%
-
-                    </span>
-
-
-                    <span>
-
-                        <button
-                            type="button"
-                            onclick="editCategoryBudget(
-                                '${category.id}'
-                            )"
-                            style="
-                                border:none;
-                                background:none;
-                                color:var(--primary);
-                                cursor:pointer;
-                            "
-                            title="Edit Budget"
+                        <input
+                            type="number"
+                            min="0"
+                            step="1"
+                            id="budget_${category.id}"
+                            placeholder="0"
                         >
 
-                            <i class="fa-solid fa-pen"></i>
-
-                        </button>
-
-
-                        ${
-                            isCustomCategory(
-                                category.id
-                            )
-                                ? `
-                                    <button
-                                        type="button"
-                                        onclick="deleteBudgetCategory(
-                                            '${category.id}'
-                                        )"
-                                        style="
-                                            border:none;
-                                            background:none;
-                                            color:var(--expense);
-                                            cursor:pointer;
-                                        "
-                                        title="Delete Category"
-                                    >
-
-                                        <i class="fa-solid fa-trash"></i>
-
-                                    </button>
-                                  `
-                                : ""
-                        }
-
-                    </span>
-
+                    </div>
 
                 </div>
 
             `;
-
-
-            container.appendChild(
-                card
-            );
-
         }
     );
 
+
+    loadBudgetInputs();
 }
 
 
+/* =========================================================
+   LOAD BUDGET INPUTS
+   ========================================================= */
+
+function loadBudgetInputs() {
+
+    const month =
+        getBudgetMonth();
+
+
+    const budget =
+        getBudgetForMonth(
+            month
+        );
+
+
+    const totalInput =
+        document.getElementById(
+            "plannedTotalBudget"
+        );
+
+
+    if (totalInput) {
+
+        totalInput.value =
+            budget.plannedTotal ||
+            "";
+    }
+
+
+    EXPENSE_CATEGORIES.forEach(
+        category => {
+
+            const input =
+                document.getElementById(
+                    `budget_${category.id}`
+                );
+
+
+            if (!input) {
+                return;
+            }
+
+
+            input.value =
+                budget.categories[
+                    category.id
+                ] || "";
+        }
+    );
+}
+
 
 /* =========================================================
-   GET ACTUAL EXPENSE BY CATEGORY
-========================================================= */
+   FREQUENCY
+   ========================================================= */
 
-function getCategoryActualExpense(
-    categoryName,
+function getFrequencyText(
+    frequency
+) {
+
+    switch (
+        frequency
+    ) {
+
+        case "daily":
+            return "Daily";
+
+        case "monthly":
+            return "Monthly";
+
+        case "yearly":
+            return "Yearly";
+
+        default:
+            return "";
+    }
+}
+
+
+/* =========================================================
+   ACTUAL EXPENSE
+   ========================================================= */
+
+function getActualExpense(
+    categoryId,
     month
 ) {
 
-    const transactions =
-        getAllTransactionsSafe();
-
-
-    let total =
-        0;
-
-
-    transactions.forEach(
-        transaction => {
-
-            if (
-                transaction.type !==
-                "expense"
-            ) {
-
-                return;
-
-            }
-
-
-            const transactionDate =
-                normalizeTransactionDate(
-                    transaction.date
-                );
-
-
-            if (
-                !transactionDate
-                    .startsWith(
-                        month
-                    )
-            ) {
-
-                return;
-
-            }
-
-
-            const transactionCategory =
-                String(
-                    transaction.category ||
-                    ""
-                )
-                    .trim()
-                    .toLowerCase();
-
-
-            const requiredCategory =
-                String(
-                    categoryName ||
-                    ""
-                )
-                    .trim()
-                    .toLowerCase();
-
-
-            if (
-                transactionCategory ===
-                requiredCategory
-            ) {
-
-                total +=
-                    Number(
-                        transaction.amount
-                    ) || 0;
-
-            }
-
-        }
-    );
-
-
-    return total;
-
-}
-
-
-
-/* =========================================================
-   GET ALL TRANSACTIONS SAFELY
-========================================================= */
-
-function getAllTransactionsSafe() {
-
-    /*
-       प्रथम app.js मधील function वापरा.
-    */
-
     if (
-        typeof getTransactions ===
+        typeof window.getCategoryExpenseTotal ===
         "function"
     ) {
 
-        const transactions =
-            getTransactions();
-
-
-        return Array.isArray(
-            transactions
-        )
-            ? transactions
-            : [];
-
+        return window.getCategoryExpenseTotal(
+            categoryId,
+            month
+        );
     }
 
 
-
-    /*
-       Fallback storage keys.
-
-       जर app.js मध्ये वेगळा key असेल
-       तर हा fallback उपयोगी पडेल.
-    */
-
-    const possibleKeys = [
-
-        "rdkh_transactions",
-
-        "rdkh_transaction",
-
-        "transactions",
-
-        "income_expense_transactions"
-
-    ];
+    return 0;
+}
 
 
-    for (
-        const key of possibleKeys
-    ) {
+/* =========================================================
+   CATEGORY BUDGET TRACKING
+   ========================================================= */
 
-        try {
+function getBudgetTracking(
+    month
+) {
 
-            const stored =
-                localStorage.getItem(
-                    key
+    const budget =
+        getBudgetForMonth(
+            month
+        );
+
+
+    return EXPENSE_CATEGORIES.map(
+        category => {
+
+            const planned =
+                Number(
+                    budget.categories[
+                        category.id
+                    ] || 0
                 );
 
 
-            if (!stored) {
-
-                continue;
-
-            }
-
-
-            const parsed =
-                JSON.parse(
-                    stored
+            const actual =
+                getActualExpense(
+                    category.id,
+                    month
                 );
+
+
+            const remaining =
+                planned -
+                actual;
+
+
+            let usedPercent =
+                0;
 
 
             if (
-                Array.isArray(
-                    parsed
-                )
+                planned > 0
             ) {
 
-                return parsed;
-
+                usedPercent =
+                    (
+                        actual /
+                        planned
+                    ) *
+                    100;
             }
 
+
+            return {
+
+                id:
+                    category.id,
+
+                name:
+                    category.name,
+
+                icon:
+                    category.icon,
+
+                frequency:
+                    category.frequency,
+
+                planned:
+                    planned,
+
+                actual:
+                    actual,
+
+                remaining:
+                    remaining,
+
+                usedPercent:
+                    Math.round(
+                        usedPercent *
+                        100
+                    ) / 100,
+
+                overBudget:
+                    (
+                        planned > 0 &&
+                        actual > planned
+                    )
+
+            };
         }
-
-        catch {
-
-            continue;
-
-        }
-
-    }
-
-
-    return [];
-
+    );
 }
 
 
-
 /* =========================================================
-   NORMALIZE DATE
-========================================================= */
+   RENDER BUDGET TRACKING
+   ========================================================= */
 
-function normalizeTransactionDate(
-    date
-) {
+function renderMonthlyBudget() {
 
-    if (!date) {
-
-        return "";
-
-    }
-
-
-    /*
-       YYYY-MM-DD
-    */
-
-    if (
-        /^\d{4}-\d{2}-\d{2}$/
-            .test(
-                String(date)
-            )
-    ) {
-
-        return String(date);
-
-    }
-
-
-    /*
-       Date object / ISO date
-    */
-
-    const parsed =
-        new Date(
-            date
+    const container =
+        document.getElementById(
+            "budgetTracking"
         );
 
 
-    if (
-        isNaN(
-            parsed.getTime()
-        )
-    ) {
-
-        return "";
-
+    if (!container) {
+        return;
     }
 
-
-    return (
-
-        parsed.getFullYear() +
-        "-" +
-        String(
-            parsed.getMonth() + 1
-        ).padStart(
-            2,
-            "0"
-        ) +
-        "-" +
-        String(
-            parsed.getDate()
-        ).padStart(
-            2,
-            "0"
-        )
-
-    );
-
-}
-
-
-
-/* =========================================================
-   UPDATE OVERALL BUDGET SUMMARY
-========================================================= */
-
-function updateBudgetSummary() {
 
     const month =
-        getSelectedBudgetMonth();
+        getBudgetMonth();
 
 
-    const budgets =
-        getMonthlyBudgets();
-
-
-    const monthBudget =
-        budgets[month] ||
-        createEmptyMonthBudget(
+    const tracking =
+        getBudgetTracking(
             month
         );
 
 
-    /*
-       Planned Money
-    */
-
-    const plannedMoneyInput =
-        document.getElementById(
-            "plannedMoney"
-        );
+    container.innerHTML =
+        "";
 
 
-    const plannedMoney =
-        Number(
-            plannedMoneyInput?.value
-        ) || 0;
+    tracking.forEach(
+        item => {
+
+            const progress =
+                item.planned > 0
+                    ? Math.min(
+                        item.usedPercent,
+                        100
+                    )
+                    : 0;
 
 
-
-    /*
-       Total Category Budget
-    */
-
-    let totalBudget =
-        0;
+            let statusClass =
+                "budget-normal";
 
 
-    const categories =
-        getBudgetCategories();
+            if (
+                item.overBudget
+            ) {
+
+                statusClass =
+                    "budget-over";
+
+            } else if (
+                item.usedPercent >= 80
+            ) {
+
+                statusClass =
+                    "budget-warning";
+            }
 
 
-    categories.forEach(
-        category => {
+            const remainingText =
+                item.planned === 0
 
-            totalBudget +=
+                    ? "Budget set केलेले नाही"
 
-                Number(
-                    monthBudget.categories?.[
-                        category.id
-                    ]
-                ) || 0;
+                    : item.remaining >= 0
 
+                        ? `${formatBudgetMoney(
+                            item.remaining
+                        )} बाकी`
+
+                        : `${formatBudgetMoney(
+                            Math.abs(
+                                item.remaining
+                            )
+                        )} जास्त`;
+
+
+            container.innerHTML += `
+
+                <div
+                    class="
+                        budget-tracking-card
+                        ${statusClass}
+                    "
+                    onclick="
+                        openCategoryTransactions(
+                            '${item.id}'
+                        )
+                    "
+                    role="button"
+                    tabindex="0"
+                >
+
+                    <div
+                        class="budget-card-header">
+
+                        <div
+                            class="budget-title">
+
+                            <span
+                                class="budget-icon">
+
+                                ${item.icon}
+
+                            </span>
+
+
+                            <span>
+
+                                ${escapeBudgetHTML(
+                                    item.name
+                                )}
+
+                            </span>
+
+                        </div>
+
+
+                        <div
+                            class="budget-percent">
+
+                            ${Math.round(
+                                item.usedPercent
+                            )}%
+
+                        </div>
+
+                    </div>
+
+
+                    <div
+                        class="budget-values">
+
+                        <div>
+
+                            <small>
+                                Budget
+                            </small>
+
+                            <strong>
+
+                                ${formatBudgetMoney(
+                                    item.planned
+                                )}
+
+                            </strong>
+
+                        </div>
+
+
+                        <div>
+
+                            <small>
+                                Actual
+                            </small>
+
+                            <strong>
+
+                                ${formatBudgetMoney(
+                                    item.actual
+                                )}
+
+                            </strong>
+
+                        </div>
+
+
+                        <div>
+
+                            <small>
+                                Status
+                            </small>
+
+                            <strong>
+
+                                ${remainingText}
+
+                            </strong>
+
+                        </div>
+
+                    </div>
+
+
+                    <div
+                        class="budget-progress">
+
+                        <div
+                            class="budget-progress-bar"
+                            style="
+                                width:${progress}%;
+                            "
+                        ></div>
+
+                    </div>
+
+
+                    <div
+                        class="budget-click-hint">
+
+                        👆 Category वर click करून
+                        transactions पहा
+
+                    </div>
+
+                </div>
+
+            `;
         }
     );
 
 
+    updateBudgetTotals(
+        month,
+        tracking
+    );
+}
 
-    /*
-       Actual expense for selected month
-    */
 
-    const actualExpense =
-        getMonthlyActualExpense(
+/* =========================================================
+   TOTALS
+   ========================================================= */
+
+function updateBudgetTotals(
+    month,
+    tracking
+) {
+
+    const budget =
+        getBudgetForMonth(
             month
         );
 
 
-    /*
-       Remaining
-    */
+    const planned =
+        Number(
+            budget.plannedTotal ||
+            0
+        );
+
+
+    const actual =
+        tracking.reduce(
+            (
+                total,
+                item
+            ) => {
+
+                return (
+                    total +
+                    item.actual
+                );
+
+            },
+            0
+        );
+
 
     const remaining =
-        totalBudget -
-        actualExpense;
+        planned -
+        actual;
 
 
-    /*
-       Used %
-    */
-
-    let usedPercent =
-        0;
+    const plannedElement =
+        document.getElementById(
+            "budgetPlannedTotal"
+        );
 
 
-    if (
-        totalBudget > 0
-    ) {
+    const actualElement =
+        document.getElementById(
+            "budgetActualTotal"
+        );
 
-        usedPercent =
-            (
-                actualExpense /
-                totalBudget
-            ) * 100;
-
-    }
-
-
-    usedPercent =
-        Math.round(
-            usedPercent * 100
-        ) / 100;
-
-
-
-    /*
-       Update HTML
-    */
-
-    setText(
-        "totalBudget",
-        formatBudgetMoney(
-            totalBudget
-        )
-    );
-
-
-    setText(
-        "totalActualExpense",
-        formatBudgetMoney(
-            actualExpense
-        )
-    );
-
-
-    setText(
-        "remainingBudget",
-        formatBudgetMoney(
-            remaining
-        )
-    );
-
-
-    setText(
-        "budgetUsedPercent",
-        usedPercent + "%"
-    );
-
-
-
-    /*
-       Remaining color
-    */
 
     const remainingElement =
         document.getElementById(
-            "remainingBudget"
+            "budgetRemainingTotal"
         );
+
+
+    if (plannedElement) {
+
+        plannedElement.textContent =
+            formatBudgetMoney(
+                planned
+            );
+    }
+
+
+    if (actualElement) {
+
+        actualElement.textContent =
+            formatBudgetMoney(
+                actual
+            );
+    }
 
 
     if (remainingElement) {
 
-        remainingElement.classList.remove(
-            "remaining-text"
-        );
+        remainingElement.textContent =
+            formatBudgetMoney(
+                remaining
+            );
 
 
-        if (
+        remainingElement.classList.toggle(
+            "negative-budget",
             remaining < 0
-        ) {
-
-            remainingElement.style.color =
-                "var(--expense)";
-
-        }
-
-        else {
-
-            remainingElement.style.color =
-                "var(--income)";
-
-        }
-
-    }
-
-
-
-    /*
-       Status message
-    */
-
-    updateBudgetStatus(
-        totalBudget,
-        actualExpense,
-        usedPercent
-    );
-
-
-
-    /*
-       Re-render category cards
-       so actual values remain live.
-    */
-
-    const existingCategoryCards =
-        document.querySelector(
-            ".budget-category-card"
         );
-
-
-    if (
-        existingCategoryCards
-    ) {
-
-        renderBudgetCategories(
-            monthBudget
-        );
-
     }
-
 }
 
 
-
 /* =========================================================
-   MONTHLY ACTUAL EXPENSE
-========================================================= */
+   MONTH CHANGE
+   ========================================================= */
 
-function getMonthlyActualExpense(
-    month
-) {
+function initializeBudgetMonthChange() {
 
-    const transactions =
-        getAllTransactionsSafe();
-
-
-    let total =
-        0;
+    const monthInput =
+        document.getElementById(
+            "budgetMonth"
+        );
 
 
-    transactions.forEach(
-        transaction => {
-
-            if (
-                transaction.type !==
-                "expense"
-            ) {
-
-                return;
-
-            }
+    if (!monthInput) {
+        return;
+    }
 
 
-            const date =
-                normalizeTransactionDate(
-                    transaction.date
-                );
+    if (
+        monthInput.dataset
+            .budgetChangeInitialized ===
+        "true"
+    ) {
+
+        return;
+    }
 
 
-            if (
-                date.startsWith(
-                    month
-                )
-            ) {
+    monthInput.dataset
+        .budgetChangeInitialized =
+        "true";
 
-                total +=
-                    Number(
-                        transaction.amount
-                    ) || 0;
 
-            }
+    monthInput.addEventListener(
+        "change",
+        function() {
+
+            renderBudgetCategoryInputs();
+
+            renderMonthlyBudget();
 
         }
     );
-
-
-    return total;
-
 }
 
 
-
 /* =========================================================
-   BUDGET STATUS
-========================================================= */
+   REFRESH
+   ========================================================= */
 
-function updateBudgetStatus(
-    totalBudget,
-    actualExpense,
-    usedPercent
-) {
+function refreshMonthlyBudget() {
 
-    const element =
-        document.getElementById(
-            "budgetStatusMessage"
-        );
+    renderBudgetCategoryInputs();
 
-
-    if (!element) {
-
-        return;
-
-    }
-
-
-    const alertPercent =
-        Number(
-            document.getElementById(
-                "budgetAlertPercent"
-            )?.value
-        ) || 80;
-
-
-    element.style.display =
-        "block";
-
-
-    element.className =
-        "budget-status-message";
-
-
-
-    /*
-       No budget
-    */
-
-    if (
-        totalBudget <= 0
-    ) {
-
-        element.classList.add(
-            "warning"
-        );
-
-
-        element.innerHTML = `
-
-            <i class="fa-solid fa-circle-info"></i>
-
-            या महिन्यासाठी अजून Budget सेट केलेले नाही.
-
-        `;
-
-
-        return;
-
-    }
-
-
-
-    /*
-       Over budget
-    */
-
-    if (
-        actualExpense >
-        totalBudget
-    ) {
-
-        element.classList.add(
-            "danger"
-        );
-
-
-        element.innerHTML = `
-
-            <i class="fa-solid fa-triangle-exclamation"></i>
-
-            Budget पेक्षा
-            ${formatBudgetMoney(
-                actualExpense -
-                totalBudget
-            )}
-            जास्त खर्च झाला आहे.
-
-        `;
-
-
-        return;
-
-    }
-
-
-
-    /*
-       Alert reached
-    */
-
-    if (
-        usedPercent >=
-        alertPercent
-    ) {
-
-        element.classList.add(
-            "warning"
-        );
-
-
-        element.innerHTML = `
-
-            <i class="fa-solid fa-bell"></i>
-
-            Budget चा
-            ${usedPercent}%
-            वापर झाला आहे.
-
-            Alert limit:
-            ${alertPercent}%
-
-        `;
-
-
-        return;
-
-    }
-
-
-
-    /*
-       Safe
-    */
-
-    element.classList.add(
-        "success"
-    );
-
-
-    element.innerHTML = `
-
-        <i class="fa-solid fa-circle-check"></i>
-
-        Budget स्थिती सुरक्षित आहे.
-        ${usedPercent}% वापर झाला आहे.
-
-    `;
-
+    renderMonthlyBudget();
 }
 
 
-
 /* =========================================================
-   SAVE MONTHLY BUDGET
-========================================================= */
-
-function saveMonthlyBudget() {
-
-    const month =
-        getSelectedBudgetMonth();
-
-
-    const plannedMoney =
-        Number(
-            document.getElementById(
-                "plannedMoney"
-            )?.value
-        ) || 0;
-
-
-    const alertPercent =
-        Number(
-            document.getElementById(
-                "budgetAlertPercent"
-            )?.value
-        ) || 80;
-
-
-
-    if (
-        plannedMoney < 0
-    ) {
-
-        alert(
-            "Planned Money योग्य भरा."
-        );
-
-        return;
-
-    }
-
-
-
-    const budgets =
-        getMonthlyBudgets();
-
-
-    let budget =
-        budgets[month];
-
-
-    if (!budget) {
-
-        budget =
-            createEmptyMonthBudget(
-                month
-            );
-
-    }
-
-
-
-    budget.plannedMoney =
-        plannedMoney;
-
-
-    budget.alertPercent =
-        alertPercent;
-
-
-    /*
-       Category budgets
-       DOM मधून वाचणे.
-    */
-
-    const categoryCards =
-        document.querySelectorAll(
-            ".budget-category-card"
-        );
-
-
-    categoryCards.forEach(
-        card => {
-
-            const categoryId =
-                card.dataset.categoryId;
-
-
-            const amount =
-                getCategoryBudgetInputValue(
-                    categoryId
-                );
-
-
-            if (
-                !budget.categories
-            ) {
-
-                budget.categories = {};
-
-            }
-
-
-            budget.categories[
-                categoryId
-            ] =
-                amount;
-
-        }
-    );
-
-
-    budget.updatedAt =
-        new Date().toISOString();
-
-
-    budgets[month] =
-        budget;
-
-
-    saveMonthlyBudgets(
-        budgets
-    );
-
-
-
-    /*
-       Update screen
-    */
-
-    loadBudgetForSelectedMonth();
-
-
-    showBudgetSavedMessage();
-
-}
-
-
-
-/* =========================================================
-   GET CATEGORY BUDGET VALUE
-========================================================= */
-
-function getCategoryBudgetInputValue(
-    categoryId
-) {
-
-    /*
-       जर card मध्ये input उपलब्ध असेल
-       तर त्याची value घ्या.
-    */
-
-    const input =
-        document.querySelector(
-
-            `.budget-category-card[data-category-id="${cssEscape(
-                categoryId
-            )}"] .category-budget-input`
-
-        );
-
-
-    if (input) {
-
-        return Number(
-            input.value
-        ) || 0;
-
-    }
-
-
-
-    /*
-       Existing stored value
-    */
-
-    const month =
-        getSelectedBudgetMonth();
-
-
-    const budget =
-        getMonthBudget(
-            month
-        );
-
-
-    return Number(
-        budget?.categories?.[
-            categoryId
-        ]
-    ) || 0;
-
-}
-
-
-
-/* =========================================================
-   EDIT CATEGORY BUDGET
-========================================================= */
-
-function editCategoryBudget(
-    categoryId
-) {
-
-    const categories =
-        getBudgetCategories();
-
-
-    const category =
-        categories.find(
-            item =>
-                item.id ===
-                categoryId
-        );
-
-
-    if (!category) {
-
-        return;
-
-    }
-
-
-    const month =
-        getSelectedBudgetMonth();
-
-
-    const budget =
-        getMonthBudget(
-            month
-        ) ||
-        createEmptyMonthBudget(
-            month
-        );
-
-
-    const currentAmount =
-        Number(
-            budget.categories?.[
-                categoryId
-            ]
-        ) || 0;
-
-
-    const value =
-        prompt(
-
-            `${category.name}\n\n` +
-            "या Category साठी Monthly Budget रक्कम भरा:",
-
-            currentAmount
-
-        );
-
-
-    if (
-        value === null
-    ) {
-
-        return;
-
-    }
-
-
-    const amount =
-        Number(
-            value
-        );
-
-
-    if (
-        isNaN(amount) ||
-        amount < 0
-    ) {
-
-        alert(
-            "कृपया योग्य रक्कम भरा."
-        );
-
-        return;
-
-    }
-
-
-    const budgets =
-        getMonthlyBudgets();
-
-
-    if (
-        !budgets[month]
-    ) {
-
-        budgets[month] =
-            budget;
-
-    }
-
-
-    if (
-        !budgets[month].categories
-    ) {
-
-        budgets[month].categories =
-            {};
-
-    }
-
-
-    budgets[month].categories[
-        categoryId
-    ] =
-        amount;
-
-
-    budgets[month].updatedAt =
-        new Date().toISOString();
-
-
-    saveMonthlyBudgets(
-        budgets
-    );
-
-
-    loadBudgetForSelectedMonth();
-
-}
-
-
-
-/* =========================================================
-   OPEN CATEGORY FORM
-========================================================= */
-
-function openCategoryForm() {
-
-    const card =
-        document.getElementById(
-            "categoryFormCard"
-        );
-
-
-    if (!card) {
-
-        return;
-
-    }
-
-
-    card.style.display =
-        "block";
-
-
-    document.getElementById(
-        "newCategoryName"
-    )?.focus();
-
-}
-
-
-
-/* =========================================================
-   CLOSE CATEGORY FORM
-========================================================= */
-
-function closeCategoryForm() {
-
-    const card =
-        document.getElementById(
-            "categoryFormCard"
-        );
-
-
-    if (card) {
-
-        card.style.display =
-            "none";
-
-    }
-
-
-    const name =
-        document.getElementById(
-            "newCategoryName"
-        );
-
-
-    if (name) {
-
-        name.value =
-            "";
-
-    }
-
-}
-
-
-
-/* =========================================================
-   SAVE NEW CATEGORY
-========================================================= */
-
-function saveNewCategory() {
-
-    const nameInput =
-        document.getElementById(
-            "newCategoryName"
-        );
-
-
-    const iconInput =
-        document.getElementById(
-            "newCategoryIcon"
-        );
-
-
-    const name =
-        nameInput?.value
-            .trim();
-
-
-    const icon =
-        iconInput?.value ||
-        "fa-solid fa-tag";
-
-
-    if (!name) {
-
-        alert(
-            "कृपया Category Name भरा."
-        );
-
-        return;
-
-    }
-
-
-    const categories =
-        getBudgetCategories();
-
-
-    const exists =
-        categories.some(
-            category =>
-                category.name
-                    .toLowerCase() ===
-                name.toLowerCase()
-        );
-
-
-    if (exists) {
-
-        alert(
-            "ही Category आधीपासून आहे."
-        );
-
-        return;
-
-    }
-
-
-    const newCategory = {
-
-        id:
-            "custom-" +
-            Date.now(),
-
-        name:
-            name,
-
-        icon:
-            icon,
-
-        custom:
-            true,
-
-        createdAt:
-            new Date().toISOString()
-
-    };
-
-
-    categories.push(
-        newCategory
-    );
-
-
-    saveBudgetCategories(
-        categories
-    );
-
-
-
-    /*
-       Current month budget मध्ये
-       नवीन category = 0
-    */
-
-    const month =
-        getSelectedBudgetMonth();
-
-
-    const budgets =
-        getMonthlyBudgets();
-
-
-    if (
-        !budgets[month]
-    ) {
-
-        budgets[month] =
-            createEmptyMonthBudget(
-                month
-            );
-
-    }
-
-
-    if (
-        !budgets[month].categories
-    ) {
-
-        budgets[month].categories =
-            {};
-
-    }
-
-
-    budgets[month].categories[
-        newCategory.id
-    ] =
-        0;
-
-
-    budgets[month].updatedAt =
-        new Date().toISOString();
-
-
-    saveMonthlyBudgets(
-        budgets
-    );
-
-
-    closeCategoryForm();
-
-    loadBudgetForSelectedMonth();
-
-
-    alert(
-        "नवीन Category successfully add झाली."
-    );
-
-}
-
-
-
-/* =========================================================
-   DELETE CUSTOM CATEGORY
-========================================================= */
-
-function deleteBudgetCategory(
-    categoryId
-) {
-
-    if (
-        !isCustomCategory(
-            categoryId
-        )
-    ) {
-
-        alert(
-            "Default Category delete करता येणार नाही."
-        );
-
-        return;
-
-    }
-
-
-    const categories =
-        getBudgetCategories();
-
-
-    const category =
-        categories.find(
-            item =>
-                item.id ===
-                categoryId
-        );
-
-
-    if (!category) {
-
-        return;
-
-    }
-
-
-    const confirmDelete =
-        confirm(
-
-            `"${category.name}" Category delete करायची आहे का?\n\n` +
-
-            "टीप: आधीचे Expense transactions delete होणार नाहीत."
-
-        );
-
-
-    if (!confirmDelete) {
-
-        return;
-
-    }
-
-
-    const updatedCategories =
-        categories.filter(
-            item =>
-                item.id !==
-                categoryId
-        );
-
-
-    saveBudgetCategories(
-        updatedCategories
-    );
-
-
-
-    /*
-       Existing monthly budgets मधून
-       category remove करा.
-    */
-
-    const budgets =
-        getMonthlyBudgets();
-
-
-    Object.keys(
-        budgets
-    ).forEach(
-        month => {
-
-            if (
-                budgets[month].categories
-            ) {
-
-                delete budgets[
-                    month
-                ].categories[
-                    categoryId
-                ];
-
-            }
-
-        }
-    );
-
-
-    saveMonthlyBudgets(
-        budgets
-    );
-
-
-    loadBudgetForSelectedMonth();
-
-
-    alert(
-        "Category delete केली आहे."
-    );
-
-}
-
-
-
-/* =========================================================
-   IS CUSTOM CATEGORY
-========================================================= */
-
-function isCustomCategory(
-    categoryId
-) {
-
-    const categories =
-        getBudgetCategories();
-
-
-    const category =
-        categories.find(
-            item =>
-                item.id ===
-                categoryId
-        );
-
-
-    return Boolean(
-        category?.custom
-    );
-
-}
-
-
-
-/* =========================================================
-   SHOW SAVED MESSAGE
-========================================================= */
-
-function showBudgetSavedMessage() {
-
-    const element =
-        document.getElementById(
-            "budgetStatusMessage"
-        );
-
-
-    if (!element) {
-
-        return;
-
-    }
-
-
-    element.style.display =
-        "block";
-
-
-    element.className =
-        "budget-status-message success";
-
-
-    element.innerHTML = `
-
-        <i class="fa-solid fa-circle-check"></i>
-
-        Monthly Budget successfully save झाले.
-
-    `;
-
-
-    setTimeout(
-        function () {
-
-            updateBudgetSummary();
-
-        },
-        1800
-    );
-
-}
-
-
-
-/* =========================================================
-   FORMAT MONEY
-========================================================= */
+   MONEY
+   ========================================================= */
 
 function formatBudgetMoney(
     amount
 ) {
 
-    const value =
-        Number(
-            amount
-        ) || 0;
-
-
-    /*
-       जर app.js मध्ये formatMoney()
-       असेल तर ते वापरा.
-    */
-
-    if (
-        typeof formatMoney ===
-        "function"
-    ) {
-
-        return formatMoney(
-            value
-        );
-
-    }
-
-
     return (
-
         "₹" +
-
-        value.toLocaleString(
-            "en-IN",
-            {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2
-            }
+        Number(
+            amount || 0
+        ).toLocaleString(
+            "en-IN"
         )
-
     );
-
 }
 
 
-
 /* =========================================================
-   SET TEXT
-========================================================= */
-
-function setText(
-    id,
-    value
-) {
-
-    const element =
-        document.getElementById(
-            id
-        );
-
-
-    if (element) {
-
-        element.textContent =
-            value;
-
-    }
-
-}
-
-
-
-/* =========================================================
-   ESCAPE HTML
-========================================================= */
+   HTML ESCAPE
+   ========================================================= */
 
 function escapeBudgetHTML(
     value
@@ -2513,196 +1023,67 @@ function escapeBudgetHTML(
     return String(
         value ?? ""
     )
-
         .replace(
             /&/g,
             "&amp;"
         )
-
         .replace(
             /</g,
             "&lt;"
         )
-
         .replace(
             />/g,
             "&gt;"
         )
-
         .replace(
             /"/g,
             "&quot;"
         )
-
         .replace(
             /'/g,
             "&#039;"
         );
-
 }
-
 
 
 /* =========================================================
-   CSS ESCAPE
-========================================================= */
+   INITIALIZE
+   ========================================================= */
 
-function cssEscape(
-    value
-) {
+document.addEventListener(
+    "DOMContentLoaded",
+    function() {
 
-    /*
-       Modern browser मध्ये CSS.escape
-       available असेल तर वापरा.
-    */
+        initializeBudgetForm();
 
-    if (
-        typeof CSS !==
-        "undefined" &&
-        typeof CSS.escape ===
-        "function"
-    ) {
+        initializeBudgetMonthChange();
 
-        return CSS.escape(
-            value
-        );
+        renderBudgetCategoryInputs();
 
-    }
-
-
-    return String(
-        value
-    ).replace(
-        /[^a-zA-Z0-9_-]/g,
-        "\\$&"
-    );
-
-}
-
-
-
-/* =========================================================
-   NAVIGATION
-========================================================= */
-
-function goHome() {
-
-    window.location.href =
-        "index.html";
-
-}
-
-
-function goToTransactions() {
-
-    window.location.href =
-        "transactions.html";
-
-}
-
-
-function goToIncome() {
-
-    window.location.href =
-        "income.html";
-
-}
-
-
-function goToExpense() {
-
-    window.location.href =
-        "expense.html";
-
-}
-
-
-function goToReports() {
-
-    window.location.href =
-        "reports.html";
-
-}
-
-
-function goToSettings() {
-
-    window.location.href =
-        "settings.html";
-
-}
-
-
-
-/* =========================================================
-   QUICK ADD
-========================================================= */
-
-function openQuickAdd() {
-
-    const menu =
-        document.getElementById(
-            "quickAddMenu"
-        );
-
-
-    if (!menu) {
-
-        return;
-
-    }
-
-
-    if (
-        menu.style.display ===
-        "none" ||
-        !menu.style.display
-    ) {
-
-        menu.style.display =
-            "block";
-
-    }
-
-    else {
-
-        menu.style.display =
-            "none";
-
-    }
-
-}
-
-
-
-/* =========================================================
-   STORAGE CHANGE
-========================================================= */
-
-window.addEventListener(
-    "storage",
-    function () {
-
-        loadBudgetForSelectedMonth();
+        renderMonthlyBudget();
 
     }
 );
 
 
-
 /* =========================================================
-   CUSTOM EVENT SUPPORT
+   GLOBAL
+   ========================================================= */
 
-   Income / Expense save झाल्यानंतर
-   same page मध्ये event dispatch केला
-   तर Budget लगेच refresh होईल.
-========================================================= */
+window.getMonthlyBudgets =
+    getMonthlyBudgets;
 
-window.addEventListener(
-    "rdkhTransactionsUpdated",
-    function () {
+window.getBudgetForMonth =
+    getBudgetForMonth;
 
-        loadBudgetForSelectedMonth();
+window.getBudgetTracking =
+    getBudgetTracking;
 
-    }
-);
+window.refreshMonthlyBudget =
+    refreshMonthlyBudget;
+
+window.renderMonthlyBudget =
+    renderMonthlyBudget;
+
+window.saveBudgetData =
+    saveBudgetData;
