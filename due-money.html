@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="mr">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <meta name="theme-color"
+          content="#5b0b18">
+
+    <meta name="description"
+          content="घेतलेली रक्कम आणि देणे बाकी - Daily Expenses Tracker">
+
+    <title>घेतलेली रक्कम | रोजचा जमा खर्च अहवाल</title>
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+    <!-- Main CSS -->
+    <link rel="stylesheet"
+          href="style.css">
+
+    <!-- Page CSS -->
+    <link rel="stylesheet"
+          href="due-money.css">
+
+</head>
+
+<body>
+
+    <!-- =========================
+         HEADER
+    ========================== -->
+    <div id="header-container"></div>
+
+
+    <!-- =========================
+         MAIN CONTENT
+    ========================== -->
+    <main class="due-money-page">
+
+        <!-- Page Heading -->
+        <section class="page-title">
+
+            <div class="title-icon">
+                <i class="fa-solid fa-hand-holding-dollar"></i>
+            </div>
+
+            <div>
+                <h1>घेतलेली रक्कम</h1>
+                <p>घेतलेली रक्कम आणि देणे बाकी</p>
+            </div>
+
+        </section>
+
+
+        <!-- =========================
+             SUMMARY CARDS
+        ========================== -->
+        <section class="summary-grid">
+
+            <div class="summary-card">
+
+                <div class="summary-icon">
+                    <i class="fa-solid fa-money-bill-transfer"></i>
+                </div>
+
+                <div>
+                    <span>एकूण घेतलेली</span>
+                    <strong id="totalTaken">₹0</strong>
+                </div>
+
+            </div>
+
+
+            <div class="summary-card">
+
+                <div class="summary-icon">
+                    <i class="fa-solid fa-hand-holding-dollar"></i>
+                </div>
+
+                <div>
+                    <span>एकूण परतफेड</span>
+                    <strong id="totalRepaid">₹0</strong>
+                </div>
+
+            </div>
+
+
+            <div class="summary-card">
+
+                <div class="summary-icon">
+                    <i class="fa-solid fa-clock"></i>
+                </div>
+
+                <div>
+                    <span>देणे बाकी</span>
+                    <strong id="totalDue">₹0</strong>
+                </div>
+
+            </div>
+
+
+            <div class="summary-card">
+
+                <div class="summary-icon">
+                    <i class="fa-solid fa-list"></i>
+                </div>
+
+                <div>
+                    <span>बाकी व्यवहार</span>
+                    <strong id="pendingCount">0</strong>
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- =========================
+             ADD NEW MONEY
+        ========================== -->
+        <section class="form-card">
+
+            <div class="section-heading">
+
+                <div>
+                    <h2>
+                        <i class="fa-solid fa-plus-circle"></i>
+                        नवीन रक्कम नोंदवा
+                    </h2>
+
+                    <p>घेतलेल्या रकमेची माहिती भरा</p>
+                </div>
+
+            </div>
+
+
+            <form id="moneyForm">
+
+                <div class="form-grid">
+
+                    <!-- Date -->
+                    <div class="form-group">
+
+                        <label for="takenDate">
+                            <i class="fa-regular fa-calendar"></i>
+                            घेतल्याची तारीख
+                        </label>
+
+                        <input
+                            type="date"
+                            id="takenDate"
+                            required
+                        >
+
+                    </div>
+
+
+                    <!-- Person -->
+                    <div class="form-group">
+
+                        <label for="personName">
+                            <i class="fa-solid fa-user"></i>
+                            व्यक्तीचे नाव
+                        </label>
+
+                        <input
+                            type="text"
+                            id="personName"
+                            placeholder="व्यक्तीचे नाव"
+                            required
+                        >
+
+                    </div>
+
+
+                    <!-- Amount -->
+                    <div class="form-group">
+
+                        <label for="takenAmount">
+                            <i class="fa-solid fa-indian-rupee-sign"></i>
+                            घेतलेली रक्कम
+                        </label>
+
+                        <input
+                            type="number"
+                            id="takenAmount"
+                            min="1"
+                            step="0.01"
+                            placeholder="₹ 0"
+                            required
+                        >
+
+                    </div>
+
+
+                    <!-- Remark -->
+                    <div class="form-group full-width">
+
+                        <label for="takenRemark">
+                            <i class="fa-solid fa-note-sticky"></i>
+                            कारण / Remark
+                        </label>
+
+                        <textarea
+                            id="takenRemark"
+                            rows="2"
+                            placeholder="रक्कम कशासाठी घेतली..."
+                        ></textarea>
+
+                    </div>
+
+                </div>
+
+
+                <div class="form-actions">
+
+                    <button
+                        type="submit"
+                        class="btn-primary">
+
+                        <i class="fa-solid fa-save"></i>
+                        रक्कम सेव्ह करा
+
+                    </button>
+
+                    <button
+                        type="reset"
+                        class="btn-secondary">
+
+                        <i class="fa-solid fa-rotate-left"></i>
+                        Clear
+
+                    </button>
+
+                </div>
+
+            </form>
+
+        </section>
+
+
+        <!-- =========================
+             SEARCH / FILTER
+        ========================== -->
+        <section class="filter-card">
+
+            <div class="filter-group">
+
+                <label for="searchPerson">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    नाव शोधा
+                </label>
+
+                <input
+                    type="search"
+                    id="searchPerson"
+                    placeholder="व्यक्तीचे नाव..."
+                >
+
+            </div>
+
+
+            <div class="filter-group">
+
+                <label for="fromDate">
+                    पासून
+                </label>
+
+                <input
+                    type="date"
+                    id="fromDate"
+                >
+
+            </div>
+
+
+            <div class="filter-group">
+
+                <label for="toDate">
+                    पर्यंत
+                </label>
+
+                <input
+                    type="date"
+                    id="toDate"
+                >
+
+            </div>
+
+
+            <div class="filter-group">
+
+                <label for="statusFilter">
+                    स्थिती
+                </label>
+
+                <select id="statusFilter">
+
+                    <option value="all">
+                        सर्व
+                    </option>
+
+                    <option value="pending">
+                        देणे बाकी
+                    </option>
+
+                    <option value="paid">
+                        पूर्ण
+                    </option>
+
+                </select>
+
+            </div>
+
+
+            <button
+                type="button"
+                id="clearFilters"
+                class="btn-secondary">
+
+                <i class="fa-solid fa-filter-circle-xmark"></i>
+                Filter Clear
+
+            </button>
+
+        </section>
+
+
+        <!-- =========================
+             TRANSACTION LIST
+        ========================== -->
+        <section class="list-card">
+
+            <div class="section-heading">
+
+                <div>
+
+                    <h2>
+                        <i class="fa-solid fa-list-check"></i>
+                        घेतलेल्या रकमेची नोंद
+                    </h2>
+
+                    <p id="recordCount">
+                        0 व्यवहार
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <div
+                id="moneyList"
+                class="money-list">
+
+                <!-- JavaScript will load records here -->
+
+            </div>
+
+
+            <!-- Empty State -->
+            <div
+                id="emptyState"
+                class="empty-state"
+                style="display:none;">
+
+                <i class="fa-solid fa-folder-open"></i>
+
+                <h3>
+                    कोणतीही नोंद उपलब्ध नाही
+                </h3>
+
+                <p>
+                    नवीन घेतलेली रक्कम वरील form मधून नोंदवा.
+                </p>
+
+            </div>
+
+        </section>
+
+    </main>
+
+
+    <!-- =========================
+         REPAYMENT MODAL
+    ========================== -->
+    <div
+        id="repaymentModal"
+        class="modal">
+
+        <div class="modal-content">
+
+            <div class="modal-header">
+
+                <div>
+                    <h2>
+                        <i class="fa-solid fa-money-bill-wave"></i>
+                        परतफेड नोंदवा
+                    </h2>
+
+                    <p id="repaymentPerson">
+                        व्यक्ती
+                    </p>
+                </div>
+
+                <button
+                    type="button"
+                    id="closeRepaymentModal"
+                    class="modal-close">
+
+                    <i class="fa-solid fa-xmark"></i>
+
+                </button>
+
+            </div>
+
+
+            <!-- Outstanding -->
+            <div class="outstanding-box">
+
+                <span>
+                    सध्याची देणे बाकी
+                </span>
+
+                <strong id="repaymentDue">
+                    ₹0
+                </strong>
+
+            </div>
+
+
+            <form id="repaymentForm">
+
+                <!-- Hidden Transaction ID -->
+                <input
+                    type="hidden"
+                    id="repaymentTransactionId"
+                >
+
+
+                <div class="form-group">
+
+                    <label for="repaymentDate">
+
+                        <i class="fa-regular fa-calendar"></i>
+                        परतफेड तारीख
+
+                    </label>
+
+                    <input
+                        type="date"
+                        id="repaymentDate"
+                        required
+                    >
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label for="repaymentAmount">
+
+                        <i class="fa-solid fa-indian-rupee-sign"></i>
+                        परत दिलेली रक्कम
+
+                    </label>
+
+                    <input
+                        type="number"
+                        id="repaymentAmount"
+                        min="1"
+                        step="0.01"
+                        placeholder="₹ 0"
+                        required
+                    >
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label for="repaymentRemark">
+
+                        <i class="fa-solid fa-note-sticky"></i>
+                        Remark
+
+                    </label>
+
+                    <textarea
+                        id="repaymentRemark"
+                        rows="2"
+                        placeholder="परतफेडीची नोंद..."
+                    ></textarea>
+
+                </div>
+
+
+                <div class="form-actions">
+
+                    <button
+                        type="submit"
+                        class="btn-primary">
+
+                        <i class="fa-solid fa-save"></i>
+                        परतफेड सेव्ह करा
+
+                    </button>
+
+                    <button
+                        type="button"
+                        id="cancelRepayment"
+                        class="btn-secondary">
+
+                        Cancel
+
+                    </button>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+
+    <!-- =========================
+         DETAILS MODAL
+    ========================== -->
+    <div
+        id="detailsModal"
+        class="modal">
+
+        <div class="modal-content details-modal">
+
+            <div class="modal-header">
+
+                <div>
+
+                    <h2>
+                        <i class="fa-solid fa-clock-rotate-left"></i>
+                        व्यवहार तपशील
+                    </h2>
+
+                    <p id="detailsPerson">
+                        व्यक्ती
+                    </p>
+
+                </div>
+
+                <button
+                    type="button"
+                    id="closeDetailsModal"
+                    class="modal-close">
+
+                    <i class="fa-solid fa-xmark"></i>
+
+                </button>
+
+            </div>
+
+
+            <!-- Details Summary -->
+            <div
+                id="detailsSummary"
+                class="details-summary">
+
+            </div>
+
+
+            <!-- Repayment History -->
+            <div class="repayment-history">
+
+                <h3>
+
+                    <i class="fa-solid fa-list"></i>
+                    Date-wise Repayment History
+
+                </h3>
+
+                <div
+                    id="repaymentHistory">
+
+                    <!-- JS -->
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =========================
+         HEADER JS
+    ========================== -->
+    <script src="header.js"></script>
+
+    <!-- =========================
+         PAGE JS
+    ========================== -->
+    <script src="due-money.js"></script>
+
+</body>
+
+</html>
