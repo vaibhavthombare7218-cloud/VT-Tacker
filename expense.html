@@ -11,6 +11,9 @@
     <meta name="theme-color"
           content="#5b0b18">
 
+    <meta name="description"
+          content="रोजचा जमा खर्च अहवाल - खर्च नोंदवा">
+
     <title>खर्च नोंदवा | रोजचा जमा खर्च अहवाल</title>
 
 
@@ -32,21 +35,42 @@
         rel="stylesheet"
         href="style.css"
     >
-<link rel="manifest" href="manifest.json">
 
-<meta name="theme-color" content="#5b0b18">
 
-<meta name="mobile-web-app-capable"
-      content="yes">
+    <!-- =====================================================
+         PWA
+    ====================================================== -->
 
-<meta name="apple-mobile-web-app-capable"
-      content="yes">
+    <link
+        rel="manifest"
+        href="manifest.json"
+    >
 
-<meta name="apple-mobile-web-app-status-bar-style"
-      content="default">
+    <meta
+        name="theme-color"
+        content="#5b0b18"
+    >
 
-<link rel="apple-touch-icon"
-      href="icons/icon-192.png">
+    <meta
+        name="mobile-web-app-capable"
+        content="yes"
+    >
+
+    <meta
+        name="apple-mobile-web-app-capable"
+        content="yes"
+    >
+
+    <meta
+        name="apple-mobile-web-app-status-bar-style"
+        content="default"
+    >
+
+    <link
+        rel="apple-touch-icon"
+        href="icons/icon-192.png"
+    >
+
 </head>
 
 
@@ -70,9 +94,13 @@
 
         <div>
 
-            <h1>खर्च नोंदवा</h1>
+            <h1>
+                खर्च नोंदवा
+            </h1>
 
-            <p>रोजचा जमा खर्च अहवाल</p>
+            <p>
+                रोजचा जमा खर्च अहवाल
+            </p>
 
         </div>
 
@@ -116,7 +144,9 @@
 
         <div>
 
-            <h2>नवीन खर्च नोंद</h2>
+            <h2>
+                नवीन खर्च नोंद
+            </h2>
 
             <p>
                 केलेला खर्च येथे नोंदवा.
@@ -290,80 +320,138 @@
                     </option>
 
 
-                    <!-- DAILY GROCERY -->
+                    <!-- =================================================
+                         01 DAILY GROCERY
+                    ================================================== -->
 
-                    <option value="daily-grocery">
-                        🛍️ दररोजचा किराणा खर्च
+                    <option value="daily_grocery">
+                        🛒 दररोजचा किराणा खर्च
                     </option>
 
 
-                    <!-- MONTHLY GROCERY -->
+                    <!-- =================================================
+                         02 MONTHLY GROCERY
+                    ================================================== -->
 
-                    <option value="monthly-grocery">
-                        🛒 महिन्याचा किराणा खर्च
+                    <option value="monthly_grocery">
+                        🛍️ महिन्याचा किराणा खर्च
                     </option>
 
 
-                    <!-- TRAVEL -->
+                    <!-- =================================================
+                         03 TRAVEL
+                    ================================================== -->
 
                     <option value="travel">
                         🚗 प्रवास
                     </option>
 
 
-                    <!-- SHOPPING -->
+                    <!-- =================================================
+                         04 SHOPPING
+                    ================================================== -->
 
                     <option value="shopping">
                         🛍️ खरेदी
                     </option>
 
 
-                    <!-- LIGHT BILL -->
+                    <!-- =================================================
+                         05 OUTSIDE FOOD
+                    ================================================== -->
 
-                    <option value="light-bill">
+                    <option value="outside_food">
+                        🍽️ बाहेर जेवण
+                    </option>
+
+
+                    <!-- =================================================
+                         06 ELECTRICITY
+                    ================================================== -->
+
+                    <option value="electricity">
                         💡 लाईट बिल
                     </option>
 
 
-                    <!-- MEDICINE -->
+                    <!-- =================================================
+                         07 MEDICINE
+                    ================================================== -->
 
                     <option value="medicine">
                         💊 औषधे
                     </option>
 
 
-                    <!-- MOBILE -->
+                    <!-- =================================================
+                         08 HOME EMI
+                    ================================================== -->
 
-                    <option value="mobile">
-                        📱 मोबाईल
+                    <option value="home_emi">
+                        🏠 घराचा EMI
                     </option>
 
 
-                    <!-- HOME EMI -->
+                    <!-- =================================================
+                         09 HOME MAINTENANCE
+                    ================================================== -->
 
-                    <option value="home-emi">
-                        🏠 घरचा EMI
-                    </option>
-
-
-                    <!-- HOME MAINTENANCE -->
-
-                    <option value="home-maintenance">
+                    <option value="home_maintenance">
                         🔧 घरचा मेंटेनन्स
                     </option>
 
 
-                    <!-- OTHER LOAN -->
+                    <!-- =================================================
+                         10 INSURANCE
+                    ================================================== -->
 
-                    <option value="other-loan">
+                    <option value="insurance">
+                        🛡️ इन्शुरन्स पॉलिसी
+                    </option>
+
+
+                    <!-- =================================================
+                         11 OTHER LOAN
+                    ================================================== -->
+
+                    <option value="other_loan">
                         💰 इतर लोन
                     </option>
 
 
-                    <!-- OTHER -->
+                    <!-- =================================================
+                         12 MOBILE BILL
+                    ================================================== -->
 
-                    <option value="other">
-                        📦 Other / इतर
+                    <option value="mobile_bill">
+                        📱 मोबाईल बिल
+                    </option>
+
+
+                    <!-- =================================================
+                         13 OTHER EXPENSE
+                    ================================================== -->
+
+                    <option value="other_expense">
+                        📦 इतर खर्च
+                    </option>
+
+
+                    <!-- =================================================
+                         14 MONTHLY GAS
+                    ================================================== -->
+
+                    <option value="monthly_gas">
+                        🔥 महिन्याचा गॅस
+                    </option>
+
+
+                    <!-- =================================================
+                         15 FISH
+                    ================================================== -->
+
+                    <option value="fish">
+                        🐟 मच्छी
                     </option>
 
                 </select>
@@ -371,6 +459,40 @@
 
                 <small>
                     Monthly Budget मध्ये ज्या Category साठी Budget ठेवले आहे तीच Category निवडा.
+                </small>
+
+            </div>
+
+
+
+            <!-- =================================================
+                 DESCRIPTION
+            ================================================== -->
+
+            <div class="form-group">
+
+                <label for="expenseDescription">
+
+                    <i class="fa-solid fa-file-lines"></i>
+
+                    Description
+
+                    <span>*</span>
+
+                </label>
+
+
+                <input
+                    type="text"
+                    id="expenseDescription"
+                    maxlength="200"
+                    placeholder="उदा. Reliance Smart मधून किराणा / Office ते Home / पापलेट"
+                    required
+                >
+
+
+                <small>
+                    या खर्चाबद्दल थोडक्यात माहिती लिहा.
                 </small>
 
             </div>
@@ -492,7 +614,7 @@
                     id="expenseNote"
                     rows="3"
                     maxlength="300"
-                    placeholder="उदा. आजचे lunch, petrol, घरासाठी सामान..."
+                    placeholder="उदा. अतिरिक्त माहिती / बिल क्रमांक / इतर माहिती..."
                 ></textarea>
 
 
@@ -567,6 +689,101 @@
             <p id="lastExpenseSavedText">
                 --
             </p>
+
+        </div>
+
+    </section>
+
+
+
+    <!-- =================================================
+         CATEGORY INFORMATION
+    ================================================== -->
+
+    <section class="expense-category-info-card">
+
+        <div class="expense-category-info-header">
+
+            <i class="fa-solid fa-chart-column"></i>
+
+            <div>
+
+                <h3>
+                    खर्च Categories
+                </h3>
+
+                <p>
+                    खालील सर्व Categories Budget आणि Expense Tracking साठी वापरल्या जातील.
+                </p>
+
+            </div>
+
+        </div>
+
+
+        <div class="expense-category-mini-list">
+
+
+            <span>
+                🛒 दररोजचा किराणा खर्च
+            </span>
+
+            <span>
+                🛍️ महिन्याचा किराणा खर्च
+            </span>
+
+            <span>
+                🚗 प्रवास
+            </span>
+
+            <span>
+                🛍️ खरेदी
+            </span>
+
+            <span>
+                🍽️ बाहेर जेवण
+            </span>
+
+            <span>
+                💡 लाईट बिल
+            </span>
+
+            <span>
+                💊 औषधे
+            </span>
+
+            <span>
+                🏠 घराचा EMI
+            </span>
+
+            <span>
+                🔧 घरचा मेंटेनन्स
+            </span>
+
+            <span>
+                🛡️ इन्शुरन्स पॉलिसी
+            </span>
+
+            <span>
+                💰 इतर लोन
+            </span>
+
+            <span>
+                📱 मोबाईल बिल
+            </span>
+
+            <span>
+                📦 इतर खर्च
+            </span>
+
+            <span>
+                🔥 महिन्याचा गॅस
+            </span>
+
+            <span>
+                🐟 मच्छी
+            </span>
+
 
         </div>
 
@@ -720,6 +937,93 @@
 <script src="app.js"></script>
 
 <script src="expense.js"></script>
+
+
+<!-- =====================================================
+     NOTE CHARACTER COUNTER
+===================================================== -->
+
+<script>
+
+document.addEventListener(
+    "DOMContentLoaded",
+    function () {
+
+        const note =
+            document.getElementById(
+                "expenseNote"
+            );
+
+        const counter =
+            document.getElementById(
+                "expenseNoteCounter"
+            );
+
+
+        if (
+            note &&
+            counter
+        ) {
+
+            function updateCounter() {
+
+                counter.textContent =
+                    `${note.value.length} / 300`;
+
+            }
+
+
+            note.addEventListener(
+                "input",
+                updateCounter
+            );
+
+
+            updateCounter();
+
+        }
+
+    }
+);
+
+</script>
+
+
+<!-- =====================================================
+     SERVICE WORKER
+===================================================== -->
+
+<script>
+
+if (
+    "serviceWorker" in navigator
+) {
+
+    window.addEventListener(
+        "load",
+        function () {
+
+            navigator.serviceWorker
+                .register(
+                    "service-worker.js"
+                )
+                .catch(
+                    function (error) {
+
+                        console.log(
+                            "Service Worker registration failed:",
+                            error
+                        );
+
+                    }
+                );
+
+        }
+    );
+
+}
+
+</script>
 
 
 </body>
