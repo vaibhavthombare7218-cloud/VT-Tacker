@@ -641,7 +641,158 @@
 </div>
 
 
+<!-- =====================================================
+     CATEGORY TRANSACTION MODAL
+     ===================================================== -->
 
+<div
+    id="categoryTransactionModal"
+    class="category-modal">
+
+    <div
+        class="category-modal-content">
+
+
+        <!-- HEADER -->
+
+        <div
+            class="category-modal-header">
+
+            <div>
+
+                <h2
+                    id="categoryTransactionTitle">
+
+                    Category
+
+                </h2>
+
+                <div
+                    id="categoryTransactionMonth"
+                    class="category-modal-month">
+
+                </div>
+
+            </div>
+
+
+            <button
+                type="button"
+                class="modal-close-btn"
+                onclick="
+                    closeCategoryTransactions()
+                ">
+
+                ✕
+
+            </button>
+
+        </div>
+
+
+        <!-- SUMMARY -->
+
+        <div
+            class="category-transaction-summary">
+
+
+            <div
+                class="transaction-summary-card">
+
+                <small>
+                    या महिन्याचा एकूण खर्च
+                </small>
+
+                <strong
+                    id="categoryTransactionTotal">
+
+                    ₹0
+
+                </strong>
+
+            </div>
+
+
+            <div
+                class="transaction-summary-card">
+
+                <small>
+                    एकूण Transactions
+                </small>
+
+                <strong
+                    id="categoryTransactionCount">
+
+                    0 Transactions
+
+                </strong>
+
+            </div>
+
+        </div>
+
+
+        <!-- TRANSACTION TABLE -->
+
+        <div
+            class="
+                category-transaction-table-wrapper
+            ">
+
+            <table
+                class="
+                    category-transaction-table
+                ">
+
+                <thead>
+
+                    <tr>
+
+                        <th>
+                            Date
+                        </th>
+
+                        <th>
+                            Description
+                        </th>
+
+                        <th>
+                            Amount
+                        </th>
+
+                        <th>
+                            Payment Mode
+                        </th>
+
+                        <th>
+                            Account
+                        </th>
+
+                        <th>
+                            Note
+                        </th>
+
+                        <th>
+                            Action
+                        </th>
+
+                    </tr>
+
+                </thead>
+
+
+                <tbody
+                    id="categoryTransactionBody">
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+</div>
 <!-- =====================================================
      APP JS
 ===================================================== -->
