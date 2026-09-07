@@ -1,0 +1,1436 @@
+/* =========================================================
+   due-money.css
+   घेतलेली रक्कम / देणे बाकी
+   DAILY EXPENSES TRACKER
+   ========================================================= */
+
+/* =========================
+   ROOT
+========================= */
+
+:root {
+    --due-primary: #5b0b18;
+    --due-primary-dark: #420812;
+    --due-primary-light: #8a1c2b;
+
+    --due-bg: #f5f6f8;
+    --due-card: #ffffff;
+
+    --due-text: #222222;
+    --due-muted: #707070;
+    --due-border: #e2e2e2;
+
+    --due-success: #198754;
+    --due-danger: #dc3545;
+    --due-warning: #f0ad00;
+    --due-info: #0d6efd;
+
+    --due-radius: 14px;
+    --due-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+}
+
+
+/* =========================
+   PAGE
+========================= */
+
+.due-money-page {
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+
+/* =========================
+   PAGE TITLE
+========================= */
+
+.page-title {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+
+    background: var(--due-card);
+
+    padding: 18px;
+
+    margin-bottom: 18px;
+
+    border-radius: var(--due-radius);
+
+    box-shadow: var(--due-shadow);
+}
+
+.title-icon {
+    width: 52px;
+    height: 52px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 12px;
+
+    background: var(--due-primary);
+
+    color: #ffffff;
+
+    font-size: 23px;
+
+    flex-shrink: 0;
+}
+
+.page-title h1 {
+    margin: 0;
+
+    font-size: 24px;
+
+    color: var(--due-primary);
+
+    line-height: 1.3;
+}
+
+.page-title p {
+    margin: 4px 0 0;
+
+    color: var(--due-muted);
+
+    font-size: 14px;
+}
+
+
+/* =========================
+   SUMMARY GRID
+========================= */
+
+.summary-grid {
+    display: grid;
+
+    grid-template-columns:
+        repeat(4, minmax(0, 1fr));
+
+    gap: 14px;
+
+    margin-bottom: 18px;
+}
+
+.summary-card {
+    background: var(--due-card);
+
+    border-radius: var(--due-radius);
+
+    padding: 17px;
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 13px;
+
+    box-shadow: var(--due-shadow);
+
+    min-width: 0;
+}
+
+.summary-icon {
+    width: 45px;
+    height: 45px;
+
+    border-radius: 11px;
+
+    background: #f7e9ec;
+
+    color: var(--due-primary);
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    font-size: 18px;
+
+    flex-shrink: 0;
+}
+
+.summary-card span {
+    display: block;
+
+    color: var(--due-muted);
+
+    font-size: 13px;
+
+    margin-bottom: 4px;
+}
+
+.summary-card strong {
+    display: block;
+
+    color: var(--due-text);
+
+    font-size: 19px;
+
+    font-weight: 700;
+
+    word-break: break-word;
+}
+
+
+/* =========================
+   COMMON CARD
+========================= */
+
+.form-card,
+.filter-card,
+.list-card {
+    background: var(--due-card);
+
+    border-radius: var(--due-radius);
+
+    box-shadow: var(--due-shadow);
+
+    padding: 20px;
+
+    margin-bottom: 18px;
+}
+
+
+/* =========================
+   SECTION HEADING
+========================= */
+
+.section-heading {
+    display: flex;
+
+    align-items: center;
+
+    justify-content: space-between;
+
+    gap: 15px;
+
+    margin-bottom: 18px;
+}
+
+.section-heading h2 {
+    margin: 0;
+
+    color: var(--due-primary);
+
+    font-size: 19px;
+}
+
+.section-heading h2 i {
+    margin-right: 6px;
+}
+
+.section-heading p {
+    margin: 5px 0 0;
+
+    color: var(--due-muted);
+
+    font-size: 13px;
+}
+
+
+/* =========================
+   FORM GRID
+========================= */
+
+.form-grid {
+    display: grid;
+
+    grid-template-columns:
+        repeat(3, minmax(0, 1fr));
+
+    gap: 16px;
+}
+
+.form-group {
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 7px;
+}
+
+.form-group.full-width {
+    grid-column: 1 / -1;
+}
+
+.form-group label {
+    font-size: 14px;
+
+    font-weight: 600;
+
+    color: var(--due-text);
+}
+
+.form-group label i {
+    color: var(--due-primary);
+
+    margin-right: 5px;
+}
+
+
+/* =========================
+   INPUTS
+========================= */
+
+.form-group input,
+.form-group textarea,
+.form-group select,
+.filter-group input,
+.filter-group select {
+
+    width: 100%;
+
+    box-sizing: border-box;
+
+    border: 1px solid var(--due-border);
+
+    border-radius: 9px;
+
+    background: #ffffff;
+
+    color: var(--due-text);
+
+    font-size: 14px;
+
+    padding: 11px 12px;
+
+    outline: none;
+
+    transition:
+        border-color 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
+.form-group input:focus,
+.form-group textarea:focus,
+.form-group select:focus,
+.filter-group input:focus,
+.filter-group select:focus {
+
+    border-color: var(--due-primary);
+
+    box-shadow:
+        0 0 0 3px rgba(91, 11, 24, 0.10);
+}
+
+.form-group textarea {
+    resize: vertical;
+
+    min-height: 75px;
+
+    font-family: inherit;
+}
+
+
+/* =========================
+   BUTTONS
+========================= */
+
+.form-actions {
+    display: flex;
+
+    flex-wrap: wrap;
+
+    gap: 10px;
+
+    margin-top: 18px;
+}
+
+.btn-primary,
+.btn-secondary {
+
+    border: none;
+
+    border-radius: 9px;
+
+    padding: 11px 17px;
+
+    font-size: 14px;
+
+    font-weight: 600;
+
+    cursor: pointer;
+
+    display: inline-flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    gap: 7px;
+
+    transition:
+        transform 0.15s ease,
+        opacity 0.2s ease,
+        background 0.2s ease;
+}
+
+.btn-primary {
+    background: var(--due-primary);
+
+    color: #ffffff;
+}
+
+.btn-primary:hover {
+    background: var(--due-primary-dark);
+}
+
+.btn-secondary {
+    background: #eeeeee;
+
+    color: #333333;
+}
+
+.btn-secondary:hover {
+    background: #dddddd;
+}
+
+.btn-primary:active,
+.btn-secondary:active {
+    transform: scale(0.97);
+}
+
+
+/* =========================
+   FILTER
+========================= */
+
+.filter-card {
+
+    display: grid;
+
+    grid-template-columns:
+        1.5fr
+        1fr
+        1fr
+        1fr
+        auto;
+
+    align-items: end;
+
+    gap: 12px;
+}
+
+.filter-group {
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 7px;
+
+    min-width: 0;
+}
+
+.filter-group label {
+    font-size: 13px;
+
+    font-weight: 600;
+
+    color: var(--due-text);
+}
+
+
+/* =========================
+   MONEY LIST
+========================= */
+
+.money-list {
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 12px;
+}
+
+
+/* =========================
+   MONEY ITEM
+========================= */
+
+.money-item {
+
+    border: 1px solid var(--due-border);
+
+    border-radius: 12px;
+
+    padding: 16px;
+
+    background: #ffffff;
+
+    transition:
+        box-shadow 0.2s ease,
+        transform 0.15s ease;
+}
+
+.money-item:hover {
+
+    box-shadow:
+        0 5px 16px rgba(0, 0, 0, 0.08);
+
+    transform: translateY(-1px);
+}
+
+
+/* =========================
+   MONEY ITEM HEADER
+========================= */
+
+.money-item-header {
+
+    display: flex;
+
+    align-items: flex-start;
+
+    justify-content: space-between;
+
+    gap: 12px;
+
+    margin-bottom: 12px;
+}
+
+.person-info {
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 10px;
+
+    min-width: 0;
+}
+
+.person-avatar {
+
+    width: 43px;
+    height: 43px;
+
+    border-radius: 50%;
+
+    background: var(--due-primary);
+
+    color: #ffffff;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    font-size: 17px;
+
+    flex-shrink: 0;
+}
+
+.person-info h3 {
+
+    margin: 0;
+
+    font-size: 16px;
+
+    color: var(--due-text);
+
+    word-break: break-word;
+}
+
+.person-info small {
+
+    display: block;
+
+    color: var(--due-muted);
+
+    font-size: 12px;
+
+    margin-top: 3px;
+}
+
+
+/* =========================
+   STATUS
+========================= */
+
+.status-badge {
+
+    display: inline-flex;
+
+    align-items: center;
+
+    gap: 5px;
+
+    padding: 5px 9px;
+
+    border-radius: 20px;
+
+    font-size: 11px;
+
+    font-weight: 700;
+
+    white-space: nowrap;
+}
+
+.status-pending {
+
+    color: var(--due-danger);
+
+    background: #fdebed;
+}
+
+.status-paid {
+
+    color: var(--due-success);
+
+    background: #eaf7ef;
+}
+
+
+/* =========================
+   AMOUNT DETAILS
+========================= */
+
+.money-details {
+
+    display: grid;
+
+    grid-template-columns:
+        repeat(3, minmax(0, 1fr));
+
+    gap: 10px;
+
+    margin-bottom: 12px;
+}
+
+.amount-box {
+
+    background: #f8f8f8;
+
+    border-radius: 9px;
+
+    padding: 10px;
+}
+
+.amount-box span {
+
+    display: block;
+
+    font-size: 11px;
+
+    color: var(--due-muted);
+
+    margin-bottom: 4px;
+}
+
+.amount-box strong {
+
+    display: block;
+
+    font-size: 15px;
+
+    color: var(--due-text);
+}
+
+.amount-box.due {
+
+    background: #fff4f4;
+}
+
+.amount-box.due strong {
+
+    color: var(--due-danger);
+}
+
+
+/* =========================
+   REMARK
+========================= */
+
+.money-remark {
+
+    font-size: 13px;
+
+    color: #555555;
+
+    background: #fafafa;
+
+    padding: 9px 11px;
+
+    border-radius: 8px;
+
+    margin-bottom: 12px;
+}
+
+.money-remark i {
+
+    color: var(--due-primary);
+
+    margin-right: 5px;
+}
+
+
+/* =========================
+   ITEM ACTIONS
+========================= */
+
+.money-actions {
+
+    display: flex;
+
+    flex-wrap: wrap;
+
+    gap: 8px;
+
+    padding-top: 11px;
+
+    border-top: 1px solid #eeeeee;
+}
+
+.action-btn {
+
+    border: none;
+
+    border-radius: 8px;
+
+    padding: 8px 11px;
+
+    font-size: 12px;
+
+    font-weight: 600;
+
+    cursor: pointer;
+
+    display: inline-flex;
+
+    align-items: center;
+
+    gap: 5px;
+}
+
+.action-repay {
+
+    background: #eaf7ef;
+
+    color: var(--due-success);
+}
+
+.action-details {
+
+    background: #edf3ff;
+
+    color: var(--due-info);
+}
+
+.action-edit {
+
+    background: #fff5df;
+
+    color: #9a6800;
+}
+
+.action-delete {
+
+    background: #fdebed;
+
+    color: var(--due-danger);
+}
+
+
+/* =========================
+   EMPTY STATE
+========================= */
+
+.empty-state {
+
+    text-align: center;
+
+    padding: 45px 20px;
+
+    color: var(--due-muted);
+}
+
+.empty-state i {
+
+    font-size: 42px;
+
+    color: #cccccc;
+
+    margin-bottom: 12px;
+}
+
+.empty-state h3 {
+
+    margin: 0 0 6px;
+
+    color: #555555;
+
+    font-size: 17px;
+}
+
+.empty-state p {
+
+    margin: 0;
+
+    font-size: 13px;
+}
+
+
+/* =========================
+   MODAL
+========================= */
+
+.modal {
+
+    position: fixed;
+
+    inset: 0;
+
+    background: rgba(0, 0, 0, 0.55);
+
+    display: none;
+
+    align-items: center;
+
+    justify-content: center;
+
+    padding: 15px;
+
+    z-index: 9999;
+}
+
+.modal.show {
+
+    display: flex;
+}
+
+.modal-content {
+
+    width: 100%;
+
+    max-width: 500px;
+
+    max-height: 90vh;
+
+    overflow-y: auto;
+
+    background: #ffffff;
+
+    border-radius: 15px;
+
+    box-shadow:
+        0 12px 40px rgba(0, 0, 0, 0.25);
+
+    padding: 20px;
+
+    box-sizing: border-box;
+}
+
+.details-modal {
+
+    max-width: 650px;
+}
+
+
+/* =========================
+   MODAL HEADER
+========================= */
+
+.modal-header {
+
+    display: flex;
+
+    align-items: flex-start;
+
+    justify-content: space-between;
+
+    gap: 15px;
+
+    margin-bottom: 18px;
+}
+
+.modal-header h2 {
+
+    margin: 0;
+
+    color: var(--due-primary);
+
+    font-size: 19px;
+}
+
+.modal-header h2 i {
+
+    margin-right: 5px;
+}
+
+.modal-header p {
+
+    margin: 5px 0 0;
+
+    color: var(--due-muted);
+
+    font-size: 13px;
+}
+
+.modal-close {
+
+    width: 35px;
+    height: 35px;
+
+    border: none;
+
+    border-radius: 50%;
+
+    background: #eeeeee;
+
+    color: #444444;
+
+    cursor: pointer;
+
+    font-size: 16px;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    flex-shrink: 0;
+}
+
+.modal-close:hover {
+
+    background: #dddddd;
+}
+
+
+/* =========================
+   OUTSTANDING BOX
+========================= */
+
+.outstanding-box {
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: space-between;
+
+    gap: 15px;
+
+    background: #fff4f4;
+
+    border: 1px solid #f4d3d7;
+
+    border-radius: 10px;
+
+    padding: 13px 15px;
+
+    margin-bottom: 18px;
+}
+
+.outstanding-box span {
+
+    font-size: 13px;
+
+    color: #666666;
+}
+
+.outstanding-box strong {
+
+    font-size: 20px;
+
+    color: var(--due-danger);
+}
+
+
+/* =========================
+   DETAILS SUMMARY
+========================= */
+
+.details-summary {
+
+    display: grid;
+
+    grid-template-columns:
+        repeat(3, minmax(0, 1fr));
+
+    gap: 10px;
+
+    margin-bottom: 20px;
+}
+
+.detail-summary-box {
+
+    background: #f7f7f7;
+
+    border-radius: 9px;
+
+    padding: 12px;
+
+    text-align: center;
+}
+
+.detail-summary-box span {
+
+    display: block;
+
+    color: var(--due-muted);
+
+    font-size: 11px;
+
+    margin-bottom: 5px;
+}
+
+.detail-summary-box strong {
+
+    display: block;
+
+    color: var(--due-text);
+
+    font-size: 16px;
+}
+
+.detail-summary-box.due strong {
+
+    color: var(--due-danger);
+}
+
+
+/* =========================
+   REPAYMENT HISTORY
+========================= */
+
+.repayment-history h3 {
+
+    margin: 0 0 12px;
+
+    color: var(--due-primary);
+
+    font-size: 16px;
+}
+
+.repayment-history h3 i {
+
+    margin-right: 5px;
+}
+
+.repayment-row {
+
+    display: grid;
+
+    grid-template-columns:
+        1fr 1fr 1.5fr auto;
+
+    align-items: center;
+
+    gap: 8px;
+
+    padding: 10px;
+
+    border-bottom: 1px solid #eeeeee;
+
+    font-size: 13px;
+}
+
+.repayment-row:last-child {
+
+    border-bottom: none;
+}
+
+.repayment-date {
+
+    color: #555555;
+}
+
+.repayment-amount {
+
+    font-weight: 700;
+
+    color: var(--due-success);
+}
+
+.repayment-remark {
+
+    color: var(--due-muted);
+
+    word-break: break-word;
+}
+
+.repayment-balance {
+
+    color: var(--due-danger);
+
+    font-weight: 600;
+}
+
+.repayment-delete {
+
+    border: none;
+
+    background: #fdebed;
+
+    color: var(--due-danger);
+
+    width: 30px;
+    height: 30px;
+
+    border-radius: 7px;
+
+    cursor: pointer;
+}
+
+
+/* =========================
+   NO REPAYMENT
+========================= */
+
+.no-repayment {
+
+    padding: 20px;
+
+    text-align: center;
+
+    color: var(--due-muted);
+
+    background: #fafafa;
+
+    border-radius: 9px;
+
+    font-size: 13px;
+}
+
+
+/* =========================
+   TOAST
+========================= */
+
+.due-toast {
+
+    position: fixed;
+
+    left: 50%;
+
+    bottom: 25px;
+
+    transform:
+        translateX(-50%)
+        translateY(20px);
+
+    background: #222222;
+
+    color: #ffffff;
+
+    padding: 11px 17px;
+
+    border-radius: 8px;
+
+    font-size: 13px;
+
+    opacity: 0;
+
+    pointer-events: none;
+
+    transition:
+        opacity 0.25s ease,
+        transform 0.25s ease;
+
+    z-index: 10000;
+}
+
+.due-toast.show {
+
+    opacity: 1;
+
+    transform:
+        translateX(-50%)
+        translateY(0);
+}
+
+
+/* =========================
+   RESPONSIVE
+========================= */
+
+@media (max-width: 900px) {
+
+    .summary-grid {
+
+        grid-template-columns:
+            repeat(2, minmax(0, 1fr));
+    }
+
+    .filter-card {
+
+        grid-template-columns:
+            repeat(2, minmax(0, 1fr));
+    }
+
+    .filter-card .btn-secondary {
+
+        width: 100%;
+    }
+
+    .form-grid {
+
+        grid-template-columns:
+            repeat(2, minmax(0, 1fr));
+    }
+
+    .money-details {
+
+        grid-template-columns:
+            repeat(3, minmax(0, 1fr));
+    }
+}
+
+
+/* =========================
+   MOBILE
+========================= */
+
+@media (max-width: 600px) {
+
+    .due-money-page {
+
+        padding: 12px;
+    }
+
+    .page-title {
+
+        padding: 15px;
+    }
+
+    .title-icon {
+
+        width: 45px;
+        height: 45px;
+
+        font-size: 19px;
+    }
+
+    .page-title h1 {
+
+        font-size: 20px;
+    }
+
+    .page-title p {
+
+        font-size: 12px;
+    }
+
+
+    .summary-grid {
+
+        grid-template-columns:
+            repeat(2, minmax(0, 1fr));
+
+        gap: 10px;
+    }
+
+    .summary-card {
+
+        padding: 12px;
+
+        gap: 9px;
+    }
+
+    .summary-icon {
+
+        width: 37px;
+        height: 37px;
+
+        font-size: 15px;
+    }
+
+    .summary-card span {
+
+        font-size: 11px;
+    }
+
+    .summary-card strong {
+
+        font-size: 16px;
+    }
+
+
+    .form-card,
+    .filter-card,
+    .list-card {
+
+        padding: 15px;
+
+        border-radius: 12px;
+    }
+
+
+    .form-grid {
+
+        grid-template-columns: 1fr;
+
+        gap: 13px;
+    }
+
+    .form-group.full-width {
+
+        grid-column: auto;
+    }
+
+
+    .filter-card {
+
+        grid-template-columns: 1fr;
+
+        align-items: stretch;
+    }
+
+
+    .section-heading h2 {
+
+        font-size: 17px;
+    }
+
+
+    .money-item {
+
+        padding: 13px;
+    }
+
+    .money-item-header {
+
+        flex-direction: column;
+
+        align-items: stretch;
+    }
+
+    .money-item-header > .status-badge {
+
+        align-self: flex-start;
+    }
+
+
+    .money-details {
+
+        grid-template-columns: 1fr;
+
+        gap: 7px;
+    }
+
+
+    .money-actions {
+
+        display: grid;
+
+        grid-template-columns:
+            repeat(2, minmax(0, 1fr));
+    }
+
+    .action-btn {
+
+        justify-content: center;
+
+        padding: 9px 7px;
+    }
+
+
+    .modal {
+
+        padding: 10px;
+
+        align-items: flex-end;
+    }
+
+    .modal-content {
+
+        max-height: 92vh;
+
+        border-radius: 15px 15px 0 0;
+
+        padding: 16px;
+    }
+
+
+    .details-summary {
+
+        grid-template-columns:
+            1fr;
+
+        gap: 7px;
+    }
+
+
+    .repayment-row {
+
+        grid-template-columns:
+            1fr 1fr auto;
+
+        gap: 7px;
+    }
+
+    .repayment-remark {
+
+        grid-column: 1 / -1;
+
+        order: 3;
+    }
+
+    .repayment-balance {
+
+        text-align: right;
+    }
+
+
+    .form-actions {
+
+        display: grid;
+
+        grid-template-columns:
+            1fr 1fr;
+    }
+
+    .form-actions button {
+
+        width: 100%;
+    }
+}
+
+
+/* =========================
+   VERY SMALL MOBILE
+========================= */
+
+@media (max-width: 380px) {
+
+    .summary-grid {
+
+        grid-template-columns: 1fr;
+    }
+
+    .money-actions {
+
+        grid-template-columns: 1fr;
+    }
+
+    .form-actions {
+
+        grid-template-columns: 1fr;
+    }
+
+    .page-title {
+
+        align-items: flex-start;
+    }
+}
+
+
+/* =========================
+   DARK MODE SUPPORT
+========================= */
+
+@media (prefers-color-scheme: dark) {
+
+    /*
+       Existing application dark-mode can override
+       these variables if required.
+    */
+
+}
