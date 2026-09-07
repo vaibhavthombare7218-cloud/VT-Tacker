@@ -1,133 +1,425 @@
 /* =========================================================
    expense.js
-
    रोजचा जमा खर्च अहवाल
    EXPENSE MANAGEMENT
 
-   CONNECTED WITH:
-   - app.js
-   - accounts.js
-   - transactions.js
-   - monthly-budget.js
+   VERSION:
+   Category Based Expense Tracking
 
    FEATURES:
    ---------------------------------------------------------
-   ✅ Expense Entry
-   ✅ Budget Category Integration
-   ✅ Default + Custom Budget Categories
-   ✅ Account Selection
-   ✅ Account Balance Check
+   ✅ 15 Main Expense Categories
+   ✅ Expense + Budget Same Categories
+   ✅ Daily / Monthly / Yearly Frequency
+   ✅ Description
+   ✅ Amount
    ✅ Payment Mode
+   ✅ Account
    ✅ Note
-   ✅ Today Expense
-   ✅ Monthly Expense
-   ✅ Total Expense
-   ✅ Last Saved Expense
-   ✅ Transaction Storage
-   ✅ Budget Auto Sync
+   ✅ Category-wise Current Month Tracking
+   ✅ Category Click -> All Current Month Transactions
+   ✅ Transaction Total
+   ✅ Transaction Count
+   ✅ Delete Transaction
+   ✅ Backward Compatible With Old Expense Records
    ========================================================= */
 
 
 /* =========================================================
-   INITIALIZATION
-========================================================= */
+   STORAGE KEY
+   ========================================================= */
 
-document.addEventListener(
-    "DOMContentLoaded",
-    function () {
-
-        initializeExpensePage();
-
-    }
-);
-
+const EXPENSE_STORAGE_KEY = "expenses";
 
 
 /* =========================================================
-   MAIN INITIALIZATION
-========================================================= */
+   MAIN EXPENSE CATEGORIES
+   IMPORTANT:
+   This is the MASTER category list.
 
-function initializeExpensePage() {
+   Expense + Budget + Reports should use this same list.
+   ========================================================= */
 
-    /*
-       Accounts initialize करा
-    */
+const EXPENSE_CATEGORIES = [
 
-    if (
-        typeof initializeAccounts ===
-        "function"
-    ) {
+    {
+        id: "daily_grocery",
+        name: "दररोजचा किराणा खर्च",
+        icon: "🛒",
+        frequency: "daily"
+    },
 
-        initializeAccounts();
+    {
+        id: "monthly_grocery",
+        name: "महिन्याचा किराणा खर्च",
+        icon: "🛍️",
+        frequency: "monthly"
+    },
 
+    {
+        id: "travel",
+        name: "प्रवास",
+        icon: "🚗",
+        frequency: "daily"
+    },
+
+    {
+        id: "shopping",
+        name: "खरेदी",
+        icon: "🛍️",
+        frequency: "monthly"
+    },
+
+    {
+        id: "outside_food",
+        name: "बाहेर जेवण",
+        icon: "🍽️",
+        frequency: "daily"
+    },
+
+    {
+        id: "electricity",
+        name: "लाईट बिल",
+        icon: "💡",
+        frequency: "monthly"
+    },
+
+    {
+        id: "medicine",
+        name: "औषधे",
+        icon: "💊",
+        frequency: "monthly"
+    },
+
+    {
+        id: "home_emi",
+        name: "घराचा EMI",
+        icon: "🏠",
+        frequency: "monthly"
+    },
+
+    {
+        id: "home_maintenance",
+        name: "घरचा मेंटेनन्स",
+        icon: "🏢",
+        frequency: "monthly"
+    },
+
+    {
+        id: "insurance",
+        name: "इन्शुरन्स पॉलिसी",
+        icon: "🛡️",
+        frequency: "yearly"
+    },
+
+    {
+        id: "other_loan",
+        name: "इतर लोन",
+        icon: "💳",
+        frequency: "monthly"
+    },
+
+    {
+        id: "mobile_bill",
+        name: "मोबाईल बिल",
+        icon: "📱",
+        frequency: "monthly"
+    },
+
+    {
+        id: "other_expense",
+        name: "इतर खर्च",
+        icon: "📦",
+        frequency: "daily"
+    },
+
+    {
+        id: "monthly_gas",
+        name: "महिन्याचा गॅस",
+        icon: "🔥",
+        frequency: "monthly"
+    },
+
+    {
+        id: "fish",
+        name: "मच्छी",
+        icon: "🐟",
+        frequency: "daily"
     }
 
-
-    /*
-       Default date
-    */
-
-    setDefaultExpenseDate();
+];
 
 
-    /*
-       Budget categories load करा
-    */
+/* =========================================================
+   STORAGE HELPERS
+   ========================================================= */
 
-    loadExpenseCategories();
+function getExpenses() {
 
+    try {
 
-    /*
-       Accounts load करा
-    */
+        const raw =
+            localStorage.getItem(
+                EXPENSE_STORAGE_KEY
+            );
 
-    loadExpenseAccounts();
+        if (!raw) {
+            return [];
+        }
 
+        const data =
+            JSON.parse(raw);
 
-    /*
-       Summary
-    */
+        return Array.isArray(data)
+            ? data
+            : [];
 
-    updateExpenseSummary();
+    } catch (error) {
 
+        console.error(
+            "Expense storage read error:",
+            error
+        );
 
-    /*
-       Note counter
-    */
-
-    setupExpenseNoteCounter();
-
-
-    /*
-       Form
-    */
-
-    setupExpenseForm();
-
-
-    /*
-       Payment mode
-    */
-
-    setupExpensePaymentMode();
-
-
-    /*
-       Last saved expense
-       session मध्ये असेल तर दाखवा
-    */
-
-    loadLastExpenseSaved();
-
+        return [];
+    }
 }
 
 
+function saveExpenses(expenses) {
+
+    localStorage.setItem(
+        EXPENSE_STORAGE_KEY,
+        JSON.stringify(expenses)
+    );
+}
+
 
 /* =========================================================
-   DEFAULT DATE
-========================================================= */
+   CATEGORY HELPERS
+   ========================================================= */
 
-function setDefaultExpenseDate() {
+function getCategoryById(categoryId) {
+
+    return EXPENSE_CATEGORIES.find(
+        category =>
+            category.id === categoryId
+    );
+}
+
+
+function getCategoryName(categoryId) {
+
+    const category =
+        getCategoryById(
+            categoryId
+        );
+
+    return category
+        ? category.name
+        : "इतर खर्च";
+}
+
+
+function getCategoryIcon(categoryId) {
+
+    const category =
+        getCategoryById(
+            categoryId
+        );
+
+    return category
+        ? category.icon
+        : "📦";
+}
+
+
+/* =========================================================
+   BACKWARD COMPATIBILITY
+   ---------------------------------------------------------
+   Old records may contain:
+   category
+   categoryId
+   categoryName
+   type
+   etc.
+   ========================================================= */
+
+function normalizeExpenseCategory(expense) {
+
+    if (!expense) {
+        return "other_expense";
+    }
+
+
+    /* New format */
+
+    if (expense.category) {
+
+        const category =
+            getCategoryById(
+                expense.category
+            );
+
+        if (category) {
+            return category.id;
+        }
+    }
+
+
+    /* Old categoryId */
+
+    if (expense.categoryId) {
+
+        const category =
+            getCategoryById(
+                expense.categoryId
+            );
+
+        if (category) {
+            return category.id;
+        }
+    }
+
+
+    /* Old categoryName */
+
+    if (expense.categoryName) {
+
+        const found =
+            EXPENSE_CATEGORIES.find(
+                category =>
+                    category.name ===
+                    expense.categoryName
+            );
+
+        if (found) {
+            return found.id;
+        }
+    }
+
+
+    /* Default */
+
+    return "other_expense";
+}
+
+
+/* =========================================================
+   DATE HELPERS
+   ========================================================= */
+
+function getTodayDate() {
+
+    const today =
+        new Date();
+
+    const year =
+        today.getFullYear();
+
+    const month =
+        String(
+            today.getMonth() + 1
+        ).padStart(2, "0");
+
+    const day =
+        String(
+            today.getDate()
+        ).padStart(2, "0");
+
+    return (
+        `${year}-${month}-${day}`
+    );
+}
+
+
+function getCurrentMonth() {
+
+    const today =
+        new Date();
+
+    return (
+        `${today.getFullYear()}-${String(
+            today.getMonth() + 1
+        ).padStart(2, "0")}`
+    );
+}
+
+
+/* =========================================================
+   CATEGORY SELECT
+   ========================================================= */
+
+function populateExpenseCategories(
+    selectElement
+) {
+
+    if (!selectElement) {
+        return;
+    }
+
+    const previousValue =
+        selectElement.value;
+
+
+    selectElement.innerHTML = `
+
+        <option value="">
+            -- खर्चाचा प्रकार निवडा --
+        </option>
+
+    `;
+
+
+    EXPENSE_CATEGORIES.forEach(
+        category => {
+
+            const option =
+                document.createElement(
+                    "option"
+                );
+
+            option.value =
+                category.id;
+
+            option.textContent =
+                `${category.icon} ${category.name}`;
+
+            selectElement.appendChild(
+                option
+            );
+        }
+    );
+
+
+    if (previousValue) {
+
+        selectElement.value =
+            previousValue;
+    }
+}
+
+
+/* =========================================================
+   EXPENSE FORM INITIALIZATION
+   ========================================================= */
+
+function initializeExpenseForm() {
+
+    const form =
+        document.getElementById(
+            "expenseForm"
+        );
+
+    if (!form) {
+        return;
+    }
+
+
+    const categorySelect =
+        document.getElementById(
+            "expenseCategory"
+        );
 
     const dateInput =
         document.getElementById(
@@ -135,822 +427,142 @@ function setDefaultExpenseDate() {
         );
 
 
-    if (!dateInput) {
+    if (categorySelect) {
 
-        return;
-
+        populateExpenseCategories(
+            categorySelect
+        );
     }
 
 
-    if (!dateInput.value) {
+    if (
+        dateInput &&
+        !dateInput.value
+    ) {
 
         dateInput.value =
-            getTodayString();
-
-    }
-
-}
-
-
-
-/* =========================================================
-   LOAD BUDGET CATEGORIES
-========================================================= */
-
-function loadExpenseCategories() {
-
-    const select =
-        document.getElementById(
-            "expenseCategory"
-        );
-
-
-    if (!select) {
-
-        return;
-
+            getTodayDate();
     }
 
 
     /*
-       Monthly Budget page मधील
-       categories वापरण्याचा प्रयत्न.
-    */
-
-    let categories = [];
-
-
-    if (
-        typeof getBudgetCategories ===
-        "function"
-    ) {
-
-        categories =
-            getBudgetCategories();
-
-    }
-
-    else {
-
-        /*
-           Fallback categories
-           जर monthly-budget.js load नसेल.
-        */
-
-        categories = [
-
-            {
-                id: "daily-grocery",
-                name: "दररोजचा किराणा खर्च",
-                icon: "fa-solid fa-basket-shopping"
-            },
-
-            {
-                id: "monthly-grocery",
-                name: "महिन्याचा किराणा खर्च",
-                icon: "fa-solid fa-cart-shopping"
-            },
-
-            {
-                id: "travel",
-                name: "प्रवास",
-                icon: "fa-solid fa-car"
-            },
-
-            {
-                id: "shopping",
-                name: "खरेदी",
-                icon: "fa-solid fa-bag-shopping"
-            },
-
-            {
-                id: "light-bill",
-                name: "लाईट बिल",
-                icon: "fa-solid fa-lightbulb"
-            },
-
-            {
-                id: "medicine",
-                name: "औषधे",
-                icon: "fa-solid fa-pills"
-            },
-
-            {
-                id: "mobile",
-                name: "मोबाईल",
-                icon: "fa-solid fa-mobile-screen-button"
-            },
-
-            {
-                id: "home-emi",
-                name: "घरचा EMI",
-                icon: "fa-solid fa-house"
-            },
-
-            {
-                id: "home-maintenance",
-                name: "घरचा मेंटेनन्स",
-                icon: "fa-solid fa-screwdriver-wrench"
-            },
-
-            {
-                id: "other-loan",
-                name: "इतर लोन",
-                icon: "fa-solid fa-money-check-dollar"
-            },
-
-            {
-                id: "other",
-                name: "Other",
-                icon: "fa-solid fa-box"
-            }
-
-        ];
-
-    }
-
-
-
-    /*
-       Current selected value जतन करा
-    */
-
-    const previousValue =
-        select.value;
-
-
-    select.innerHTML = "";
-
-
-    /*
-       Default option
-    */
-
-    const defaultOption =
-        document.createElement(
-            "option"
-        );
-
-
-    defaultOption.value =
-        "";
-
-
-    defaultOption.textContent =
-        "खर्चाचा प्रकार निवडा";
-
-
-    select.appendChild(
-        defaultOption
-    );
-
-
-
-    /*
-       Categories add करा
-    */
-
-    categories.forEach(
-        category => {
-
-            if (!category) {
-
-                return;
-
-            }
-
-
-            const option =
-                document.createElement(
-                    "option"
-                );
-
-
-            /*
-               IMPORTANT:
-               Transaction मध्ये category म्हणून
-               category.name save होईल.
-
-               त्यामुळे Monthly Budget मधील
-               getCategoryActualExpense()
-               शी exact match होईल.
-            */
-
-            option.value =
-                category.name;
-
-
-            option.textContent =
-                getExpenseCategoryDisplayName(
-                    category
-                );
-
-
-            option.dataset.categoryId =
-                category.id;
-
-
-            select.appendChild(
-                option
-            );
-
-        }
-    );
-
-
-
-    /*
-       जुनी selection असल्यास restore करा
+       Prevent duplicate event listener
+       if page/module refresh happens.
     */
 
     if (
-        previousValue &&
-        [...select.options].some(
-            option =>
-                option.value ===
-                previousValue
-        )
-    ) {
-
-        select.value =
-            previousValue;
-
-    }
-
-}
-
-
-
-/* =========================================================
-   CATEGORY DISPLAY NAME
-========================================================= */
-
-function getExpenseCategoryDisplayName(
-    category
-) {
-
-    const name =
-        String(
-            category?.name || ""
-        );
-
-
-    const icon =
-        getCategoryEmoji(
-            category?.id,
-            category?.icon
-        );
-
-
-    if (icon) {
-
-        return (
-            icon +
-            " " +
-            name
-        );
-
-    }
-
-
-    return name;
-
-}
-
-
-
-/* =========================================================
-   CATEGORY EMOJI
-========================================================= */
-
-function getCategoryEmoji(
-    categoryId,
-    icon
-) {
-
-    const map = {
-
-        "daily-grocery":
-            "🧺",
-
-        "monthly-grocery":
-            "🛒",
-
-        "travel":
-            "🚗",
-
-        "shopping":
-            "🛍️",
-
-        "light-bill":
-            "💡",
-
-        "medicine":
-            "💊",
-
-        "mobile":
-            "📱",
-
-        "home-emi":
-            "🏠",
-
-        "home-maintenance":
-            "🔧",
-
-        "other-loan":
-            "💰",
-
-        "other":
-            "📦"
-
-    };
-
-
-    if (
-        map[categoryId]
-    ) {
-
-        return map[categoryId];
-
-    }
-
-
-    /*
-       Custom categories साठी
-       generic tag icon
-    */
-
-    return "🏷️";
-
-}
-
-
-
-/* =========================================================
-   LOAD ACCOUNTS
-========================================================= */
-
-function loadExpenseAccounts() {
-
-    const select =
-        document.getElementById(
-            "expenseAccount"
-        );
-
-
-    if (!select) {
-
-        return;
-
-    }
-
-
-    let accounts = [];
-
-
-    if (
-        typeof getAccounts ===
-        "function"
-    ) {
-
-        accounts =
-            getAccounts();
-
-    }
-
-
-    select.innerHTML = `
-
-        <option value="">
-            खाते निवडा
-        </option>
-
-    `;
-
-
-    if (
-        !Array.isArray(accounts)
-    ) {
-
-        return;
-
-    }
-
-
-    accounts.forEach(
-        account => {
-
-            if (!account) {
-
-                return;
-
-            }
-
-
-            const option =
-                document.createElement(
-                    "option"
-                );
-
-
-            option.value =
-                account.id;
-
-
-            option.textContent =
-                getAccountDisplayName(
-                    account
-                );
-
-
-            select.appendChild(
-                option
-            );
-
-        }
-    );
-
-}
-
-
-
-/* =========================================================
-   ACCOUNT DISPLAY NAME
-========================================================= */
-
-function getAccountDisplayName(
-    account
-) {
-
-    const name =
-        String(
-            account.name || ""
-        );
-
-
-    /*
-       Balance display करायचा असल्यास
-       available balance दाखवा.
-    */
-
-    let balanceText = "";
-
-
-    if (
-        typeof getAccountBalance ===
-        "function"
-    ) {
-
-        const balance =
-            Number(
-                getAccountBalance(
-                    account.id
-                )
-            ) || 0;
-
-
-        balanceText =
-            " • " +
-            formatExpenseMoney(
-                balance
-            );
-
-    }
-
-
-    return (
-        name +
-        balanceText
-    );
-
-}
-
-
-
-/* =========================================================
-   EXPENSE SUMMARY
-========================================================= */
-
-function updateExpenseSummary() {
-
-    const today =
-        document.getElementById(
-            "todayExpense"
-        );
-
-
-    const month =
-        document.getElementById(
-            "monthExpense"
-        );
-
-
-    const total =
-        document.getElementById(
-            "totalExpense"
-        );
-
-
-
-    const todayAmount =
-        getSafeTodayExpense();
-
-
-    const monthAmount =
-        getSafeMonthExpense();
-
-
-    const totalAmount =
-        getSafeTotalExpense();
-
-
-
-    if (today) {
-
-        today.textContent =
-            formatExpenseMoney(
-                todayAmount
-            );
-
-    }
-
-
-    if (month) {
-
-        month.textContent =
-            formatExpenseMoney(
-                monthAmount
-            );
-
-    }
-
-
-    if (total) {
-
-        total.textContent =
-            formatExpenseMoney(
-                totalAmount
-            );
-
-    }
-
-}
-
-
-
-/* =========================================================
-   SAFE TODAY EXPENSE
-========================================================= */
-
-function getSafeTodayExpense() {
-
-    if (
-        typeof getTodayExpense ===
-        "function"
-    ) {
-
-        return Number(
-            getTodayExpense()
-        ) || 0;
-
-    }
-
-
-    const today =
-        getTodayString();
-
-
-    return getExpensesByDate(
-        today
-    );
-
-}
-
-
-
-/* =========================================================
-   SAFE MONTH EXPENSE
-========================================================= */
-
-function getSafeMonthExpense() {
-
-    if (
-        typeof getMonthExpense ===
-        "function"
-    ) {
-
-        return Number(
-            getMonthExpense()
-        ) || 0;
-
-    }
-
-
-    const today =
-        getTodayString();
-
-
-    const month =
-        today.substring(
-            0,
-            7
-        );
-
-
-    return getExpensesByMonth(
-        month
-    );
-
-}
-
-
-
-/* =========================================================
-   SAFE TOTAL EXPENSE
-========================================================= */
-
-function getSafeTotalExpense() {
-
-    if (
-        typeof getTotalExpense ===
-        "function"
-    ) {
-
-        return Number(
-            getTotalExpense()
-        ) || 0;
-
-    }
-
-
-    const transactions =
-        getAllExpenseTransactions();
-
-
-    return transactions.reduce(
-        (
-            total,
-            transaction
-        ) => {
-
-            return (
-                total +
-                (
-                    Number(
-                        transaction.amount
-                    ) || 0
-                )
-            );
-
-        },
-        0
-    );
-
-}
-
-
-
-/* =========================================================
-   FORM SETUP
-========================================================= */
-
-function setupExpenseForm() {
-
-    const form =
-        document.getElementById(
-            "expenseForm"
-        );
-
-
-    if (!form) {
-
-        return;
-
-    }
-
-
-    /*
-       Duplicate listener टाळण्यासाठी
-    */
-
-    if (
-        form.dataset.expenseReady ===
+        form.dataset.expenseInitialized ===
         "true"
     ) {
 
         return;
-
     }
 
-
-    form.dataset.expenseReady =
+    form.dataset.expenseInitialized =
         "true";
 
 
     form.addEventListener(
         "submit",
-        saveExpense
-    );
+        function(event) {
 
+            event.preventDefault();
+
+            saveNewExpense();
+
+        }
+    );
 }
 
 
-
 /* =========================================================
-   SAVE EXPENSE
-========================================================= */
+   SAVE NEW EXPENSE
+   ========================================================= */
 
-function saveExpense(
-    event
-) {
+function saveNewExpense() {
 
-    event.preventDefault();
+    const categoryElement =
+        document.getElementById(
+            "expenseCategory"
+        );
 
-
-
-    /* =====================================================
-       GET VALUES
-    ===================================================== */
-
-    const date =
+    const dateElement =
         document.getElementById(
             "expenseDate"
-        )?.value || "";
+        );
 
+    const amountElement =
+        document.getElementById(
+            "expenseAmount"
+        );
 
-    const amount =
-        Number(
-            document.getElementById(
-                "expenseAmount"
-            )?.value
+    const descriptionElement =
+        document.getElementById(
+            "expenseDescription"
+        );
+
+    const paymentModeElement =
+        document.getElementById(
+            "expensePaymentMode"
+        );
+
+    const accountElement =
+        document.getElementById(
+            "expenseAccount"
+        );
+
+    const noteElement =
+        document.getElementById(
+            "expenseNote"
         );
 
 
     const category =
-        document.getElementById(
-            "expenseCategory"
-        )?.value.trim() || "";
+        categoryElement
+            ? categoryElement.value
+            : "";
 
 
-    const accountId =
-        document.getElementById(
-            "expenseAccount"
-        )?.value || "";
+    const date =
+        dateElement &&
+        dateElement.value
+            ? dateElement.value
+            : getTodayDate();
+
+
+    const amount =
+        Number(
+            amountElement
+                ? amountElement.value
+                : 0
+        );
+
+
+    const description =
+        descriptionElement
+            ? descriptionElement.value.trim()
+            : "";
 
 
     const paymentMode =
-        document.getElementById(
-            "expensePaymentMode"
-        )?.value || "Cash";
+        paymentModeElement
+            ? paymentModeElement.value
+            : "";
+
+
+    const account =
+        accountElement
+            ? accountElement.value
+            : "";
 
 
     const note =
-        document.getElementById(
-            "expenseNote"
-        )?.value.trim() || "";
+        noteElement
+            ? noteElement.value.trim()
+            : "";
 
 
-
-    /* =====================================================
-       VALIDATION
-    ===================================================== */
-
-    if (!date) {
-
-        alert(
-            "कृपया तारीख निवडा."
-        );
-
-        document
-            .getElementById(
-                "expenseDate"
-            )
-            ?.focus();
-
-        return;
-
-    }
-
-
-    if (
-        !Number.isFinite(amount) ||
-        amount <= 0
-    ) {
-
-        alert(
-            "कृपया योग्य खर्चाची रक्कम भरा."
-        );
-
-        document
-            .getElementById(
-                "expenseAmount"
-            )
-            ?.focus();
-
-        return;
-
-    }
-
+    /* Validation */
 
     if (!category) {
 
@@ -958,162 +570,75 @@ function saveExpense(
             "कृपया खर्चाचा प्रकार निवडा."
         );
 
-        document
-            .getElementById(
-                "expenseCategory"
-            )
-            ?.focus();
-
         return;
-
     }
 
 
-    if (!accountId) {
+    if (!date) {
 
         alert(
-            "कृपया कोणत्या खात्यातून खर्च झाला ते निवडा."
+            "कृपया तारीख निवडा."
         );
-
-        document
-            .getElementById(
-                "expenseAccount"
-            )
-            ?.focus();
 
         return;
-
-    }
-
-
-
-    /* =====================================================
-       CHECK ACCOUNT
-    ===================================================== */
-
-    const accounts =
-        typeof getAccounts ===
-        "function"
-            ? getAccounts()
-            : [];
-
-
-    const account =
-        accounts.find(
-            item =>
-                String(
-                    item.id
-                ) ===
-                String(
-                    accountId
-                )
-        );
-
-
-    if (!account) {
-
-        alert(
-            "निवडलेले खाते सापडले नाही."
-        );
-
-        loadExpenseAccounts();
-
-        return;
-
-    }
-
-
-
-    /* =====================================================
-       CHECK ACCOUNT BALANCE
-    ===================================================== */
-
-    let accountBalance =
-        0;
-
-
-    if (
-        typeof getAccountBalance ===
-        "function"
-    ) {
-
-        accountBalance =
-            Number(
-                getAccountBalance(
-                    accountId
-                )
-            ) || 0;
-
     }
 
 
     if (
-        amount >
-        accountBalance
+        !amount ||
+        amount <= 0
     ) {
 
-        const confirmNegative =
-            confirm(
+        alert(
+            "कृपया योग्य रक्कम टाका."
+        );
 
-                account.name +
-                " मध्ये उपलब्ध शिल्लक " +
-                formatExpenseMoney(
-                    accountBalance
-                ) +
-                " आहे.\n\n" +
-
-                "या खर्चानंतर खात्याची शिल्लक negative होऊ शकते.\n\n" +
-
-                "तुम्हाला तरीही हा खर्च नोंदवायचा आहे का?"
-
-            );
-
-
-        if (!confirmNegative) {
-
-            return;
-
-        }
-
+        return;
     }
 
 
+    /*
+       Description is recommended.
+       Empty description is allowed
+       for backward compatibility.
+    */
 
-    /* =====================================================
-       CREATE TRANSACTION
-    ===================================================== */
 
-    const transaction = {
+    const expenses =
+        getExpenses();
+
+
+    const expense = {
 
         id:
-            generateExpenseId(),
+            "EXP-" +
+            Date.now() +
+            "-" +
+            Math.random()
+                .toString(36)
+                .substring(2, 8),
 
-        type:
-            "expense",
+        date: date,
 
-        date:
-            date,
+        category: category,
 
-        amount:
-            amount,
+        categoryId: category,
 
-        /*
-           IMPORTANT:
-           Category name save करतो.
+        categoryName:
+            getCategoryName(
+                category
+            ),
 
-           Monthly Budget मध्ये
-           actual expense याच नावावर
-           calculate होईल.
-        */
+        amount: amount,
 
-        category:
-            category,
-
-        accountId:
-            accountId,
+        description:
+            description,
 
         paymentMode:
             paymentMode,
+
+        account:
+            account,
 
         note:
             note,
@@ -1124,1234 +649,1281 @@ function saveExpense(
     };
 
 
-
-    /* =====================================================
-       GET TRANSACTIONS
-    ===================================================== */
-
-    let transactions =
-        [];
-
-
-    if (
-        typeof getTransactions ===
-        "function"
-    ) {
-
-        const existing =
-            getTransactions();
-
-
-        transactions =
-            Array.isArray(
-                existing
-            )
-                ? existing
-                : [];
-
-    }
-
-    else {
-
-        transactions =
-            getExpenseTransactionsFallback();
-
-    }
-
-
-
-    /* =====================================================
-       ADD
-    ===================================================== */
-
-    transactions.push(
-        transaction
+    expenses.push(
+        expense
     );
 
 
-
-    /* =====================================================
-       SAVE
-    ===================================================== */
-
-    let saved =
-        false;
-
-
-    if (
-        typeof saveTransactions ===
-        "function"
-    ) {
-
-        saved =
-            saveTransactions(
-                transactions
-            );
-
-    }
-
-    else {
-
-        saved =
-            saveExpenseTransactionsFallback(
-                transactions
-            );
-
-    }
-
-
-    if (!saved) {
-
-        alert(
-            "खर्च save करताना समस्या आली."
-        );
-
-        return;
-
-    }
-
-
-
-    /* =====================================================
-       LAST SAVED
-    ===================================================== */
-
-    saveLastExpenseSession(
-        transaction
+    saveExpenses(
+        expenses
     );
 
-
-    showLastExpenseSaved(
-        transaction
-    );
-
-
-
-    /* =====================================================
-       RESET
-    ===================================================== */
-
-    resetExpenseForm();
-
-
-
-    /* =====================================================
-       UPDATE
-    ===================================================== */
-
-    updateExpenseSummary();
-
-
-    loadExpenseAccounts();
-
-
-    /*
-       Dashboard असल्यास update
-    */
-
-    if (
-        typeof updateDashboard ===
-        "function"
-    ) {
-
-        updateDashboard();
-
-    }
-
-
-
-    /*
-       Transaction page update
-    */
-
-    dispatchTransactionsUpdated();
-
-
-
-    /*
-       Success message
-    */
-
-    showExpenseSuccess();
-
-
-
-    /*
-       Alert शेवटी
-       जेणेकरून data आधी save होईल.
-    */
 
     alert(
-        "खर्च यशस्वीपणे नोंदवला आहे."
+        "खर्च यशस्वीपणे सेव्ह झाला."
     );
 
-}
-
-
-
-/* =========================================================
-   GENERATE EXPENSE ID
-========================================================= */
-
-function generateExpenseId() {
-
-    return (
-
-        "EXP-" +
-
-        Date.now() +
-
-        "-" +
-
-        Math.random()
-            .toString(36)
-            .substring(
-                2,
-                8
-            )
-
-    );
-
-}
-
-
-
-/* =========================================================
-   RESET FORM
-========================================================= */
-
-function resetExpenseForm() {
 
     const form =
         document.getElementById(
             "expenseForm"
         );
 
+    if (form) {
 
-    if (!form) {
-
-        return;
-
+        form.reset();
     }
 
 
-    form.reset();
+    if (dateElement) {
 
-
-    /*
-       Date पुन्हा आजची
-    */
-
-    setDefaultExpenseDate();
-
-
-    /*
-       Note counter
-    */
-
-    const counter =
-        document.getElementById(
-            "expenseNoteCounter"
-        );
-
-
-    if (counter) {
-
-        counter.textContent =
-            "0 / 300";
-
+        dateElement.value =
+            getTodayDate();
     }
 
 
-    /*
-       Category selection reset
-    */
-
-    const category =
-        document.getElementById(
-            "expenseCategory"
-        );
-
-
-    if (category) {
-
-        category.value =
-            "";
-
-    }
-
-
-    /*
-       Account reset
-    */
-
-    const account =
-        document.getElementById(
-            "expenseAccount"
-        );
-
-
-    if (account) {
-
-        account.value =
-            "";
-
-    }
-
-
-    /*
-       Payment mode Cash
-    */
-
-    const paymentMode =
-        document.getElementById(
-            "expensePaymentMode"
-        );
-
-
-    if (paymentMode) {
-
-        paymentMode.value =
-            "Cash";
-
-    }
-
+    refreshExpenseUI();
 }
 
 
-
 /* =========================================================
-   LAST SAVED EXPENSE
-========================================================= */
+   MONTHLY CATEGORY EXPENSE
+   ========================================================= */
 
-function showLastExpenseSaved(
-    transaction
+function getCategoryExpenseTotal(
+    categoryId,
+    month
 ) {
 
-    const box =
-        document.getElementById(
-            "lastExpenseSaved"
-        );
+    const targetMonth =
+        month || getCurrentMonth();
 
 
-    const text =
-        document.getElementById(
-            "lastExpenseSavedText"
-        );
-
-
-    if (
-        !box ||
-        !text
-    ) {
-
-        return;
-
-    }
-
-
-    const accounts =
-        typeof getAccounts ===
-        "function"
-            ? getAccounts()
-            : [];
-
-
-    const account =
-        accounts.find(
-            item =>
-                String(
-                    item.id
-                ) ===
-                String(
-                    transaction.accountId
-                )
-        );
-
-
-    const accountName =
-        account
-            ? account.name
-            : "";
-
-
-    text.textContent =
-
-        formatExpenseMoney(
-            transaction.amount
-        ) +
-
-        " • " +
-
-        transaction.category +
-
-        (
-            accountName
-                ? " • " +
-                  accountName
-                : ""
-        );
-
-
-    box.style.display =
-        "flex";
-
-}
-
-
-
-/* =========================================================
-   SAVE LAST EXPENSE SESSION
-========================================================= */
-
-function saveLastExpenseSession(
-    transaction
-) {
-
-    try {
-
-        sessionStorage.setItem(
-
-            "rdkh_last_expense",
-
-            JSON.stringify(
-                transaction
-            )
-
-        );
-
-    }
-
-    catch {
-
-        /* Ignore */
-
-    }
-
-}
-
-
-
-/* =========================================================
-   LOAD LAST EXPENSE SESSION
-========================================================= */
-
-function loadLastExpenseSaved() {
-
-    try {
-
-        const stored =
-            sessionStorage.getItem(
-                "rdkh_last_expense"
-            );
-
-
-        if (!stored) {
-
-            return;
-
-        }
-
-
-        const transaction =
-            JSON.parse(
-                stored
-            );
-
-
-        if (
-            transaction &&
-            transaction.amount
-        ) {
-
-            showLastExpenseSaved(
-                transaction
-            );
-
-        }
-
-    }
-
-    catch {
-
-        /* Ignore */
-
-    }
-
-}
-
-
-
-/* =========================================================
-   NOTE COUNTER
-========================================================= */
-
-function setupExpenseNoteCounter() {
-
-    const note =
-        document.getElementById(
-            "expenseNote"
-        );
-
-
-    const counter =
-        document.getElementById(
-            "expenseNoteCounter"
-        );
-
-
-    if (
-        !note ||
-        !counter
-    ) {
-
-        return;
-
-    }
-
-
-    function updateCounter() {
-
-        counter.textContent =
-            note.value.length +
-            " / 300";
-
-    }
-
-
-    note.addEventListener(
-        "input",
-        updateCounter
-    );
-
-
-    updateCounter();
-
-}
-
-
-
-/* =========================================================
-   PAYMENT MODE
-========================================================= */
-
-function setupExpensePaymentMode() {
-
-    const paymentMode =
-        document.getElementById(
-            "expensePaymentMode"
-        );
-
-
-    if (!paymentMode) {
-
-        return;
-
-    }
-
-
-    if (!paymentMode.value) {
-
-        paymentMode.value =
-            "Cash";
-
-    }
-
-}
-
-
-
-/* =========================================================
-   GET ALL EXPENSE TRANSACTIONS
-========================================================= */
-
-function getAllExpenseTransactions() {
-
-    let transactions = [];
-
-
-    if (
-        typeof getTransactions ===
-        "function"
-    ) {
-
-        const result =
-            getTransactions();
-
-
-        if (
-            Array.isArray(result)
-        ) {
-
-            transactions =
-                result;
-
-        }
-
-    }
-
-    else {
-
-        transactions =
-            getExpenseTransactionsFallback();
-
-    }
-
-
-    return transactions.filter(
-        transaction =>
-            transaction &&
-            transaction.type ===
-            "expense"
-    );
-
-}
-
-
-
-/* =========================================================
-   EXPENSES BY DATE
-========================================================= */
-
-function getExpensesByDate(
-    date
-) {
-
-    return getAllExpenseTransactions()
-        .filter(
-            transaction =>
-                normalizeExpenseDate(
-                    transaction.date
-                ) ===
-                date
-        )
+    return getExpenses()
         .reduce(
             (
                 total,
-                transaction
+                expense
             ) => {
+
+                const normalizedCategory =
+                    normalizeExpenseCategory(
+                        expense
+                    );
+
+
+                if (
+                    normalizedCategory !==
+                    categoryId
+                ) {
+
+                    return total;
+                }
+
+
+                const expenseDate =
+                    String(
+                        expense.date || ""
+                    );
+
+
+                if (
+                    !expenseDate.startsWith(
+                        targetMonth
+                    )
+                ) {
+
+                    return total;
+                }
+
 
                 return (
                     total +
-                    (
-                        Number(
-                            transaction.amount
-                        ) || 0
+                    Number(
+                        expense.amount || 0
                     )
                 );
 
             },
             0
         );
-
 }
 
 
-
 /* =========================================================
-   EXPENSES BY MONTH
-========================================================= */
+   CURRENT MONTH CATEGORY TRANSACTIONS
+   ========================================================= */
 
-function getExpensesByMonth(
-    month
+function getCurrentMonthCategoryTransactions(
+    categoryId
 ) {
 
-    return getAllExpenseTransactions()
-        .filter(
-            transaction => {
+    const currentMonth =
+        getCurrentMonth();
 
-                const date =
-                    normalizeExpenseDate(
-                        transaction.date
+
+    return getExpenses()
+        .filter(
+            expense => {
+
+                const normalizedCategory =
+                    normalizeExpenseCategory(
+                        expense
                     );
 
 
-                return date.startsWith(
-                    month
+                const expenseDate =
+                    String(
+                        expense.date || ""
+                    );
+
+
+                return (
+                    normalizedCategory ===
+                    categoryId
+                ) &&
+                expenseDate.startsWith(
+                    currentMonth
                 );
 
             }
         )
+        .sort(
+            (
+                a,
+                b
+            ) => {
+
+                const dateCompare =
+                    new Date(
+                        b.date || 0
+                    ) -
+                    new Date(
+                        a.date || 0
+                    );
+
+
+                if (
+                    dateCompare !== 0
+                ) {
+
+                    return dateCompare;
+                }
+
+
+                return (
+                    String(
+                        b.createdAt || ""
+                    ).localeCompare(
+                        String(
+                            a.createdAt || ""
+                        )
+                    )
+                );
+            }
+        );
+}
+
+
+/* =========================================================
+   MONTHLY TOTAL
+   ========================================================= */
+
+function getMonthlyExpenseTotal(
+    month
+) {
+
+    const targetMonth =
+        month || getCurrentMonth();
+
+
+    return getExpenses()
         .reduce(
             (
                 total,
-                transaction
+                expense
             ) => {
 
-                return (
-                    total +
-                    (
-                        Number(
-                            transaction.amount
-                        ) || 0
+                const expenseDate =
+                    String(
+                        expense.date || ""
+                    );
+
+
+                if (
+                    expenseDate.startsWith(
+                        targetMonth
                     )
-                );
+                ) {
+
+                    return (
+                        total +
+                        Number(
+                            expense.amount ||
+                            0
+                        )
+                    );
+                }
+
+
+                return total;
 
             },
             0
         );
-
 }
 
 
-
 /* =========================================================
-   NORMALIZE DATE
-========================================================= */
+   CATEGORY SUMMARY
+   ========================================================= */
 
-function normalizeExpenseDate(
-    date
+function getExpenseCategorySummary(
+    month
 ) {
 
-    if (!date) {
-
-        return "";
-
-    }
+    const targetMonth =
+        month || getCurrentMonth();
 
 
-    const value =
-        String(
-            date
+    return EXPENSE_CATEGORIES.map(
+        category => {
+
+            const transactions =
+                getExpenses()
+                    .filter(
+                        expense => {
+
+                            return (
+                                normalizeExpenseCategory(
+                                    expense
+                                ) ===
+                                category.id
+                            ) &&
+                            String(
+                                expense.date || ""
+                            ).startsWith(
+                                targetMonth
+                            );
+                        }
+                    );
+
+
+            const total =
+                transactions.reduce(
+                    (
+                        sum,
+                        transaction
+                    ) => {
+
+                        return (
+                            sum +
+                            Number(
+                                transaction.amount ||
+                                0
+                            )
+                        );
+
+                    },
+                    0
+                );
+
+
+            return {
+
+                id:
+                    category.id,
+
+                name:
+                    category.name,
+
+                icon:
+                    category.icon,
+
+                frequency:
+                    category.frequency,
+
+                amount:
+                    total,
+
+                transactionCount:
+                    transactions.length
+
+            };
+
+        }
+    );
+}
+
+
+/* =========================================================
+   RENDER EXPENSE CATEGORY CARDS
+   ========================================================= */
+
+function updateExpenseDashboard() {
+
+    const monthlyTotal =
+        getMonthlyExpenseTotal();
+
+
+    const totalElement =
+        document.getElementById(
+            "monthlyExpenseTotal"
         );
 
 
-    /*
-       YYYY-MM-DD
-    */
+    if (totalElement) {
 
-    if (
-        /^\d{4}-\d{2}-\d{2}$/
-            .test(
-                value
-            )
-    ) {
-
-        return value;
-
+        totalElement.textContent =
+            formatMoney(
+                monthlyTotal
+            );
     }
 
 
-    const parsed =
+    const container =
+        document.getElementById(
+            "expenseCategorySummary"
+        );
+
+
+    if (!container) {
+        return;
+    }
+
+
+    const summary =
+        getExpenseCategorySummary();
+
+
+    container.innerHTML =
+        "";
+
+
+    summary.forEach(
+        item => {
+
+            container.innerHTML += `
+
+                <div
+                    class="expense-category-card"
+                    onclick="
+                        openCategoryTransactions(
+                            '${item.id}'
+                        )
+                    "
+                    role="button"
+                    tabindex="0"
+                >
+
+                    <div
+                        class="expense-category-icon">
+
+                        ${item.icon}
+
+                    </div>
+
+
+                    <div
+                        class="expense-category-info">
+
+                        <div
+                            class="expense-category-name">
+
+                            ${escapeHTML(
+                                item.name
+                            )}
+
+                        </div>
+
+
+                        <div
+                            class="expense-category-amount">
+
+                            ${formatMoney(
+                                item.amount
+                            )}
+
+                        </div>
+
+
+                        <div
+                            class="expense-category-count">
+
+                            ${item.transactionCount}
+                            transaction
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            `;
+        }
+    );
+}
+
+
+/* =========================================================
+   OPEN CATEGORY TRANSACTIONS
+   ========================================================= */
+
+function openCategoryTransactions(
+    categoryId
+) {
+
+    const category =
+        getCategoryById(
+            categoryId
+        );
+
+
+    if (!category) {
+        return;
+    }
+
+
+    const transactions =
+        getCurrentMonthCategoryTransactions(
+            categoryId
+        );
+
+
+    const modal =
+        document.getElementById(
+            "categoryTransactionModal"
+        );
+
+
+    if (!modal) {
+
+        console.warn(
+            "categoryTransactionModal not found."
+        );
+
+        return;
+    }
+
+
+    const titleElement =
+        document.getElementById(
+            "categoryTransactionTitle"
+        );
+
+
+    const monthElement =
+        document.getElementById(
+            "categoryTransactionMonth"
+        );
+
+
+    const tbody =
+        document.getElementById(
+            "categoryTransactionBody"
+        );
+
+
+    const totalElement =
+        document.getElementById(
+            "categoryTransactionTotal"
+        );
+
+
+    const countElement =
+        document.getElementById(
+            "categoryTransactionCount"
+        );
+
+
+    if (titleElement) {
+
+        titleElement.textContent =
+            `${category.icon} ${category.name}`;
+    }
+
+
+    if (monthElement) {
+
+        monthElement.textContent =
+            getCurrentMonthDisplayName();
+    }
+
+
+    let total =
+        0;
+
+
+    if (tbody) {
+
+        tbody.innerHTML =
+            "";
+    }
+
+
+    if (
+        transactions.length ===
+        0
+    ) {
+
+        if (tbody) {
+
+            tbody.innerHTML = `
+
+                <tr>
+
+                    <td
+                        colspan="7"
+                        class="no-category-transactions">
+
+                        या महिन्यात या category मध्ये
+                        कोणताही खर्च झालेला नाही.
+
+                    </td>
+
+                </tr>
+
+            `;
+        }
+
+    } else {
+
+        transactions.forEach(
+            transaction => {
+
+                const amount =
+                    Number(
+                        transaction.amount ||
+                        0
+                    );
+
+
+                total +=
+                    amount;
+
+
+                const description =
+                    transaction.description ||
+                    transaction.desc ||
+                    transaction.details ||
+                    "-";
+
+
+                const note =
+                    transaction.note ||
+                    "-";
+
+
+                const paymentMode =
+                    transaction.paymentMode ||
+                    "-";
+
+
+                const account =
+                    transaction.account ||
+                    "-";
+
+
+                if (tbody) {
+
+                    tbody.innerHTML += `
+
+                        <tr>
+
+                            <td>
+                                ${formatDate(
+                                    transaction.date
+                                )}
+                            </td>
+
+
+                            <td
+                                class="transaction-description">
+
+                                ${escapeHTML(
+                                    description
+                                )}
+
+                            </td>
+
+
+                            <td
+                                class="transaction-amount">
+
+                                ${formatMoney(
+                                    amount
+                                )}
+
+                            </td>
+
+
+                            <td>
+                                ${escapeHTML(
+                                    paymentMode
+                                )}
+                            </td>
+
+
+                            <td>
+                                ${escapeHTML(
+                                    account
+                                )}
+                            </td>
+
+
+                            <td>
+                                ${escapeHTML(
+                                    note
+                                )}
+                            </td>
+
+
+                            <td>
+
+                                <button
+                                    type="button"
+                                    class="modal-delete-btn"
+                                    onclick="
+                                        deleteCategoryTransaction(
+                                            '${escapeHTMLAttribute(
+                                                transaction.id
+                                            )}',
+                                            '${categoryId}'
+                                        )
+                                    "
+                                >
+
+                                    🗑️
+
+                                </button>
+
+                            </td>
+
+                        </tr>
+
+                    `;
+                }
+
+            }
+        );
+    }
+
+
+    if (totalElement) {
+
+        totalElement.textContent =
+            formatMoney(
+                total
+            );
+    }
+
+
+    if (countElement) {
+
+        countElement.textContent =
+            `${transactions.length} Transactions`;
+    }
+
+
+    modal.classList.add(
+        "show"
+    );
+
+
+    document.body.classList.add(
+        "modal-open"
+    );
+}
+
+
+/* =========================================================
+   DELETE CATEGORY TRANSACTION
+   ========================================================= */
+
+function deleteCategoryTransaction(
+    transactionId,
+    categoryId
+) {
+
+    if (
+        !confirm(
+            "हा transaction delete करायचा आहे का?"
+        )
+    ) {
+
+        return;
+    }
+
+
+    const expenses =
+        getExpenses();
+
+
+    const updated =
+        expenses.filter(
+            expense =>
+                String(
+                    expense.id
+                ) !==
+                String(
+                    transactionId
+                )
+        );
+
+
+    saveExpenses(
+        updated
+    );
+
+
+    /*
+       Reopen modal so totals and list
+       immediately refresh.
+    */
+
+    openCategoryTransactions(
+        categoryId
+    );
+
+
+    refreshExpenseUI();
+}
+
+
+/* =========================================================
+   CLOSE CATEGORY MODAL
+   ========================================================= */
+
+function closeCategoryTransactions() {
+
+    const modal =
+        document.getElementById(
+            "categoryTransactionModal"
+        );
+
+
+    if (modal) {
+
+        modal.classList.remove(
+            "show"
+        );
+    }
+
+
+    document.body.classList.remove(
+        "modal-open"
+    );
+}
+
+
+/* =========================================================
+   CLICK OUTSIDE MODAL
+   ========================================================= */
+
+document.addEventListener(
+    "click",
+    function(event) {
+
+        const modal =
+            document.getElementById(
+                "categoryTransactionModal"
+            );
+
+
+        if (
+            modal &&
+            event.target === modal
+        ) {
+
+            closeCategoryTransactions();
+        }
+
+    }
+);
+
+
+/* =========================================================
+   ESC KEY
+   ========================================================= */
+
+document.addEventListener(
+    "keydown",
+    function(event) {
+
+        if (
+            event.key ===
+            "Escape"
+        ) {
+
+            closeCategoryTransactions();
+        }
+
+    }
+);
+
+
+/* =========================================================
+   EXPENSE LIST
+   ========================================================= */
+
+function renderExpenseList() {
+
+    const tbody =
+        document.getElementById(
+            "expenseTableBody"
+        );
+
+
+    if (!tbody) {
+        return;
+    }
+
+
+    const expenses =
+        getExpenses();
+
+
+    tbody.innerHTML =
+        "";
+
+
+    const sorted =
+        [...expenses].sort(
+            (
+                a,
+                b
+            ) => {
+
+                return (
+                    new Date(
+                        b.date || 0
+                    ) -
+                    new Date(
+                        a.date || 0
+                    )
+                );
+            }
+        );
+
+
+    if (
+        sorted.length ===
+        0
+    ) {
+
+        tbody.innerHTML = `
+
+            <tr>
+
+                <td
+                    colspan="9"
+                    style="
+                        text-align:center;
+                        padding:25px;
+                    ">
+
+                    अजून कोणताही खर्च
+                    नोंदवलेला नाही.
+
+                </td>
+
+            </tr>
+
+        `;
+
+        return;
+    }
+
+
+    sorted.forEach(
+        (
+            expense,
+            index
+        ) => {
+
+            const categoryId =
+                normalizeExpenseCategory(
+                    expense
+                );
+
+
+            const description =
+                expense.description ||
+                expense.desc ||
+                expense.details ||
+                "-";
+
+
+            const tr =
+                document.createElement(
+                    "tr"
+                );
+
+
+            tr.innerHTML = `
+
+                <td>
+                    ${index + 1}
+                </td>
+
+                <td>
+                    ${formatDate(
+                        expense.date
+                    )}
+                </td>
+
+                <td>
+                    ${getCategoryIcon(
+                        categoryId
+                    )}
+                    ${escapeHTML(
+                        getCategoryName(
+                            categoryId
+                        )
+                    )}
+                </td>
+
+                <td>
+                    ${escapeHTML(
+                        description
+                    )}
+                </td>
+
+                <td>
+                    ${formatMoney(
+                        expense.amount
+                    )}
+                </td>
+
+                <td>
+                    ${escapeHTML(
+                        expense.paymentMode ||
+                        "-"
+                    )}
+                </td>
+
+                <td>
+                    ${escapeHTML(
+                        expense.account ||
+                        "-"
+                    )}
+                </td>
+
+                <td>
+                    ${escapeHTML(
+                        expense.note ||
+                        "-"
+                    )}
+                </td>
+
+                <td>
+
+                    <button
+                        type="button"
+                        class="expense-delete-btn"
+                        onclick="
+                            deleteExpense(
+                                '${escapeHTMLAttribute(
+                                    expense.id
+                                )}'
+                            )
+                        "
+                    >
+
+                        🗑️
+
+                    </button>
+
+                </td>
+
+            `;
+
+
+            tbody.appendChild(
+                tr
+            );
+
+        }
+    );
+}
+
+
+/* =========================================================
+   DELETE EXPENSE
+   ========================================================= */
+
+function deleteExpense(
+    id
+) {
+
+    if (
+        !confirm(
+            "हा खर्च delete करायचा आहे का?"
+        )
+    ) {
+
+        return;
+    }
+
+
+    const expenses =
+        getExpenses();
+
+
+    const updated =
+        expenses.filter(
+            expense =>
+                String(
+                    expense.id
+                ) !==
+                String(
+                    id
+                )
+        );
+
+
+    saveExpenses(
+        updated
+    );
+
+
+    refreshExpenseUI();
+}
+
+
+/* =========================================================
+   REFRESH ALL EXPENSE UI
+   ========================================================= */
+
+function refreshExpenseUI() {
+
+    renderExpenseList();
+
+    updateExpenseDashboard();
+
+
+    /*
+       Automatically refresh Budget
+    */
+
+    if (
+        typeof window.refreshMonthlyBudget ===
+        "function"
+    ) {
+
+        window.refreshMonthlyBudget();
+    }
+
+
+    /*
+       Automatically refresh Dashboard
+    */
+
+    if (
+        typeof window.updateDashboard ===
+        "function"
+    ) {
+
+        window.updateDashboard();
+    }
+}
+
+
+/* =========================================================
+   DATE FORMAT
+   ========================================================= */
+
+function formatDate(
+    dateString
+) {
+
+    if (!dateString) {
+        return "-";
+    }
+
+
+    const date =
         new Date(
-            date
+            dateString +
+            "T00:00:00"
         );
 
 
     if (
         isNaN(
-            parsed.getTime()
+            date.getTime()
         )
     ) {
 
-        return "";
-
+        return dateString;
     }
 
 
-    return (
-
-        parsed.getFullYear() +
-
-        "-" +
-
-        String(
-            parsed.getMonth() + 1
-        ).padStart(
-            2,
-            "0"
-        ) +
-
-        "-" +
-
-        String(
-            parsed.getDate()
-        ).padStart(
-            2,
-            "0"
-        )
-
+    return date.toLocaleDateString(
+        "mr-IN",
+        {
+            day: "2-digit",
+            month: "2-digit",
+            year: "numeric"
+        }
     );
-
 }
 
 
-
 /* =========================================================
-   GET TODAY STRING
-========================================================= */
+   CURRENT MONTH DISPLAY
+   ========================================================= */
 
-function getTodayString() {
+function getCurrentMonthDisplayName() {
 
-    const now =
-        new Date();
-
-
-    return (
-
-        now.getFullYear() +
-
-        "-" +
-
-        String(
-            now.getMonth() + 1
-        ).padStart(
-            2,
-            "0"
-        ) +
-
-        "-" +
-
-        String(
-            now.getDate()
-        ).padStart(
-            2,
-            "0"
-        )
-
-    );
-
+    return new Date()
+        .toLocaleDateString(
+            "mr-IN",
+            {
+                month: "long",
+                year: "numeric"
+            }
+        );
 }
 
 
-
 /* =========================================================
-   FORMAT MONEY
-========================================================= */
+   MONEY FORMAT
+   ========================================================= */
 
-function formatExpenseMoney(
+function formatMoney(
     amount
 ) {
 
-    const value =
-        Number(
-            amount
-        ) || 0;
-
-
-    /*
-       app.js मधील formatMoney()
-       available असल्यास ते वापरा.
-    */
-
-    if (
-        typeof formatMoney ===
-        "function"
-    ) {
-
-        return formatMoney(
-            value
-        );
-
-    }
-
-
     return (
-
         "₹" +
-
-        value.toLocaleString(
-            "en-IN",
-            {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2
-            }
+        Number(
+            amount || 0
+        ).toLocaleString(
+            "en-IN"
         )
-
     );
-
 }
 
 
-
 /* =========================================================
-   SUCCESS MESSAGE
-========================================================= */
-
-function showExpenseSuccess() {
-
-    /*
-       HTML मध्ये success element असेल तर वापरा.
-    */
-
-    const element =
-        document.getElementById(
-            "expenseSuccessMessage"
-        );
-
-
-    if (!element) {
-
-        return;
-
-    }
-
-
-    element.style.display =
-        "block";
-
-
-    element.innerHTML = `
-
-        <i class="fa-solid fa-circle-check"></i>
-
-        खर्च यशस्वीपणे नोंदवला आहे.
-
-    `;
-
-
-    setTimeout(
-        function () {
-
-            element.style.display =
-                "none";
-
-        },
-        3000
-    );
-
-}
-
-
-
-/* =========================================================
-   TRANSACTION UPDATED EVENT
-========================================================= */
-
-function dispatchTransactionsUpdated() {
-
-    try {
-
-        window.dispatchEvent(
-            new CustomEvent(
-                "rdkhTransactionsUpdated"
-            )
-        );
-
-    }
-
-    catch {
-
-        /*
-           जुन्या browser साठी fallback
-        */
-
-        try {
-
-            const event =
-                document.createEvent(
-                    "Event"
-                );
-
-
-            event.initEvent(
-                "rdkhTransactionsUpdated",
-                true,
-                true
-            );
-
-
-            window.dispatchEvent(
-                event
-            );
-
-        }
-
-        catch {
-
-            /* Ignore */
-
-        }
-
-    }
-
-}
-
-
-
-/* =========================================================
-   FALLBACK STORAGE
-========================================================= */
-
-function getExpenseTransactionsFallback() {
-
-    const possibleKeys = [
-
-        "rdkh_transactions",
-
-        "rdkh_transaction",
-
-        "transactions",
-
-        "income_expense_transactions"
-
-    ];
-
-
-    for (
-        const key of possibleKeys
-    ) {
-
-        try {
-
-            const stored =
-                localStorage.getItem(
-                    key
-                );
-
-
-            if (!stored) {
-
-                continue;
-
-            }
-
-
-            const parsed =
-                JSON.parse(
-                    stored
-                );
-
-
-            if (
-                Array.isArray(
-                    parsed
-                )
-            ) {
-
-                return parsed;
-
-            }
-
-        }
-
-        catch {
-
-            continue;
-
-        }
-
-    }
-
-
-    return [];
-
-}
-
-
-
-/* =========================================================
-   FALLBACK SAVE
-========================================================= */
-
-function saveExpenseTransactionsFallback(
-    transactions
+   HTML ESCAPE
+   ========================================================= */
+
+function escapeHTML(
+    value
 ) {
 
-    try {
-
-        localStorage.setItem(
-
-            "rdkh_transactions",
-
-            JSON.stringify(
-                transactions
-            )
-
+    return String(
+        value ?? ""
+    )
+        .replace(
+            /&/g,
+            "&amp;"
+        )
+        .replace(
+            /</g,
+            "&lt;"
+        )
+        .replace(
+            />/g,
+            "&gt;"
+        )
+        .replace(
+            /"/g,
+            "&quot;"
+        )
+        .replace(
+            /'/g,
+            "&#039;"
         );
-
-
-        return true;
-
-    }
-
-    catch {
-
-        return false;
-
-    }
-
 }
 
 
+function escapeHTMLAttribute(
+    value
+) {
 
-/* =========================================================
-   STORAGE SYNC
-========================================================= */
-
-window.addEventListener(
-    "storage",
-    function (event) {
-
-        /*
-           Accounts बदलले असल्यास
-        */
-
-        if (
-            !event.key ||
-            event.key.includes(
-                "account"
-            )
-        ) {
-
-            loadExpenseAccounts();
-
-        }
-
-
-        /*
-           Transactions बदलले असल्यास
-        */
-
-        updateExpenseSummary();
-
-
-        /*
-           Categories बदलले असल्यास
-        */
-
-        if (
-            !event.key ||
-            event.key ===
-            "rdkh_budget_categories"
-        ) {
-
-            loadExpenseCategories();
-
-        }
-
-    }
-);
-
-
-
-/* =========================================================
-   SAME PAGE TRANSACTION UPDATE
-========================================================= */
-
-window.addEventListener(
-    "rdkhTransactionsUpdated",
-    function () {
-
-        updateExpenseSummary();
-
-        loadExpenseAccounts();
-
-    }
-);
-
-
-
-/* =========================================================
-   BUDGET CATEGORY STORAGE UPDATE
-========================================================= */
-
-window.addEventListener(
-    "storage",
-    function (event) {
-
-        if (
-            event.key ===
-            "rdkh_budget_categories"
-        ) {
-
-            loadExpenseCategories();
-
-        }
-
-    }
-);
-
-
-
-/* =========================================================
-   NAVIGATION
-========================================================= */
-
-function goHome() {
-
-    window.location.href =
-        "index.html";
-
-}
-
-
-function goToIncome() {
-
-    window.location.href =
-        "income.html";
-
-}
-
-
-function goToExpense() {
-
-    window.location.href =
-        "expense.html";
-
-}
-
-
-function goToTransactions() {
-
-    window.location.href =
-        "transactions.html";
-
-}
-
-
-function goToReports() {
-
-    window.location.href =
-        "reports.html";
-
-}
-
-
-function goToSettings() {
-
-    window.location.href =
-        "settings.html";
-
-}
-
-
-
-/* =========================================================
-   QUICK ADD
-========================================================= */
-
-function openQuickAdd() {
-
-    const menu =
-        document.getElementById(
-            "quickAddMenu"
+    return String(
+        value ?? ""
+    )
+        .replace(
+            /\\/g,
+            "\\\\"
+        )
+        .replace(
+            /'/g,
+            "\\'"
         );
-
-
-    if (!menu) {
-
-        return;
-
-    }
-
-
-    if (
-        menu.style.display ===
-        "none" ||
-        !menu.style.display
-    ) {
-
-        menu.style.display =
-            "block";
-
-    }
-
-    else {
-
-        menu.style.display =
-            "none";
-
-    }
-
 }
+
+
+/* =========================================================
+   INITIALIZATION
+   ========================================================= */
+
+document.addEventListener(
+    "DOMContentLoaded",
+    function() {
+
+        initializeExpenseForm();
+
+        renderExpenseList();
+
+        updateExpenseDashboard();
+
+    }
+);
+
+
+/* =========================================================
+   GLOBAL EXPORTS
+   ========================================================= */
+
+window.EXPENSE_CATEGORIES =
+    EXPENSE_CATEGORIES;
+
+window.getExpenses =
+    getExpenses;
+
+window.saveExpenses =
+    saveExpenses;
+
+window.getCategoryById =
+    getCategoryById;
+
+window.getCategoryName =
+    getCategoryName;
+
+window.getCategoryIcon =
+    getCategoryIcon;
+
+window.getCategoryExpenseTotal =
+    getCategoryExpenseTotal;
+
+window.getMonthlyExpenseTotal =
+    getMonthlyExpenseTotal;
+
+window.getExpenseCategorySummary =
+    getExpenseCategorySummary;
+
+window.getCurrentMonthCategoryTransactions =
+    getCurrentMonthCategoryTransactions;
+
+window.openCategoryTransactions =
+    openCategoryTransactions;
+
+window.closeCategoryTransactions =
+    closeCategoryTransactions;
+
+window.deleteCategoryTransaction =
+    deleteCategoryTransaction;
+
+window.deleteExpense =
+    deleteExpense;
+
+window.refreshExpenseUI =
+    refreshExpenseUI;
+
+window.formatMoney =
+    formatMoney;
