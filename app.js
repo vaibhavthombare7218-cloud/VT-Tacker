@@ -3,7 +3,6 @@
    रोजचा जमा खर्च अहवाल
 
    CENTRAL APPLICATION SYSTEM
-   =========================================================
 
    CONNECTED MODULES:
    - index.html
@@ -16,18 +15,27 @@
    - settings.html / settings.js
    - login.html / login.js
 
-   STORAGE:
-   - rdkh_transactions
+   CENTRAL STORAGE:
+   - rdkh_transactions_v2
    - rdkh_accounts
-   - rdkh_monthly_budgets
-   - rdkh_budget_categories
+   - monthly_budgets
    - rdkh_settings
    - rdkh_login_session
+
+   IMPORTANT:
+   Budget is NOT a transaction.
+   Budget save does NOT change account balance.
+
+   Account Balance:
+   Opening Balance
+   + Income
+   - Expense
 ========================================================= */
+
 
 /* =========================================================
    AUTHENTICATION CHECK
-   ========================================================= */
+========================================================= */
 
 (function checkAuthentication() {
 
@@ -38,7 +46,9 @@
             .toLowerCase();
 
 
-    /* Login page ला protection लागू नाही */
+    /*
+       Login page ला protection लागू नाही
+    */
 
     if (
         currentPage === "" ||
@@ -49,8 +59,6 @@
 
     }
 
-
-    /* Login session तपासा */
 
     let session = null;
 
@@ -63,7 +71,9 @@
                 )
             );
 
-    } catch (error) {
+    }
+
+    catch (error) {
 
         session = null;
 
@@ -78,8 +88,6 @@
         );
 
 
-    /* Login नसेल तर Login page */
-
     if (!loggedIn) {
 
         window.location.replace(
@@ -89,29 +97,82 @@
     }
 
 })();
+
+
+
 /* =========================================================
-   STORAGE KEYS
+   CENTRAL STORAGE KEYS
 ========================================================= */
 
 const STORAGE_KEYS = {
 
+    /*
+       NEW CENTRAL TRANSACTION STORAGE
+    */
     transactions:
-        "rdkh_transactions",
+        "rdkh_transactions_v2",
 
+    /*
+       Accounts
+    */
     accounts:
         "rdkh_accounts",
 
+    /*
+       NEW MONTHLY BUDGET STORAGE
+    */
     budgets:
-        "rdkh_monthly_budgets",
+        "monthly_budgets",
 
+    /*
+       Legacy budget categories compatibility
+    */
     budgetCategories:
         "rdkh_budget_categories",
 
+    /*
+       Settings
+    */
     settings:
         "rdkh_settings",
 
+    /*
+       Login
+    */
     loginSession:
         "rdkh_login_session"
+
+};
+
+
+
+/* =========================================================
+   LEGACY STORAGE KEYS
+========================================================= */
+
+const LEGACY_STORAGE_KEYS = {
+
+    transactions: [
+
+        "rdkh_transactions",
+
+        "rdkh_transaction",
+
+        "transactions",
+
+        "income_expense_transactions",
+
+        "expense_transactions",
+
+        "income_transactions"
+
+    ],
+
+    budgets: [
+
+        "rdkh_monthly_budgets"
+
+    ]
 
 };
 
@@ -124,26 +185,29 @@ const STORAGE_KEYS = {
 const DEFAULT_ACCOUNTS = [
 
     {
-        id: "cash",
+        id: "ACC-CASH",
         name: "Cash",
-        type: "cash",
+        type: "Cash",
         openingBalance: 0,
+        note: "Cash in hand",
         createdAt: null
     },
 
     {
-        id: "bank",
-        name: "Bank",
-        type: "bank",
+        id: "ACC-BANK",
+        name: "Bank Account",
+        type: "Bank",
         openingBalance: 0,
+        note: "Main bank account",
         createdAt: null
     },
 
     {
-        id: "upi",
+        id: "ACC-UPI",
         name: "UPI",
-        type: "upi",
+        type: "UPI",
         openingBalance: 0,
+        note: "UPI balance",
         createdAt: null
     }
 
@@ -163,7 +227,9 @@ function getData(
     try {
 
         const data =
-            localStorage.getItem(key);
+            localStorage.getItem(
+                key
+            );
 
 
         if (
@@ -176,7 +242,9 @@ function getData(
         }
 
 
-        return JSON.parse(data);
+        return JSON.parse(
+            data
+        );
 
     }
 
@@ -228,11 +296,15 @@ function saveData(
 
 
 
-function removeData(key) {
+function removeData(
+    key
+) {
 
     try {
 
-        localStorage.removeItem(key);
+        localStorage.removeItem(
+            key
+        );
 
         return true;
 
@@ -254,27 +326,644 @@ function removeData(key) {
 
 
 /* =========================================================
-   TRANSACTIONS
+   TRANSACTION TYPE NORMALIZER
 ========================================================= */
 
-function getTransactions() {
+function normalizeTransactionType(
+    type
+) {
 
-    const transactions =
-        getData(
-            STORAGE_KEYS.transactions,
-            []
-        );
+    const value =
+        String(
+            type || ""
+        )
+        .trim()
+        .toLowerCase();
 
 
-    return Array.isArray(
-        transactions
-    )
-        ? transactions
-        : [];
+    if (
+        value === "income" ||
+        value === "in" ||
+        value === "credit" ||
+        value === "जमा" ||
+        value === "उत्पन्न"
+    ) {
+
+        return "income";
+
+    }
+
+
+    if (
+        value === "expense" ||
+        value === "out" ||
+        value === "debit" ||
+        value === "खर्च"
+    ) {
+
+        return "expense";
+
+    }
+
+
+    return value;
 
 }
 
 
+
+/* =========================================================
+   CATEGORY NAME MAP
+========================================================= */
+
+const CENTRAL_EXPENSE_CATEGORIES = [
+
+    {
+        id: "daily_grocery",
+        name: "दररोजचा किराणा खर्च",
+        icon: "🛒",
+        frequency: "daily"
+    },
+
+    {
+        id: "monthly_grocery",
+        name: "महिन्याचा किराणा खर्च",
+        icon: "🛍️",
+        frequency: "monthly"
+    },
+
+    {
+        id: "travel",
+        name: "प्रवास",
+        icon: "🚗",
+        frequency: "daily"
+    },
+
+    {
+        id: "shopping",
+        name: "खरेदी",
+        icon: "🛍️",
+        frequency: "monthly"
+    },
+
+    {
+        id: "outside_food",
+        name: "बाहेर जेवण",
+        icon: "🍽️",
+        frequency: "daily"
+    },
+
+    {
+        id: "electricity",
+        name: "लाईट बिल",
+        icon: "💡",
+        frequency: "monthly"
+    },
+
+    {
+        id: "medicine",
+        name: "औषधे",
+        icon: "💊",
+        frequency: "monthly"
+    },
+
+    {
+        id: "home_emi",
+        name: "घराचा EMI",
+        icon: "🏠",
+        frequency: "monthly"
+    },
+
+    {
+        id: "home_maintenance",
+        name: "घरचा मेंटेनन्स",
+        icon: "🏢",
+        frequency: "monthly"
+    },
+
+    {
+        id: "insurance",
+        name: "इन्शुरन्स पॉलिसी",
+        icon: "🛡️",
+        frequency: "yearly"
+    },
+
+    {
+        id: "other_loan",
+        name: "इतर लोन",
+        icon: "💳",
+        frequency: "monthly"
+    },
+
+    {
+        id: "mobile_bill",
+        name: "मोबाईल बिल",
+        icon: "📱",
+        frequency: "monthly"
+    },
+
+    {
+        id: "other_expense",
+        name: "इतर खर्च",
+        icon: "📦",
+        frequency: "daily"
+    },
+
+    {
+        id: "monthly_gas",
+        name: "महिन्याचा गॅस",
+        icon: "🔥",
+        frequency: "monthly"
+    },
+
+    {
+        id: "fish",
+        name: "मच्छी",
+        icon: "🐟",
+        frequency: "daily"
+    }
+
+];
+
+
+/*
+   Other modules साठी global category list
+*/
+
+if (
+    !window.EXPENSE_CATEGORIES
+) {
+
+    window.EXPENSE_CATEGORIES =
+        CENTRAL_EXPENSE_CATEGORIES;
+
+}
+
+
+
+/* =========================================================
+   GET CATEGORY NAME
+========================================================= */
+
+function getExpenseCategoryName(
+    categoryId
+) {
+
+    const category =
+        CENTRAL_EXPENSE_CATEGORIES.find(
+            item =>
+                item.id ===
+                categoryId
+        );
+
+
+    if (category) {
+
+        return category.name;
+
+    }
+
+
+    return categoryId || "";
+
+}
+
+
+
+/* =========================================================
+   NORMALIZE TRANSACTION
+========================================================= */
+
+function normalizeTransaction(
+    transaction
+) {
+
+    if (
+        !transaction ||
+        typeof transaction !== "object"
+    ) {
+
+        return null;
+
+    }
+
+
+    const type =
+        normalizeTransactionType(
+            transaction.type
+        );
+
+
+    if (
+        type !== "income" &&
+        type !== "expense"
+    ) {
+
+        return null;
+
+    }
+
+
+    let categoryId =
+        transaction.categoryId ||
+        transaction.category ||
+        "";
+
+
+    let categoryName =
+        transaction.categoryName ||
+        "";
+
+
+    /*
+       Legacy expense category object
+    */
+
+    if (
+        typeof categoryId === "object" &&
+        categoryId !== null
+    ) {
+
+        categoryName =
+            categoryId.name ||
+            categoryId.label ||
+            "";
+
+        categoryId =
+            categoryId.id ||
+            "";
+
+    }
+
+
+    if (
+        !categoryName &&
+        type === "expense"
+    ) {
+
+        categoryName =
+            getExpenseCategoryName(
+                categoryId
+            );
+
+    }
+
+
+    let accountId =
+        transaction.accountId ||
+        "";
+
+
+    /*
+       काही legacy records मध्ये
+       account field असू शकतो.
+    */
+
+    if (
+        !accountId &&
+        transaction.account
+    ) {
+
+        accountId =
+            findAccountIdByName(
+                transaction.account
+            );
+
+    }
+
+
+    const amount =
+        Number(
+            transaction.amount
+        ) || 0;
+
+
+    return {
+
+        id:
+            transaction.id ||
+            generateTransactionId(
+                type
+            ),
+
+        type:
+            type,
+
+        date:
+            normalizeDate(
+                transaction.date ||
+                transaction.transactionDate ||
+                transaction.createdAt
+            ),
+
+        category:
+            categoryId,
+
+        categoryId:
+            categoryId,
+
+        categoryName:
+            categoryName,
+
+        description:
+            transaction.description ||
+            transaction.title ||
+            "",
+
+        amount:
+            amount,
+
+        accountId:
+            accountId,
+
+        paymentMode:
+            transaction.paymentMode ||
+            transaction.mode ||
+            "",
+
+        note:
+            transaction.note ||
+            transaction.notes ||
+            "",
+
+        createdAt:
+            transaction.createdAt ||
+            new Date().toISOString(),
+
+        updatedAt:
+            transaction.updatedAt ||
+            null
+
+    };
+
+}
+
+
+
+/* =========================================================
+   GENERATE TRANSACTION ID
+========================================================= */
+
+function generateTransactionId(
+    type = "transaction"
+) {
+
+    const prefix =
+        type === "income"
+            ? "INC"
+            : type === "expense"
+                ? "EXP"
+                : "TXN";
+
+
+    return (
+
+        prefix +
+        "-" +
+        Date.now() +
+        "-" +
+        Math.random()
+            .toString(36)
+            .substring(2, 8)
+
+    );
+
+}
+
+
+
+/* =========================================================
+   FIND ACCOUNT ID BY NAME
+========================================================= */
+
+function findAccountIdByName(
+    accountName
+) {
+
+    if (!accountName) {
+
+        return "";
+
+    }
+
+
+    const accounts =
+        getAccounts();
+
+
+    const value =
+        String(
+            accountName
+        )
+        .trim()
+        .toLowerCase();
+
+
+    const account =
+        accounts.find(
+            item =>
+
+                String(
+                    item.name || ""
+                )
+                .trim()
+                .toLowerCase() ===
+                value
+        );
+
+
+    return account
+        ? account.id
+        : "";
+
+}
+
+
+
+/* =========================================================
+   MIGRATE OLD TRANSACTIONS
+========================================================= */
+
+function migrateLegacyTransactions() {
+
+    /*
+       जर new storage मध्ये data आहे
+       तर migration पुन्हा करू नका.
+    */
+
+    const current =
+        getData(
+            STORAGE_KEYS.transactions,
+            null
+        );
+
+
+    if (
+        Array.isArray(current) &&
+        current.length > 0
+    ) {
+
+        return current;
+
+    }
+
+
+    let legacyTransactions =
+        [];
+
+
+    for (
+        const key
+        of LEGACY_STORAGE_KEYS.transactions
+    ) {
+
+        const data =
+            getData(
+                key,
+                null
+            );
+
+
+        if (
+            Array.isArray(data) &&
+            data.length > 0
+        ) {
+
+            legacyTransactions =
+                data;
+
+            break;
+
+        }
+
+    }
+
+
+    /*
+       Legacy expenses storage
+    */
+
+    if (
+        legacyTransactions.length === 0
+    ) {
+
+        const expenses =
+            getData(
+                "expenses",
+                []
+            );
+
+
+        if (
+            Array.isArray(expenses) &&
+            expenses.length > 0
+        ) {
+
+            legacyTransactions =
+                expenses.map(
+                    item => ({
+
+                        ...item,
+
+                        type:
+                            "expense"
+
+                    })
+                );
+
+        }
+
+    }
+
+
+    if (
+        legacyTransactions.length === 0
+    ) {
+
+        return [];
+
+    }
+
+
+    const normalized =
+        legacyTransactions
+            .map(
+                normalizeTransaction
+            )
+            .filter(
+                Boolean
+            );
+
+
+    if (
+        normalized.length > 0
+    ) {
+
+        saveData(
+            STORAGE_KEYS.transactions,
+            normalized
+        );
+
+        console.log(
+            "Legacy transactions migrated:",
+            normalized.length
+        );
+
+    }
+
+
+    return normalized;
+
+}
+
+
+
+/* =========================================================
+   CENTRAL GET TRANSACTIONS
+========================================================= */
+
+function getTransactions() {
+
+    let transactions =
+        getData(
+            STORAGE_KEYS.transactions,
+            null
+        );
+
+
+    /*
+       New storage not available
+       → migrate old data
+    */
+
+    if (
+        !Array.isArray(transactions)
+    ) {
+
+        transactions =
+            migrateLegacyTransactions();
+
+    }
+
+
+    if (
+        !Array.isArray(transactions)
+    ) {
+
+        return [];
+
+    }
+
+
+    return transactions;
+
+}
+
+
+
+/* =========================================================
+   CENTRAL SAVE TRANSACTIONS
+========================================================= */
 
 function saveTransactions(
     transactions
@@ -291,10 +980,20 @@ function saveTransactions(
     }
 
 
+    const normalized =
+        transactions
+            .map(
+                normalizeTransaction
+            )
+            .filter(
+                Boolean
+            );
+
+
     const saved =
         saveData(
             STORAGE_KEYS.transactions,
-            transactions
+            normalized
         );
 
 
@@ -306,6 +1005,63 @@ function saveTransactions(
 
 
     return saved;
+
+}
+
+
+
+/* =========================================================
+   GET TRANSACTION BY ID
+========================================================= */
+
+function getTransactionById(
+    transactionId
+) {
+
+    return getTransactions()
+        .find(
+            transaction =>
+                transaction.id ===
+                transactionId
+        ) || null;
+
+}
+
+
+
+/* =========================================================
+   DELETE TRANSACTION
+========================================================= */
+
+function deleteTransaction(
+    transactionId
+) {
+
+    const transactions =
+        getTransactions();
+
+
+    const updated =
+        transactions.filter(
+            transaction =>
+                transaction.id !==
+                transactionId
+        );
+
+
+    if (
+        updated.length ===
+        transactions.length
+    ) {
+
+        return false;
+
+    }
+
+
+    return saveTransactions(
+        updated
+    );
 
 }
 
@@ -362,45 +1118,9 @@ function getAccounts() {
     }
 
 
-    return accounts;
-
-}
-
-
-
-function saveAccounts(
-    accounts
-) {
-
-    if (
-        !Array.isArray(
-            accounts
-        )
-    ) {
-
-        return false;
-
-    }
-
-
-    return saveData(
-        STORAGE_KEYS.accounts,
-        accounts
-    );
-
-}
-
-
-
-/* =========================================================
-   INITIALIZE DEFAULT ACCOUNTS
-========================================================= */
-
-function initializeAccounts() {
-
-    let accounts =
-        getAccounts();
-
+    /*
+       Accounts नसतील तर defaults तयार करा.
+    */
 
     if (
         accounts.length === 0
@@ -419,20 +1139,85 @@ function initializeAccounts() {
             );
 
 
-        saveAccounts(
+        saveData(
+            STORAGE_KEYS.accounts,
             accounts
         );
-
-        return accounts;
 
     }
 
 
+    return accounts;
 
-    /*
-       जर Cash / Bank / UPI
-       missing असतील तर add करा.
-    */
+}
+
+
+
+/* =========================================================
+   SAVE ACCOUNTS
+========================================================= */
+
+function saveAccounts(
+    accounts
+) {
+
+    if (
+        !Array.isArray(
+            accounts
+        )
+    ) {
+
+        return false;
+
+    }
+
+
+    const saved =
+        saveData(
+            STORAGE_KEYS.accounts,
+            accounts
+        );
+
+
+    if (saved) {
+
+        try {
+
+            window.dispatchEvent(
+                new CustomEvent(
+                    "rdkhAccountsUpdated"
+                )
+            );
+
+        }
+
+        catch (error) {
+
+            console.error(
+                "Account event error:",
+                error
+            );
+
+        }
+
+    }
+
+
+    return saved;
+
+}
+
+
+
+/* =========================================================
+   INITIALIZE DEFAULT ACCOUNTS
+========================================================= */
+
+function initializeAccounts() {
+
+    let accounts =
+        getAccounts();
+
 
     DEFAULT_ACCOUNTS.forEach(
         defaultAccount => {
@@ -462,12 +1247,141 @@ function initializeAccounts() {
     );
 
 
-    saveAccounts(
+    saveData(
+        STORAGE_KEYS.accounts,
         accounts
     );
 
 
     return accounts;
+
+}
+
+
+
+/* =========================================================
+   GET ACCOUNT BALANCE
+========================================================= */
+
+function getAccountBalance(
+    accountId
+) {
+
+    const account =
+        getAccounts().find(
+            item =>
+                item.id ===
+                accountId
+        );
+
+
+    if (!account) {
+
+        return 0;
+
+    }
+
+
+    let balance =
+        Number(
+            account.openingBalance
+        ) || 0;
+
+
+    getTransactions()
+        .forEach(
+            transaction => {
+
+                if (
+                    transaction.accountId !==
+                    accountId
+                ) {
+
+                    return;
+
+                }
+
+
+                const amount =
+                    Number(
+                        transaction.amount
+                    ) || 0;
+
+
+                if (
+                    transaction.type ===
+                    "income"
+                ) {
+
+                    balance +=
+                        amount;
+
+                }
+
+                else if (
+                    transaction.type ===
+                    "expense"
+                ) {
+
+                    balance -=
+                        amount;
+
+                }
+
+            }
+        );
+
+
+    return balance;
+
+}
+
+
+
+/* =========================================================
+   GET ALL ACCOUNT BALANCES
+========================================================= */
+
+function getAllAccountBalances() {
+
+    return getAccounts()
+        .map(
+            account => ({
+
+                ...account,
+
+                balance:
+                    getAccountBalance(
+                        account.id
+                    )
+
+            })
+        );
+
+}
+
+
+
+/* =========================================================
+   TOTAL ACCOUNT BALANCE
+========================================================= */
+
+function getTotalAccountBalance() {
+
+    return getAccounts()
+        .reduce(
+            (
+                total,
+                account
+            ) =>
+
+                total +
+                getAccountBalance(
+                    account.id
+                ),
+
+            0
+        );
 
 }
 
@@ -482,20 +1396,14 @@ function getBudgets() {
     const data =
         getData(
             STORAGE_KEYS.budgets,
-            []
+            {}
         );
 
 
-    /*
-       monthly-budget.js मध्ये
-       object structure वापरले आहे.
-
-       त्यामुळे object असेल तर त्याला
-       compatible array मध्ये convert करू.
-    */
-
     if (
-        Array.isArray(data)
+        data &&
+        typeof data === "object" &&
+        !Array.isArray(data)
     ) {
 
         return data;
@@ -503,41 +1411,104 @@ function getBudgets() {
     }
 
 
+    /*
+       Legacy array compatibility
+    */
+
     if (
-        data &&
-        typeof data === "object"
+        Array.isArray(data)
     ) {
 
-        return Object.keys(data)
-            .map(
-                month =>
-                    data[month]
-            );
+        const converted = {};
+
+
+        data.forEach(
+            item => {
+
+                if (
+                    item &&
+                    item.month
+                ) {
+
+                    converted[
+                        item.month
+                    ] =
+                        item;
+
+                }
+
+            }
+        );
+
+
+        return converted;
 
     }
 
 
-    return [];
-
-}
-
-
-
-function saveBudgets(
-    budgets
-) {
-
-    return saveData(
-        STORAGE_KEYS.budgets,
-        budgets
-    );
+    return {};
 
 }
 
 
 
 /* =========================================================
-   CURRENT MONTH BUDGET
+   SAVE BUDGETS
+========================================================= */
+
+function saveBudgets(
+    budgets
+) {
+
+    if (
+        !budgets ||
+        typeof budgets !== "object"
+    ) {
+
+        return false;
+
+    }
+
+
+    const saved =
+        saveData(
+            STORAGE_KEYS.budgets,
+            budgets
+        );
+
+
+    if (saved) {
+
+        try {
+
+            window.dispatchEvent(
+                new CustomEvent(
+                    "rdkhBudgetUpdated"
+                )
+            );
+
+        }
+
+        catch (error) {
+
+            console.error(
+                "Budget event error:",
+                error
+            );
+
+        }
+
+    }
+
+
+    return saved;
+
+}
+
+
+
+/* =========================================================
+   GET CURRENT MONTH BUDGET
 ========================================================= */
 
 function getCurrentMonthBudget() {
@@ -546,96 +1517,81 @@ function getCurrentMonthBudget() {
         getCurrentMonth();
 
 
-    const raw =
-        getData(
-            STORAGE_KEYS.budgets,
-            {}
-        );
-
-
-    /*
-       New monthly-budget.js structure
-    */
-
-    if (
-        raw &&
-        typeof raw === "object" &&
-        !Array.isArray(raw)
-    ) {
-
-        if (
-            raw[month]
-        ) {
-
-            const budget =
-                raw[month];
-
-
-            return normalizeBudget(
-                budget,
-                month
-            );
-
-        }
-
-    }
-
-
-
-    /*
-       Old array structure compatibility
-    */
-
-    if (
-        Array.isArray(raw)
-    ) {
-
-        const budget =
-            raw.find(
-                item =>
-                    item &&
-                    item.month === month
-            );
-
-
-        if (budget) {
-
-            return normalizeBudget(
-                budget,
-                month
-            );
-
-        }
-
-    }
-
-
-
-    return {
-
-        month: month,
-
-        plannedMoney: 0,
-
-        incomePlan: 0,
-
-        expenseBudget: 0,
-
-        savingTarget: 0,
-
-        alertPercent: 80,
-
-        categories: {},
-
-        createdAt: null,
-
-        updatedAt: null
-
-    };
+    return getBudgetForMonth(
+        month
+    );
 
 }
 
 
+
+/* =========================================================
+   GET BUDGET FOR MONTH
+========================================================= */
+
+function getBudgetForMonth(
+    month
+) {
+
+    const budgets =
+        getBudgets();
+
+
+    const source =
+        budgets[month];
+
+
+    if (!source) {
+
+        return {
+
+            month:
+                month,
+
+            plannedMoney:
+                0,
+
+            total:
+                0,
+
+            incomePlan:
+                0,
+
+            expenseBudget:
+                0,
+
+            savingTarget:
+                0,
+
+            alertPercent:
+                80,
+
+            categories:
+                {},
+
+            createdAt:
+                null,
+
+            updatedAt:
+                null
+
+        };
+
+    }
+
+
+    return normalizeBudget(
+        source,
+        month
+    );
+
+}
+
+
+
+/* =========================================================
+   NORMALIZE BUDGET
+========================================================= */
 
 function normalizeBudget(
     budget,
@@ -647,11 +1603,18 @@ function normalizeBudget(
 
 
     let categories =
-        source.categories;
+        source.categories ||
+        {};
 
+
+    /*
+       Array format compatibility
+    */
 
     if (
-        Array.isArray(categories)
+        Array.isArray(
+            categories
+        )
     ) {
 
         const converted = {};
@@ -669,7 +1632,10 @@ function normalizeBudget(
                         item.id
                     ] =
                         Number(
-                            item.amount || 0
+                            item.amount ||
+                            item.planned ||
+                            item.budget ||
+                            0
                         );
 
                 }
@@ -694,6 +1660,15 @@ function normalizeBudget(
     }
 
 
+    const plannedMoney =
+        Number(
+            source.plannedMoney ??
+            source.total ??
+            source.incomePlan ??
+            0
+        ) || 0;
+
+
     return {
 
         month:
@@ -701,36 +1676,37 @@ function normalizeBudget(
             month,
 
         plannedMoney:
+            plannedMoney,
+
+        total:
             Number(
-                source.plannedMoney ||
-                source.incomePlan ||
-                0
-            ),
+                source.total ??
+                plannedMoney
+            ) || 0,
 
         incomePlan:
             Number(
-                source.incomePlan ||
-                source.plannedMoney ||
-                0
-            ),
+                source.incomePlan ??
+                plannedMoney
+            ) || 0,
 
         expenseBudget:
             Number(
-                source.expenseBudget ||
-                0
-            ),
+                source.expenseBudget ??
+                plannedMoney
+            ) || 0,
 
         savingTarget:
             Number(
                 source.savingTarget ||
                 0
-            ),
+            ) || 0,
 
         alertPercent:
             Number(
-                source.alertPercent ||
+                source.alertPercent ??
                 80
-            ),
+            ) || 80,
 
         categories:
             categories,
@@ -759,34 +1735,24 @@ function getTodayString() {
         new Date();
 
 
-    const year =
-        today.getFullYear();
+    return (
 
-
-    const month =
+        today.getFullYear() +
+        "-" +
         String(
             today.getMonth() + 1
         ).padStart(
             2,
             "0"
-        );
-
-
-    const day =
+        ) +
+        "-" +
         String(
             today.getDate()
         ).padStart(
             2,
             "0"
-        );
+        )
 
-
-    return (
-        year +
-        "-" +
-        month +
-        "-" +
-        day
     );
 
 }
@@ -795,32 +1761,19 @@ function getTodayString() {
 
 function getCurrentMonth() {
 
-    const today =
-        new Date();
-
-
-    const year =
-        today.getFullYear();
-
-
-    const month =
-        String(
-            today.getMonth() + 1
-        ).padStart(
-            2,
-            "0"
+    return getTodayString()
+        .substring(
+            0,
+            7
         );
-
-
-    return (
-        year +
-        "-" +
-        month
-    );
 
 }
 
 
+
+/* =========================================================
+   NORMALIZE DATE
+========================================================= */
 
 function normalizeDate(
     date
@@ -834,12 +1787,10 @@ function normalizeDate(
 
 
     const value =
-        String(date);
+        String(
+            date
+        ).trim();
 
-
-    /*
-       YYYY-MM-DD
-    */
 
     if (
         /^\d{4}-\d{2}-\d{2}$/
@@ -851,8 +1802,35 @@ function normalizeDate(
     }
 
 
+    /*
+       DD-MM-YYYY
+    */
+
+    let match =
+        value.match(
+            /^(\d{2})-(\d{2})-(\d{4})$/
+        );
+
+
+    if (match) {
+
+        return (
+
+            match[3] +
+            "-" +
+            match[2] +
+            "-" +
+            match[1]
+
+        );
+
+    }
+
+
     const parsed =
-        new Date(date);
+        new Date(
+            value
+        );
 
 
     if (
@@ -889,6 +1867,10 @@ function normalizeDate(
 }
 
 
+
+/* =========================================================
+   DISPLAY DATE
+========================================================= */
 
 function formatDisplayDate(
     dateString
@@ -943,11 +1925,15 @@ function formatMoney(
 ) {
 
     const value =
-        Number(amount) || 0;
+        Number(
+            amount
+        ) || 0;
 
 
     return (
+
         "₹" +
+
         value.toLocaleString(
             "en-IN",
             {
@@ -955,6 +1941,7 @@ function formatMoney(
                 maximumFractionDigits: 2
             }
         )
+
     );
 
 }
@@ -968,24 +1955,24 @@ function formatMoney(
 function getTotalIncome() {
 
     return getTransactions()
-
         .filter(
             transaction =>
                 transaction.type ===
                 "income"
         )
-
         .reduce(
             (
                 total,
                 transaction
             ) =>
+
                 total +
                 (
                     Number(
                         transaction.amount
                     ) || 0
                 ),
+
             0
         );
 
@@ -1000,24 +1987,24 @@ function getTotalIncome() {
 function getTotalExpense() {
 
     return getTransactions()
-
         .filter(
             transaction =>
                 transaction.type ===
                 "expense"
         )
-
         .reduce(
             (
                 total,
                 transaction
             ) =>
+
                 total +
                 (
                     Number(
                         transaction.amount
                     ) || 0
                 ),
+
             0
         );
 
@@ -1031,34 +2018,7 @@ function getTotalExpense() {
 
 function getTotalBalance() {
 
-    const accounts =
-        getAccounts();
-
-
-    let openingBalance =
-        0;
-
-
-    accounts.forEach(
-        account => {
-
-            openingBalance +=
-                Number(
-                    account.openingBalance ||
-                    0
-                );
-
-        }
-    );
-
-
-    return (
-
-        openingBalance +
-        getTotalIncome() -
-        getTotalExpense()
-
-    );
+    return getTotalAccountBalance();
 
 }
 
@@ -1075,27 +2035,30 @@ function getTodayIncome() {
 
 
     return getTransactions()
-
         .filter(
             transaction =>
+
                 transaction.type ===
                 "income" &&
+
                 normalizeDate(
                     transaction.date
-                ) === today
+                ) ===
+                today
         )
-
         .reduce(
             (
                 total,
                 transaction
             ) =>
+
                 total +
                 (
                     Number(
                         transaction.amount
                     ) || 0
                 ),
+
             0
         );
 
@@ -1114,27 +2077,30 @@ function getTodayExpense() {
 
 
     return getTransactions()
-
         .filter(
             transaction =>
+
                 transaction.type ===
                 "expense" &&
+
                 normalizeDate(
                     transaction.date
-                ) === today
+                ) ===
+                today
         )
-
         .reduce(
             (
                 total,
                 transaction
             ) =>
+
                 total +
                 (
                     Number(
                         transaction.amount
                     ) || 0
                 ),
+
             0
         );
 
@@ -1168,7 +2134,6 @@ function getMonthIncome(
 ) {
 
     return getTransactions()
-
         .filter(
             transaction => {
 
@@ -1191,18 +2156,19 @@ function getMonthIncome(
 
             }
         )
-
         .reduce(
             (
                 total,
                 transaction
             ) =>
+
                 total +
                 (
                     Number(
                         transaction.amount
                     ) || 0
                 ),
+
             0
         );
 
@@ -1219,7 +2185,6 @@ function getMonthExpense(
 ) {
 
     return getTransactions()
-
         .filter(
             transaction => {
 
@@ -1242,18 +2207,92 @@ function getMonthExpense(
 
             }
         )
-
         .reduce(
             (
                 total,
                 transaction
             ) =>
+
                 total +
                 (
                     Number(
                         transaction.amount
                     ) || 0
                 ),
+
+            0
+        );
+
+}
+
+
+
+/* =========================================================
+   CATEGORY EXPENSE TOTAL
+========================================================= */
+
+function getCategoryExpenseTotal(
+    categoryId,
+    month = getCurrentMonth()
+) {
+
+    return getTransactions()
+        .filter(
+            transaction => {
+
+                if (
+                    transaction.type !==
+                    "expense"
+                ) {
+
+                    return false;
+
+                }
+
+
+                const transactionCategory =
+                    transaction.categoryId ||
+                    transaction.category ||
+                    "";
+
+
+                if (
+                    transactionCategory !==
+                    categoryId
+                ) {
+
+                    return false;
+
+                }
+
+
+                const date =
+                    normalizeDate(
+                        transaction.date
+                    );
+
+
+                return (
+                    date.startsWith(
+                        month
+                    )
+                );
+
+            }
+        )
+        .reduce(
+            (
+                total,
+                transaction
+            ) =>
+
+                total +
+                (
+                    Number(
+                        transaction.amount
+                    ) || 0
+                ),
+
             0
         );
 
@@ -1270,18 +2309,24 @@ function getBudgetRemaining() {
     const budget =
         getCurrentMonthBudget();
 
+
     const spent =
         getMonthExpense();
 
+
     const planned =
         Number(
-            budget.plannedMoney ||
-            0
-        );
+            budget.plannedMoney
+        ) || 0;
 
-    return planned - spent;
+
+    return (
+        planned -
+        spent
+    );
 
 }
+
 
 
 /* =========================================================
@@ -1293,131 +2338,34 @@ function getBudgetPercentage() {
     const budget =
         getCurrentMonthBudget();
 
+
     const planned =
         Number(
-            budget.plannedMoney ||
-            0
-        );
+            budget.plannedMoney
+        ) || 0;
 
-    if (planned <= 0) {
+
+    if (
+        planned <= 0
+    ) {
 
         return 0;
 
     }
 
+
     const spent =
         getMonthExpense();
+
 
     return Math.min(
         100,
         (
             spent /
             planned
-        ) * 100
+        ) *
+        100
     );
-
-}
-
-/* =========================================================
-   ACCOUNT BALANCE
-========================================================= */
-
-function getAccountBalance(
-    accountId
-) {
-
-    const account =
-        getAccounts().find(
-            item =>
-                item.id ===
-                accountId
-        );
-
-
-    if (!account) {
-
-        return 0;
-
-    }
-
-
-    let balance =
-        Number(
-            account.openingBalance ||
-            0
-        );
-
-
-    getTransactions()
-        .forEach(
-            transaction => {
-
-                if (
-                    transaction.accountId !==
-                    accountId
-                ) {
-
-                    return;
-
-                }
-
-
-                const amount =
-                    Number(
-                        transaction.amount ||
-                        0
-                    );
-
-
-                if (
-                    transaction.type ===
-                    "income"
-                ) {
-
-                    balance +=
-                        amount;
-
-                }
-
-                else if (
-                    transaction.type ===
-                    "expense"
-                ) {
-
-                    balance -=
-                        amount;
-
-                }
-
-            }
-        );
-
-
-    return balance;
-
-}
-
-
-
-/* =========================================================
-   ALL ACCOUNT BALANCES
-========================================================= */
-
-function getAllAccountBalances() {
-
-    return getAccounts()
-        .map(
-            account => ({
-
-                ...account,
-
-                balance:
-                    getAccountBalance(
-                        account.id
-                    )
-
-            })
-        );
 
 }
 
@@ -1432,7 +2380,6 @@ function getRecentTransactions(
 ) {
 
     return [...getTransactions()]
-
         .sort(
             (
                 a,
@@ -1464,19 +2411,21 @@ function getRecentTransactions(
 
 
                 return (
+
                     new Date(
                         b.createdAt ||
                         0
                     ) -
+
                     new Date(
                         a.createdAt ||
                         0
                     )
+
                 );
 
             }
         )
-
         .slice(
             0,
             limit
@@ -1584,49 +2533,35 @@ function updateBudgetDashboard() {
         getCurrentMonthBudget();
 
 
-    /* ===============================
-       TOTAL MONTHLY BUDGET
-    =============================== */
-
     const totalBudget =
         Number(
-            budget.plannedMoney ||
-            0
-        );
+            budget.plannedMoney
+        ) || 0;
 
-
-    /* ===============================
-       ACTUAL MONTH EXPENSE
-    =============================== */
 
     const spent =
         getMonthExpense();
 
-
-    /* ===============================
-       REMAINING
-    =============================== */
 
     const remaining =
         totalBudget -
         spent;
 
 
-    /* ===============================
-       USED %
-    =============================== */
-
     let percentage =
         0;
 
 
-    if (totalBudget > 0) {
+    if (
+        totalBudget > 0
+    ) {
 
         percentage =
             (
                 spent /
                 totalBudget
-            ) * 100;
+            ) *
+            100;
 
     }
 
@@ -1640,10 +2575,6 @@ function updateBudgetDashboard() {
             )
         );
 
-
-    /* ===============================
-       UPDATE INDEX
-    =============================== */
 
     setElementText(
         "budgetAmount",
@@ -1661,12 +2592,6 @@ function updateBudgetDashboard() {
     );
 
 
-    /*
-       Negative balance असल्यास
-       ₹0 दाखवू नका.
-       Actual negative value दाखवा.
-    */
-
     setElementText(
         "budgetRemaining",
         formatMoney(
@@ -1674,10 +2599,6 @@ function updateBudgetDashboard() {
         )
     );
 
-
-    /* ===============================
-       PROGRESS BAR
-    =============================== */
 
     const progress =
         document.getElementById(
@@ -1694,10 +2615,6 @@ function updateBudgetDashboard() {
     }
 
 
-    /* ===============================
-       PERCENTAGE TEXT
-    =============================== */
-
     setElementText(
         "budgetPercentage",
         Math.round(
@@ -1707,10 +2624,6 @@ function updateBudgetDashboard() {
     );
 
 
-    /* ===============================
-       REMAINING COLOR
-    =============================== */
-
     const remainingElement =
         document.getElementById(
             "budgetRemaining"
@@ -1719,23 +2632,17 @@ function updateBudgetDashboard() {
 
     if (remainingElement) {
 
-        if (remaining < 0) {
-
-            remainingElement.style.color =
-                "var(--expense)";
-
-        }
-
-        else {
-
-            remainingElement.style.color =
-                "var(--income)";
-
-        }
+        remainingElement.style.color =
+            remaining < 0
+                ? "var(--expense)"
+                : "var(--income)";
 
     }
 
 }
+
+
+
 /* =========================================================
    ACCOUNT DASHBOARD
 ========================================================= */
@@ -1922,15 +2829,14 @@ function updateRecentTransactions() {
                     : "fa-arrow-up";
 
 
-            const defaultCategory =
-                isIncome
-                    ? "जमा"
-                    : "खर्च";
-
-
             const category =
+                transaction.categoryName ||
                 transaction.category ||
-                defaultCategory;
+                (
+                    isIncome
+                        ? "जमा"
+                        : "खर्च"
+                );
 
 
             item.innerHTML = `
@@ -1952,9 +2858,7 @@ function updateRecentTransactions() {
                         };
                      ">
 
-                    <i class="fa-solid
-                        ${icon}">
-                    </i>
+                    <i class="fa-solid ${icon}"></i>
 
                 </div>
 
@@ -2048,11 +2952,6 @@ function updateReminder() {
     const todayExpense =
         getTodayExpense();
 
-
-    /*
-       आज खर्च नोंदवला नसेल
-       तर notification dot दाखवा.
-    */
 
     if (
         todayExpense <= 0
@@ -2170,9 +3069,7 @@ function toggleBalance() {
 
         eye.className =
             balanceHidden
-
                 ? "fa-solid fa-eye-slash"
-
                 : "fa-solid fa-eye";
 
     }
@@ -2192,27 +3089,22 @@ function escapeHTML(
     return String(
         value ?? ""
     )
-
         .replace(
             /&/g,
             "&amp;"
         )
-
         .replace(
             /</g,
             "&lt;"
         )
-
         .replace(
             />/g,
             "&gt;"
         )
-
         .replace(
             /"/g,
             "&quot;"
         )
-
         .replace(
             /'/g,
             "&#039;"
@@ -2368,10 +3260,6 @@ function closeAddMenu(
     }
 
 
-    /*
-       खाली click असल्यास menu close.
-    */
-
     if (!event) {
 
         menu.classList.remove(
@@ -2425,18 +3313,10 @@ function updateTodayDate() {
         today.toLocaleDateString(
             "mr-IN",
             {
-                weekday:
-                    "long",
-
-                day:
-                    "2-digit",
-
-                month:
-                    "long",
-
-                year:
-                    "numeric"
-
+                weekday: "long",
+                day: "2-digit",
+                month: "long",
+                year: "numeric"
             }
         );
 
@@ -2463,14 +3343,6 @@ function isLoggedIn() {
 
     }
 
-
-    /*
-       login.js मध्ये
-       {loggedIn:true,...}
-       किंवा
-       {isLoggedIn:true,...}
-       दोन्ही support.
-    */
 
     return Boolean(
 
@@ -2510,7 +3382,7 @@ function logoutUser() {
 
 
 /* =========================================================
-   OPTIONAL LOGIN PROTECTION
+   REQUIRE LOGIN
 ========================================================= */
 
 function requireLogin() {
@@ -2534,7 +3406,7 @@ function requireLogin() {
 
 
 /* =========================================================
-   APPLICATION INITIALIZATION
+   GLOBAL INITIALIZATION
 ========================================================= */
 
 document.addEventListener(
@@ -2542,6 +3414,13 @@ document.addEventListener(
     function () {
 
         initializeAccounts();
+
+        /*
+           Existing old transaction data
+           असल्यास migration.
+        */
+
+        migrateLegacyTransactions();
 
         updateTodayDate();
 
@@ -2560,18 +3439,19 @@ window.addEventListener(
     "storage",
     function (event) {
 
-        /*
-           दुसऱ्या tab/page मधून
-           data बदलल्यास dashboard refresh.
-        */
-
         if (
             !event.key ||
             Object.values(
                 STORAGE_KEYS
             ).includes(
                 event.key
-            )
+            ) ||
+
+            LEGACY_STORAGE_KEYS
+                .transactions
+                .includes(
+                    event.key
+                )
         ) {
 
             updateDashboard();
@@ -2648,12 +3528,130 @@ window.addEventListener(
 
 
 /* =========================================================
+   GLOBAL FUNCTIONS
+========================================================= */
+
+window.getTransactions =
+    getTransactions;
+
+window.saveTransactions =
+    saveTransactions;
+
+window.getTransactionById =
+    getTransactionById;
+
+window.deleteTransaction =
+    deleteTransaction;
+
+window.getAccounts =
+    getAccounts;
+
+window.saveAccounts =
+    saveAccounts;
+
+window.initializeAccounts =
+    initializeAccounts;
+
+window.getAccountBalance =
+    getAccountBalance;
+
+window.getAllAccountBalances =
+    getAllAccountBalances;
+
+window.getTotalAccountBalance =
+    getTotalAccountBalance;
+
+window.getTotalIncome =
+    getTotalIncome;
+
+window.getTotalExpense =
+    getTotalExpense;
+
+window.getTotalBalance =
+    getTotalBalance;
+
+window.getTodayIncome =
+    getTodayIncome;
+
+window.getTodayExpense =
+    getTodayExpense;
+
+window.getTodaySaving =
+    getTodaySaving;
+
+window.getMonthIncome =
+    getMonthIncome;
+
+window.getMonthExpense =
+    getMonthExpense;
+
+window.getCategoryExpenseTotal =
+    getCategoryExpenseTotal;
+
+window.getBudgets =
+    getBudgets;
+
+window.saveBudgets =
+    saveBudgets;
+
+window.getCurrentMonthBudget =
+    getCurrentMonthBudget;
+
+window.getBudgetForMonth =
+    getBudgetForMonth;
+
+window.getBudgetRemaining =
+    getBudgetRemaining;
+
+window.getBudgetPercentage =
+    getBudgetPercentage;
+
+window.getRecentTransactions =
+    getRecentTransactions;
+
+window.formatMoney =
+    formatMoney;
+
+window.normalizeDate =
+    normalizeDate;
+
+window.formatDisplayDate =
+    formatDisplayDate;
+
+window.escapeHTML =
+    escapeHTML;
+
+window.getTodayString =
+    getTodayString;
+
+window.getCurrentMonth =
+    getCurrentMonth;
+
+window.updateDashboard =
+    updateDashboard;
+
+
+
+/* =========================================================
    CONSOLE INFORMATION
 ========================================================= */
 
 console.log(
-    "रोजचा जमा खर्च अहवाल - app.js loaded successfully."
+    "रोजचा जमा खर्च अहवाल - Central app.js loaded successfully."
 );
+
+console.log(
+    "Central Transaction Storage:",
+    STORAGE_KEYS.transactions
+);
+
+console.log(
+    "Central Budget Storage:",
+    STORAGE_KEYS.budgets
+);
+
+
+
 /* =========================================================
    PWA SERVICE WORKER
 ========================================================= */
