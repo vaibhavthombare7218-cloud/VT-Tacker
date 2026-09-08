@@ -4,7 +4,14 @@
    रोजचा जमा खर्च अहवाल
    ACCOUNT MANAGEMENT
 
-   Formula:
+   CONNECTED WITH:
+   - app.js
+   - accounts.html
+   - transactions
+   - income
+   - expense
+
+   ACCOUNT BALANCE FORMULA:
 
    Current Balance
    =
@@ -12,7 +19,13 @@
    + Income
    - Expense
 
-   Accounts are stored separately.
+   IMPORTANT:
+   ---------------------------------------------------------
+   Central Account Storage / Calculation
+   app.js मध्ये आहे.
+
+   accounts.js फक्त Account Page UI आणि
+   Add / Edit / Delete functionality हाताळतो.
 ========================================================= */
 
 
@@ -44,7 +57,19 @@ document.addEventListener(
 
 function initializeAccountsPage() {
 
-    initializeAccounts();
+    /*
+       app.js मधील central function वापरा.
+    */
+
+    if (
+        typeof window.initializeAccounts ===
+        "function"
+    ) {
+
+        window.initializeAccounts();
+
+    }
+
 
     setupAccountForm();
 
@@ -57,109 +82,44 @@ function initializeAccountsPage() {
 
 
 /* =========================================================
-   INITIALIZE DEFAULT ACCOUNTS
+   GET CENTRAL ACCOUNTS
 ========================================================= */
 
-function initializeAccounts() {
+function getAccountsForPage() {
 
-    const existing =
-        localStorage.getItem(
-            ACCOUNTS_STORAGE_KEY
-        );
+    if (
+        typeof window.getAccounts ===
+        "function"
+    ) {
 
-
-    /*
-       जर Accounts आधीच आहेत
-       तर काहीही करू नका.
-    */
-
-    if (existing) {
-
-        return;
+        return window.getAccounts();
 
     }
 
 
     /*
-       Default Accounts
-
-       User नंतर edit/delete करू शकतो.
+       Emergency fallback.
+       app.js उपलब्ध नसल्यासही page पूर्णपणे
+       crash होऊ नये.
     */
-
-    const defaultAccounts = [
-
-        {
-            id: "ACC-CASH",
-            name: "Cash",
-            type: "Cash",
-            openingBalance: 0,
-            note: "Cash in hand",
-            createdAt:
-                new Date().toISOString()
-        },
-
-        {
-            id: "ACC-BANK",
-            name: "Bank Account",
-            type: "Bank",
-            openingBalance: 0,
-            note: "Main bank account",
-            createdAt:
-                new Date().toISOString()
-        },
-
-        {
-            id: "ACC-UPI",
-            name: "UPI",
-            type: "UPI",
-            openingBalance: 0,
-            note: "UPI balance",
-            createdAt:
-                new Date().toISOString()
-        }
-
-    ];
-
-
-    localStorage.setItem(
-        ACCOUNTS_STORAGE_KEY,
-        JSON.stringify(
-            defaultAccounts
-        )
-    );
-
-}
-
-
-
-/* =========================================================
-   GET ACCOUNTS
-========================================================= */
-
-function getAccounts() {
 
     try {
 
-        const stored =
+        const data =
             localStorage.getItem(
                 ACCOUNTS_STORAGE_KEY
             );
 
 
-        if (!stored) {
-
-            return [];
-
-        }
-
-
         const accounts =
-            JSON.parse(
-                stored
-            );
+            data
+                ? JSON.parse(data)
+                : [];
 
 
-        return Array.isArray(accounts)
+        return Array.isArray(
+            accounts
+        )
             ? accounts
             : [];
 
@@ -168,7 +128,7 @@ function getAccounts() {
     catch (error) {
 
         console.error(
-            "Accounts loading error:",
+            "Account loading error:",
             error
         );
 
@@ -181,12 +141,24 @@ function getAccounts() {
 
 
 /* =========================================================
-   SAVE ACCOUNTS
+   SAVE CENTRAL ACCOUNTS
 ========================================================= */
 
-function saveAccounts(
+function saveAccountsForPage(
     accounts
 ) {
+
+    if (
+        typeof window.saveAccounts ===
+        "function"
+    ) {
+
+        return window.saveAccounts(
+            accounts
+        );
+
+    }
+
 
     try {
 
@@ -208,7 +180,7 @@ function saveAccounts(
     catch (error) {
 
         console.error(
-            "Accounts save error:",
+            "Account save error:",
             error
         );
 
@@ -239,10 +211,28 @@ function setupAccountForm() {
     }
 
 
+    /*
+       Duplicate listener टाळण्यासाठी
+    */
+
+    if (
+        form.dataset.listenerAttached ===
+        "true"
+    ) {
+
+        return;
+
+    }
+
+
     form.addEventListener(
         "submit",
         saveAccount
     );
+
+
+    form.dataset.listenerAttached =
+        "true";
 
 }
 
@@ -271,10 +261,18 @@ function openAccountForm() {
         "block";
 
 
-    document.getElementById(
-        "accountFormTitle"
-    ).textContent =
-        "नवीन Account";
+    const title =
+        document.getElementById(
+            "accountFormTitle"
+        );
+
+
+    if (title) {
+
+        title.textContent =
+            "नवीन Account";
+
+    }
 
 
     resetAccountForm();
@@ -366,40 +364,28 @@ function saveAccount(
     event.preventDefault();
 
 
-    const name =
-        document
-            .getElementById(
-                "accountName"
-            )
-            .value
-            .trim();
-
-
-    const type =
-        document
-            .getElementById(
-                "accountType"
-            )
-            .value;
-
-
-    const openingBalance =
-        Number(
-            document
-                .getElementById(
-                    "openingBalance"
-                )
-                .value
+    const nameElement =
+        document.getElementById(
+            "accountName"
         );
 
 
-    const note =
-        document
-            .getElementById(
-                "accountNote"
-            )
-            .value
-            .trim();
+    const typeElement =
+        document.getElementById(
+            "accountType"
+        );
+
+
+    const openingElement =
+        document.getElementById(
+            "openingBalance"
+        );
+
+
+    const noteElement =
+        document.getElementById(
+            "accountNote"
+        );
 
 
     const form =
@@ -408,8 +394,44 @@ function saveAccount(
         );
 
 
+    if (
+        !nameElement ||
+        !typeElement ||
+        !openingElement ||
+        !noteElement ||
+        !form
+    ) {
+
+        alert(
+            "Account form मध्ये काही माहिती उपलब्ध नाही."
+        );
+
+        return;
+
+    }
+
+
+    const name =
+        nameElement.value.trim();
+
+
+    const type =
+        typeElement.value;
+
+
+    const openingBalance =
+        Number(
+            openingElement.value
+        );
+
+
+    const note =
+        noteElement.value.trim();
+
+
     const editId =
-        form.dataset.editId || "";
+        form.dataset.editId ||
+        "";
 
 
 
@@ -423,6 +445,8 @@ function saveAccount(
             "कृपया Account Name भरा."
         );
 
+        nameElement.focus();
+
         return;
 
     }
@@ -434,19 +458,25 @@ function saveAccount(
             "कृपया Account Type निवडा."
         );
 
+        typeElement.focus();
+
         return;
 
     }
 
 
     if (
-        isNaN(openingBalance) ||
+        !Number.isFinite(
+            openingBalance
+        ) ||
         openingBalance < 0
     ) {
 
         alert(
             "कृपया योग्य Opening Balance भरा."
         );
+
+        openingElement.focus();
 
         return;
 
@@ -459,7 +489,7 @@ function saveAccount(
     ===================================================== */
 
     const accounts =
-        getAccounts();
+        getAccountsForPage();
 
 
 
@@ -489,18 +519,24 @@ function saveAccount(
 
 
         /*
-           Duplicate name check
+           Duplicate account name check
         */
 
         const duplicate =
             accounts.some(
                 account =>
 
-                    account.id !== editId &&
+                    account.id !==
+                    editId &&
 
-                    account.name
-                        .toLowerCase() ===
+                    String(
+                        account.name ||
+                        ""
+                    )
+                    .trim()
+                    .toLowerCase() ===
                     name.toLowerCase()
+
             );
 
 
@@ -517,9 +553,6 @@ function saveAccount(
 
         /*
            Existing account update
-
-           Opening Balance बदलण्याची
-           परवानगी येथे आहे.
         */
 
         accounts[index].name =
@@ -538,11 +571,13 @@ function saveAccount(
             new Date().toISOString();
 
 
-        if (
-            !saveAccounts(
+        const saved =
+            saveAccountsForPage(
                 accounts
-            )
-        ) {
+            );
+
+
+        if (!saved) {
 
             alert(
                 "Account update करताना समस्या आली."
@@ -564,6 +599,14 @@ function saveAccount(
 
         updateTotalAccountBalance();
 
+
+        /*
+           Dashboard / other pages refresh
+        */
+
+        dispatchAccountUpdate();
+
+
         return;
 
     }
@@ -578,9 +621,14 @@ function saveAccount(
         accounts.some(
             account =>
 
-                account.name
-                    .toLowerCase() ===
+                String(
+                    account.name ||
+                    ""
+                )
+                .trim()
+                .toLowerCase() ===
                 name.toLowerCase()
+
         );
 
 
@@ -614,7 +662,10 @@ function saveAccount(
             note,
 
         createdAt:
-            new Date().toISOString()
+            new Date().toISOString(),
+
+        updatedAt:
+            null
 
     };
 
@@ -626,11 +677,13 @@ function saveAccount(
 
 
 
-    if (
-        !saveAccounts(
+    const saved =
+        saveAccountsForPage(
             accounts
-        )
-    ) {
+        );
+
+
+    if (!saved) {
 
         alert(
             "Account save करताना समस्या आली."
@@ -652,6 +705,9 @@ function saveAccount(
 
     updateTotalAccountBalance();
 
+
+    dispatchAccountUpdate();
+
 }
 
 
@@ -672,7 +728,10 @@ function generateAccountId() {
 
         Math.random()
             .toString(36)
-            .substring(2, 8)
+            .substring(
+                2,
+                8
+            )
 
     );
 
@@ -684,12 +743,32 @@ function generateAccountId() {
    GET ACCOUNT BALANCE
 ========================================================= */
 
-function getAccountBalance(
+function getAccountBalanceForPage(
     accountId
 ) {
 
+    /*
+       app.js मधील central calculation वापरा.
+    */
+
+    if (
+        typeof window.getAccountBalance ===
+        "function"
+    ) {
+
+        return window.getAccountBalance(
+            accountId
+        );
+
+    }
+
+
+    /*
+       Fallback calculation
+    */
+
     const accounts =
-        getAccounts();
+        getAccountsForPage();
 
 
     const account =
@@ -713,12 +792,18 @@ function getAccountBalance(
         ) || 0;
 
 
-    /*
-       Transactions app.js मधून येतील
-    */
+    let transactions = [];
 
-    const transactions =
-        getTransactions();
+
+    if (
+        typeof window.getTransactions ===
+        "function"
+    ) {
+
+        transactions =
+            window.getTransactions();
+
+    }
 
 
     transactions.forEach(
@@ -745,17 +830,18 @@ function getAccountBalance(
                 "income"
             ) {
 
-                balance += amount;
+                balance +=
+                    amount;
 
             }
-
 
             else if (
                 transaction.type ===
                 "expense"
             ) {
 
-                balance -= amount;
+                balance -=
+                    amount;
 
             }
 
@@ -770,23 +856,24 @@ function getAccountBalance(
 
 
 /* =========================================================
-   GET TOTAL BALANCE
+   GET TOTAL ACCOUNT BALANCE
 ========================================================= */
 
-function getTotalAccountBalance() {
+function getTotalAccountBalanceForPage() {
 
     const accounts =
-        getAccounts();
+        getAccountsForPage();
 
 
-    let total = 0;
+    let total =
+        0;
 
 
     accounts.forEach(
         account => {
 
             total +=
-                getAccountBalance(
+                getAccountBalanceForPage(
                     account.id
                 );
 
@@ -832,7 +919,7 @@ function renderAccounts() {
 
 
     const accounts =
-        getAccounts();
+        getAccountsForPage();
 
 
     list.innerHTML =
@@ -878,6 +965,7 @@ function renderAccounts() {
         count.textContent =
 
             accounts.length +
+
             (
                 accounts.length === 1
                     ? " Account"
@@ -913,7 +1001,7 @@ function createAccountCard(
 ) {
 
     const balance =
-        getAccountBalance(
+        getAccountBalanceForPage(
             account.id
         );
 
@@ -928,7 +1016,6 @@ function createAccountCard(
         "account-card";
 
 
-
     const icon =
         getAccountIcon(
             account.type
@@ -939,7 +1026,6 @@ function createAccountCard(
         balance < 0
             ? "negative"
             : "positive";
-
 
 
     card.innerHTML = `
@@ -975,7 +1061,10 @@ function createAccountCard(
                 <button
                     type="button"
                     title="Edit"
-                    onclick="editAccount('${account.id}')"
+                    aria-label="Edit Account"
+                    onclick="editAccount('${escapeAttribute(
+                        account.id
+                    )}')"
                 >
 
                     <i class="fa-solid fa-pen"></i>
@@ -986,7 +1075,10 @@ function createAccountCard(
                 <button
                     type="button"
                     title="Delete"
-                    onclick="deleteAccount('${account.id}')"
+                    aria-label="Delete Account"
+                    onclick="deleteAccount('${escapeAttribute(
+                        account.id
+                    )}')"
                 >
 
                     <i class="fa-solid fa-trash"></i>
@@ -1006,7 +1098,7 @@ function createAccountCard(
 
             <strong class="${balanceClass}">
 
-                ${formatMoney(
+                ${formatMoneySafe(
                     balance
                 )}
 
@@ -1020,7 +1112,7 @@ function createAccountCard(
             <span>
 
                 Opening:
-                ${formatMoney(
+                ${formatMoneySafe(
                     account.openingBalance
                 )}
 
@@ -1028,11 +1120,12 @@ function createAccountCard(
 
             <span>
 
-                ${account.note
-                    ? escapeHTML(
-                        account.note
-                      )
-                    : ""
+                ${
+                    account.note
+                        ? escapeHTML(
+                            account.note
+                          )
+                        : ""
                 }
 
             </span>
@@ -1056,21 +1149,26 @@ function getAccountIcon(
     type
 ) {
 
-    switch (type) {
+    switch (
+        String(
+            type || ""
+        )
+        .toLowerCase()
+    ) {
 
-        case "Cash":
+        case "cash":
 
             return "fa-solid fa-money-bill";
 
-        case "Bank":
+        case "bank":
 
             return "fa-solid fa-building-columns";
 
-        case "UPI":
+        case "upi":
 
             return "fa-solid fa-mobile-screen-button";
 
-        case "Card":
+        case "card":
 
             return "fa-solid fa-credit-card";
 
@@ -1093,7 +1191,7 @@ function editAccount(
 ) {
 
     const accounts =
-        getAccounts();
+        getAccountsForPage();
 
 
     const account =
@@ -1138,34 +1236,74 @@ function editAccount(
         "block";
 
 
-    document.getElementById(
-        "accountFormTitle"
-    ).textContent =
-        "Account Edit करा";
+    const title =
+        document.getElementById(
+            "accountFormTitle"
+        );
 
 
-    document.getElementById(
-        "accountName"
-    ).value =
-        account.name;
+    if (title) {
+
+        title.textContent =
+            "Account Edit करा";
+
+    }
 
 
-    document.getElementById(
-        "accountType"
-    ).value =
-        account.type;
+    const nameElement =
+        document.getElementById(
+            "accountName"
+        );
 
 
-    document.getElementById(
-        "openingBalance"
-    ).value =
-        account.openingBalance;
+    const typeElement =
+        document.getElementById(
+            "accountType"
+        );
 
 
-    document.getElementById(
-        "accountNote"
-    ).value =
-        account.note || "";
+    const openingElement =
+        document.getElementById(
+            "openingBalance"
+        );
+
+
+    const noteElement =
+        document.getElementById(
+            "accountNote"
+        );
+
+
+    if (nameElement) {
+
+        nameElement.value =
+            account.name || "";
+
+    }
+
+
+    if (typeElement) {
+
+        typeElement.value =
+            account.type || "";
+
+    }
+
+
+    if (openingElement) {
+
+        openingElement.value =
+            account.openingBalance || 0;
+
+    }
+
+
+    if (noteElement) {
+
+        noteElement.value =
+            account.note || "";
+
+    }
 
 
     form.dataset.editId =
@@ -1193,7 +1331,7 @@ function deleteAccount(
 ) {
 
     const accounts =
-        getAccounts();
+        getAccountsForPage();
 
 
     const account =
@@ -1206,6 +1344,10 @@ function deleteAccount(
 
     if (!account) {
 
+        alert(
+            "Account सापडले नाही."
+        );
+
         return;
 
     }
@@ -1216,8 +1358,18 @@ function deleteAccount(
        CHECK TRANSACTIONS
     ===================================================== */
 
-    const transactions =
-        getTransactions();
+    let transactions = [];
+
+
+    if (
+        typeof window.getTransactions ===
+        "function"
+    ) {
+
+        transactions =
+            window.getTransactions();
+
+    }
 
 
     const hasTransactions =
@@ -1229,7 +1381,16 @@ function deleteAccount(
 
 
 
-    if (hasTransactions) {
+    /*
+       Transaction असल्यास Account delete करू नका.
+
+       यामुळे जुन्या transactions ची
+       calculation खराब होणार नाही.
+    */
+
+    if (
+        hasTransactions
+    ) {
 
         alert(
 
@@ -1255,7 +1416,9 @@ function deleteAccount(
         );
 
 
-    if (!confirmDelete) {
+    if (
+        !confirmDelete
+    ) {
 
         return;
 
@@ -1270,11 +1433,13 @@ function deleteAccount(
         );
 
 
-    if (
-        !saveAccounts(
+    const saved =
+        saveAccountsForPage(
             updatedAccounts
-        )
-    ) {
+        );
+
+
+    if (!saved) {
 
         alert(
             "Account delete करताना समस्या आली."
@@ -1288,6 +1453,8 @@ function deleteAccount(
     renderAccounts();
 
     updateTotalAccountBalance();
+
+    dispatchAccountUpdate();
 
 
     alert(
@@ -1318,9 +1485,57 @@ function updateTotalAccountBalance() {
 
 
     element.textContent =
-        formatMoney(
-            getTotalAccountBalance()
+        formatMoneySafe(
+            getTotalAccountBalanceForPage()
         );
+
+}
+
+
+
+/* =========================================================
+   SAFE MONEY FORMAT
+========================================================= */
+
+function formatMoneySafe(
+    amount
+) {
+
+    if (
+        typeof window.formatMoney ===
+        "function"
+    ) {
+
+        return window.formatMoney(
+            amount
+        );
+
+    }
+
+
+    const value =
+        Number(
+            amount
+        ) || 0;
+
+
+    return (
+
+        "₹" +
+
+        value.toLocaleString(
+            "en-IN",
+            {
+                minimumFractionDigits:
+                    2,
+
+                maximumFractionDigits:
+                    2
+
+            }
+        )
+
+    );
 
 }
 
@@ -1368,6 +1583,66 @@ function escapeHTML(
 
 
 /* =========================================================
+   ESCAPE ATTRIBUTE
+========================================================= */
+
+function escapeAttribute(
+    value
+) {
+
+    return String(
+        value ?? ""
+    )
+
+        .replace(
+            /\\/g,
+            "\\\\"
+        )
+
+        .replace(
+            /'/g,
+            "\\'"
+        )
+
+        .replace(
+            /"/g,
+            "&quot;"
+        );
+
+}
+
+
+
+/* =========================================================
+   ACCOUNT UPDATE EVENT
+========================================================= */
+
+function dispatchAccountUpdate() {
+
+    try {
+
+        window.dispatchEvent(
+            new CustomEvent(
+                "rdkhAccountsUpdated"
+            )
+        );
+
+    }
+
+    catch (error) {
+
+        console.error(
+            "Account update event error:",
+            error
+        );
+
+    }
+
+}
+
+
+
+/* =========================================================
    NAVIGATION
 ========================================================= */
 
@@ -1379,6 +1654,25 @@ function goHome() {
 }
 
 
+
+function goToIncome() {
+
+    window.location.href =
+        "income.html";
+
+}
+
+
+
+function goToExpense() {
+
+    window.location.href =
+        "expense.html";
+
+}
+
+
+
 function goToTransactions() {
 
     window.location.href =
@@ -1387,12 +1681,14 @@ function goToTransactions() {
 }
 
 
+
 function goToReports() {
 
     window.location.href =
         "reports.html";
 
 }
+
 
 
 function goToSettings() {
@@ -1410,6 +1706,33 @@ function goToSettings() {
 
 window.addEventListener(
     "storage",
+    function (event) {
+
+        if (
+            !event.key ||
+            event.key ===
+                ACCOUNTS_STORAGE_KEY ||
+            event.key ===
+                "rdkh_transactions_v2"
+        ) {
+
+            renderAccounts();
+
+            updateTotalAccountBalance();
+
+        }
+
+    }
+);
+
+
+
+/* =========================================================
+   SAME PAGE TRANSACTION UPDATE
+========================================================= */
+
+window.addEventListener(
+    "rdkhTransactionsUpdated",
     function () {
 
         renderAccounts();
@@ -1417,4 +1740,61 @@ window.addEventListener(
         updateTotalAccountBalance();
 
     }
+);
+
+
+
+/* =========================================================
+   SAME PAGE ACCOUNT UPDATE
+========================================================= */
+
+window.addEventListener(
+    "rdkhAccountsUpdated",
+    function () {
+
+        renderAccounts();
+
+        updateTotalAccountBalance();
+
+    }
+);
+
+
+
+/* =========================================================
+   GLOBAL PAGE FUNCTIONS
+========================================================= */
+
+window.openAccountForm =
+    openAccountForm;
+
+window.closeAccountForm =
+    closeAccountForm;
+
+window.resetAccountForm =
+    resetAccountForm;
+
+window.saveAccount =
+    saveAccount;
+
+window.editAccount =
+    editAccount;
+
+window.deleteAccount =
+    deleteAccount;
+
+window.renderAccounts =
+    renderAccounts;
+
+window.updateTotalAccountBalance =
+    updateTotalAccountBalance;
+
+
+
+/* =========================================================
+   CONSOLE
+========================================================= */
+
+console.log(
+    "Accounts module loaded successfully."
 );
