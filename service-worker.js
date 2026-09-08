@@ -1,4 +1,4 @@
-const CACHE_NAME = "rdkh-app-v12";
+const CACHE_NAME = "rdkh-app-v13";
 
 const FILES_TO_CACHE = [
 
