@@ -3,44 +3,34 @@
    रोजचा जमा खर्च अहवाल
    INCOME MANAGEMENT
 
-   CONNECTED WITH:
-   ---------------------------------------------------------
-   transactions.js
-   accounts.js
-   app.js
-   dashboard
-   reports
-   monthly-budget
+   VERSION:
+   Central Transaction System
 
-   STORAGE:
-   ---------------------------------------------------------
-   Central transaction storage:
-   rdkh_transactions_v2
+   CONNECTED WITH:
+   - transactions.js
+   - accounts.js
+   - reports.js
+   - monthly-budget.js
 
    FEATURES:
    ---------------------------------------------------------
-   ✅ Income entry
-   ✅ Central transaction storage
-   ✅ Account based income
-   ✅ Cash / UPI / Bank / Cheque
-   ✅ Today income
-   ✅ Monthly income
-   ✅ Total income
-   ✅ Edit existing income
-   ✅ Delete/update through transaction system
-   ✅ Note counter
-   ✅ Last saved message
-   ✅ Dashboard refresh
-   ✅ Transaction refresh event
+   ✅ New Income
+   ✅ Edit Income
+   ✅ Delete/Edit compatible
+   ✅ Account-wise Income
+   ✅ Payment Mode
+   ✅ Daily / Monthly / Total Summary
+   ✅ Central Transaction Storage
+   ✅ LocalStorage
    ========================================================= */
 
 
 /* =========================================================
-   GLOBAL VARIABLES
+   VARIABLES
 ========================================================= */
 
 let incomeEditMode = false;
-let incomeEditTransactionId = null;
+let incomeEditId = null;
 
 
 /* =========================================================
@@ -51,46 +41,105 @@ document.addEventListener(
     "DOMContentLoaded",
     function () {
 
-        /*
-         * Initialize accounts if accounts.js
-         * is available.
-         */
+        initializeIncomePage();
 
-        if (
-            typeof window.initializeAccounts ===
-            "function"
-        ) {
+    }
+);
 
-            try {
 
-                window.initializeAccounts();
+/* =========================================================
+   INITIALIZE PAGE
+========================================================= */
 
-            } catch (error) {
+function initializeIncomePage() {
 
-                console.error(
-                    "Account initialization error:",
-                    error
-                );
+    /*
+     * Accounts
+     */
+    if (
+        typeof window.initializeAccounts ===
+        "function"
+    ) {
+        window.initializeAccounts();
+    }
+
+
+    /*
+     * Default date
+     */
+    setDefaultIncomeDate();
+
+
+    /*
+     * Load accounts
+     */
+    loadIncomeAccounts();
+
+
+    /*
+     * Note counter
+     */
+    setupIncomeNoteCounter();
+
+
+    /*
+     * Form
+     */
+    setupIncomeForm();
+
+
+    /*
+     * Check edit mode
+     */
+    checkIncomeEditMode();
+
+
+    /*
+     * Summary
+     */
+    updateIncomeSummary();
+
+
+    /*
+     * Listen for transaction changes
+     */
+    window.addEventListener(
+        "rdkhTransactionsUpdated",
+        function () {
+
+            updateIncomeSummary();
+
+            loadIncomeAccounts();
+
+        }
+    );
+
+
+    /*
+     * Storage change
+     */
+    window.addEventListener(
+        "storage",
+        function (event) {
+
+            if (
+                event.key ===
+                "rdkh_transactions_v2" ||
+
+                event.key ===
+                "rdkh_accounts"
+            ) {
+
+                updateIncomeSummary();
+
+                loadIncomeAccounts();
 
             }
 
         }
+    );
 
-
-        setDefaultIncomeDate();
-
-        loadIncomeAccounts();
-
-        updateIncomeSummary();
-
-        setupNoteCounter();
-
-        setupIncomeForm();
-
-        checkIncomeEditMode();
-
-    }
-);
+}
 
 
 /* =========================================================
@@ -104,43 +153,30 @@ function setDefaultIncomeDate() {
             "incomeDate"
         );
 
-    if (
-        dateInput &&
-        !dateInput.value
-    ) {
+    if (!dateInput) {
+        return;
+    }
 
-        if (
-            typeof window.RDKHGetTodayDate ===
-            "function"
-        ) {
 
-            dateInput.value =
-                window.RDKHGetTodayDate();
+    if (!dateInput.value) {
 
-        } else {
-
-            const today =
-                new Date();
-
-            const year =
-                today.getFullYear();
-
-            const month =
-                String(
-                    today.getMonth() + 1
-                ).padStart(2, "0");
-
-            const day =
-                String(
-                    today.getDate()
-                ).padStart(2, "0");
-
-            dateInput.value =
-                `${year}-${month}-${day}`;
-
-        }
+        dateInput.value =
+            getTodayDate();
 
     }
+
+}
+
+
+/* =========================================================
+   TODAY DATE
+========================================================= */
+
+function getTodayDate() {
+
+    return new Date()
+        .toISOString()
+        .slice(0, 10);
 
 }
 
@@ -151,25 +187,22 @@ function setDefaultIncomeDate() {
 
 function loadIncomeAccounts() {
 
-    const accountSelect =
+    const select =
         document.getElementById(
             "incomeAccount"
         );
 
-    if (!accountSelect) {
+    if (!select) {
         return;
     }
 
 
     const currentValue =
-        accountSelect.value;
+        select.value;
 
 
-    accountSelect.innerHTML = `
-        <option value="">
-            खाते निवडा
-        </option>
-    `;
+    select.innerHTML =
+        '<option value="">खाते निवडा</option>';
 
 
     if (
@@ -183,24 +216,27 @@ function loadIncomeAccounts() {
 
 
     const accounts =
-        window.getAccounts() || [];
+        window.getAccounts();
 
 
     accounts.forEach(
-        function (account) {
+        account => {
 
             const option =
                 document.createElement(
                     "option"
                 );
 
+
             option.value =
                 account.id;
+
 
             option.textContent =
                 account.name;
 
-            accountSelect.appendChild(
+
+            select.appendChild(
                 option
             );
 
@@ -209,26 +245,24 @@ function loadIncomeAccounts() {
 
 
     /*
-     * Restore previously selected
-     * account if still available.
+     * Restore previous selection
      */
+    if (currentValue) {
 
-    if (
-        currentValue &&
-        accounts.some(
-            function (account) {
+        const exists =
+            accounts.some(
+                account =>
+                    String(account.id) ===
+                    String(currentValue)
+            );
 
-                return (
-                    account.id ===
-                    currentValue
-                );
 
-            }
-        )
-    ) {
+        if (exists) {
 
-        accountSelect.value =
-            currentValue;
+            select.value =
+                currentValue;
+
+        }
 
     }
 
@@ -236,145 +270,43 @@ function loadIncomeAccounts() {
 
 
 /* =========================================================
-   INCOME SUMMARY
+   NOTE COUNTER
 ========================================================= */
 
-function updateIncomeSummary() {
+function setupIncomeNoteCounter() {
 
-    let todayIncome = 0;
-    let monthIncome = 0;
-    let totalIncome = 0;
-
-
-    /*
-     * Prefer central transaction system.
-     */
-
-    if (
-        typeof window.getTodayIncome ===
-        "function"
-    ) {
-
-        todayIncome =
-            Number(
-                window.getTodayIncome()
-            ) || 0;
-
-    }
-
-
-    if (
-        typeof window.getMonthIncome ===
-        "function"
-    ) {
-
-        monthIncome =
-            Number(
-                window.getMonthIncome()
-            ) || 0;
-
-    }
-
-
-    if (
-        typeof window.getTotalIncome ===
-        "function"
-    ) {
-
-        totalIncome =
-            Number(
-                window.getTotalIncome()
-            ) || 0;
-
-    }
-
-
-    const todayElement =
+    const note =
         document.getElementById(
-            "todayIncome"
+            "incomeNote"
         );
 
-    const monthElement =
+    const counter =
         document.getElementById(
-            "monthIncome"
-        );
-
-    const totalElement =
-        document.getElementById(
-            "totalIncome"
+            "noteCounter"
         );
 
 
-    if (todayElement) {
+    if (!note || !counter) {
+        return;
+    }
 
-        todayElement.textContent =
-            formatIncomeMoney(
-                todayIncome
-            );
+
+    function updateCounter() {
+
+        counter.textContent =
+            note.value.length +
+            " / 300";
 
     }
 
 
-    if (monthElement) {
-
-        monthElement.textContent =
-            formatIncomeMoney(
-                monthIncome
-            );
-
-    }
-
-
-    if (totalElement) {
-
-        totalElement.textContent =
-            formatIncomeMoney(
-                totalIncome
-            );
-
-    }
-
-}
-
-
-/* =========================================================
-   MONEY FORMAT
-========================================================= */
-
-function formatIncomeMoney(
-    amount
-) {
-
-    const value =
-        Number(amount) || 0;
-
-
-    if (
-        typeof window.formatMoney ===
-        "function"
-    ) {
-
-        try {
-
-            return window.formatMoney(
-                value
-            );
-
-        } catch (error) {}
-
-    }
-
-
-    return (
-        "₹" +
-        value.toLocaleString(
-            "en-IN",
-            {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2
-            }
-        )
+    note.addEventListener(
+        "input",
+        updateCounter
     );
+
+
+    updateCounter();
 
 }
 
@@ -397,11 +329,10 @@ function setupIncomeForm() {
 
 
     /*
-     * Prevent duplicate event listeners.
+     * Prevent duplicate listener
      */
-
     if (
-        form.dataset.incomeInitialized ===
+        form.dataset.incomeReady ===
         "true"
     ) {
 
@@ -410,14 +341,284 @@ function setupIncomeForm() {
     }
 
 
-    form.dataset.incomeInitialized =
+    form.dataset.incomeReady =
         "true";
 
 
     form.addEventListener(
         "submit",
-        saveIncome
+        function (event) {
+
+            event.preventDefault();
+
+            saveIncome();
+
+        }
     );
+
+}
+
+
+/* =========================================================
+   CHECK EDIT MODE
+========================================================= */
+
+function checkIncomeEditMode() {
+
+    const params =
+        new URLSearchParams(
+            window.location.search
+        );
+
+
+    const editId =
+        params.get("edit");
+
+
+    if (!editId) {
+
+        /*
+         * Check sessionStorage
+         */
+        try {
+
+            const stored =
+                sessionStorage.getItem(
+                    "rdkh_edit_transaction"
+                );
+
+
+            if (stored) {
+
+                const transaction =
+                    JSON.parse(stored);
+
+
+                if (
+                    transaction &&
+                    transaction.type ===
+                    "income"
+                ) {
+
+                    enterIncomeEditMode(
+                        transaction
+                    );
+
+                    return;
+
+                }
+
+            }
+
+        } catch (error) {
+
+            console.warn(
+                "Could not read edit transaction:",
+                error
+            );
+
+        }
+
+
+        return;
+
+    }
+
+
+    /*
+     * Get transaction from central storage
+     */
+
+    if (
+        typeof window.getTransactionById !==
+        "function"
+    ) {
+
+        return;
+
+    }
+
+
+    const transaction =
+        window.getTransactionById(
+            editId
+        );
+
+
+    if (
+        !transaction ||
+        transaction.type !==
+        "income"
+    ) {
+
+        return;
+
+    }
+
+
+    enterIncomeEditMode(
+        transaction
+    );
+
+}
+
+
+/* =========================================================
+   ENTER EDIT MODE
+========================================================= */
+
+function enterIncomeEditMode(
+    transaction
+) {
+
+    incomeEditMode =
+        true;
+
+    incomeEditId =
+        transaction.id;
+
+
+    const date =
+        document.getElementById(
+            "incomeDate"
+        );
+
+    const amount =
+        document.getElementById(
+            "incomeAmount"
+        );
+
+    const category =
+        document.getElementById(
+            "incomeCategory"
+        );
+
+    const account =
+        document.getElementById(
+            "incomeAccount"
+        );
+
+    const paymentMode =
+        document.getElementById(
+            "incomePaymentMode"
+        );
+
+    const note =
+        document.getElementById(
+            "incomeNote"
+        );
+
+
+    if (date) {
+
+        date.value =
+            transaction.date || "";
+
+    }
+
+
+    if (amount) {
+
+        amount.value =
+            transaction.amount || "";
+
+    }
+
+
+    if (category) {
+
+        category.value =
+            transaction.categoryId ||
+            transaction.category ||
+            "";
+
+    }
+
+
+    if (account) {
+
+        account.value =
+            transaction.accountId ||
+            "";
+
+    }
+
+
+    if (paymentMode) {
+
+        paymentMode.value =
+            transaction.paymentMode ||
+            "Cash";
+
+    }
+
+
+    if (note) {
+
+        note.value =
+            transaction.note ||
+            transaction.description ||
+            "";
+
+        note.dispatchEvent(
+            new Event("input")
+        );
+
+    }
+
+
+    /*
+     * Change button text
+     */
+
+    const submitButton =
+        document.querySelector(
+            "#incomeForm button[type='submit']"
+        );
+
+
+    if (submitButton) {
+
+        submitButton.innerHTML =
+            '<i class="fa-solid fa-pen"></i> जमा नोंद अपडेट करा';
+
+    }
+
+
+    /*
+     * Change heading if available
+     */
+
+    const heading =
+        document.querySelector(
+            ".page-intro h2"
+        );
+
+
+    if (heading) {
+
+        heading.textContent =
+            "जमा नोंद संपादित करा";
+
+    }
+
+
+    /*
+     * Last saved message
+     */
+
+    const lastSaved =
+        document.getElementById(
+            "lastSaved"
+        );
+
+
+    if (lastSaved) {
+
+        lastSaved.style.display =
+            "none";
+
+    }
 
 }
 
@@ -426,24 +627,22 @@ function setupIncomeForm() {
    SAVE / UPDATE INCOME
 ========================================================= */
 
-function saveIncome(event) {
+function saveIncome() {
 
-    event.preventDefault();
-
-
-    /* -----------------------------------------------------
-       CHECK CENTRAL TRANSACTION SYSTEM
-    ----------------------------------------------------- */
+    /*
+     * Central transaction system required
+     */
 
     if (
         typeof window.getTransactions !==
-            "function" ||
+        "function" ||
+
         typeof window.saveTransactions !==
-            "function"
+        "function"
     ) {
 
         alert(
-            "Transaction system उपलब्ध नाही. कृपया transactions.js तपासा."
+            "Transaction system उपलब्ध नाही. कृपया transactions.js योग्य प्रकारे load आहे का तपासा."
         );
 
         return;
@@ -451,92 +650,53 @@ function saveIncome(event) {
     }
 
 
-    /* -----------------------------------------------------
-       GET FORM VALUES
-    ----------------------------------------------------- */
-
-    const dateInput =
-        document.getElementById(
+    const date =
+        getElementValue(
             "incomeDate"
         );
 
-    const amountInput =
-        document.getElementById(
-            "incomeAmount"
+
+    const amount =
+        Number(
+            getElementValue(
+                "incomeAmount"
+            )
         );
 
-    const categoryInput =
-        document.getElementById(
+
+    const category =
+        getElementValue(
             "incomeCategory"
         );
 
-    const accountInput =
-        document.getElementById(
+
+    const accountId =
+        getElementValue(
             "incomeAccount"
         );
 
-    const paymentModeInput =
-        document.getElementById(
+
+    const paymentMode =
+        getElementValue(
             "incomePaymentMode"
         );
 
-    const noteInput =
-        document.getElementById(
+
+    const note =
+        getElementValue(
             "incomeNote"
         );
 
 
-    const date =
-        dateInput
-            ? dateInput.value
-            : "";
-
-
-    const amount =
-        amountInput
-            ? Number(
-                amountInput.value
-              )
-            : 0;
-
-
-    const category =
-        categoryInput
-            ? categoryInput.value
-            : "";
-
-
-    const accountId =
-        accountInput
-            ? accountInput.value
-            : "";
-
-
-    const paymentMode =
-        paymentModeInput
-            ? paymentModeInput.value
-            : "";
-
-
-    const note =
-        noteInput
-            ? noteInput.value.trim()
-            : "";
-
-
-    /* -----------------------------------------------------
+    /* =====================================================
        VALIDATION
-    ----------------------------------------------------- */
+    ===================================================== */
 
     if (!date) {
 
         alert(
             "कृपया तारीख निवडा."
         );
-
-        if (dateInput) {
-            dateInput.focus();
-        }
 
         return;
 
@@ -552,10 +712,6 @@ function saveIncome(event) {
             "कृपया योग्य जमा रक्कम भरा."
         );
 
-        if (amountInput) {
-            amountInput.focus();
-        }
-
         return;
 
     }
@@ -566,10 +722,6 @@ function saveIncome(event) {
         alert(
             "कृपया जमा प्रकार निवडा."
         );
-
-        if (categoryInput) {
-            categoryInput.focus();
-        }
 
         return;
 
@@ -582,125 +734,57 @@ function saveIncome(event) {
             "कृपया कोणत्या खात्यात जमा झाली ते निवडा."
         );
 
-        if (accountInput) {
-            accountInput.focus();
-        }
-
         return;
 
     }
 
 
-    /* -----------------------------------------------------
-       GET ACCOUNT DETAILS
-    ----------------------------------------------------- */
+    /*
+     * Find category name
+     */
 
-    let accountName = "";
-
-    if (
-        typeof window.getAccounts ===
-        "function"
-    ) {
-
-        const accounts =
-            window.getAccounts() || [];
-
-        const account =
-            accounts.find(
-                function (item) {
-
-                    return (
-                        item.id ===
-                        accountId
-                    );
-
-                }
-            );
-
-        if (account) {
-
-            accountName =
-                account.name;
-
-        }
-
-    }
+    const categoryName =
+        getIncomeCategoryName(
+            category
+        );
 
 
-    /* -----------------------------------------------------
-       CATEGORY NAME
-    ----------------------------------------------------- */
-
-    const categorySelect =
-        categoryInput;
-
-
-    let categoryName =
-        category;
-
-
-    if (categorySelect) {
-
-        const selectedOption =
-            categorySelect.options[
-                categorySelect.selectedIndex
-            ];
-
-        if (
-            selectedOption &&
-            selectedOption.textContent
-        ) {
-
-            categoryName =
-                selectedOption.textContent
-                    .trim();
-
-        }
-
-    }
-
-
-    /* -----------------------------------------------------
-       CREATE / UPDATE TRANSACTION
-    ----------------------------------------------------- */
-
-    const transactions =
-        window.getTransactions();
-
+    /* =====================================================
+       EDIT
+    ===================================================== */
 
     if (
         incomeEditMode &&
-        incomeEditTransactionId
+        incomeEditId
     ) {
 
-        /*
-         * UPDATE EXISTING INCOME
-         */
+        const transactions =
+            window.getTransactions();
+
 
         const index =
             transactions.findIndex(
-                function (transaction) {
-
-                    return (
-                        String(
-                            transaction.id
-                        ) ===
-                        String(
-                            incomeEditTransactionId
-                        )
-                    );
-
-                }
+                transaction =>
+                    String(
+                        transaction.id
+                    ) ===
+                    String(
+                        incomeEditId
+                    )
             );
 
 
         if (index === -1) {
 
             alert(
-                "Edit करण्यासाठी जमा व्यवहार सापडला नाही."
+                "जमा व्यवहार सापडला नाही."
             );
 
-            exitIncomeEditMode();
+            incomeEditMode =
+                false;
+
+            incomeEditId =
+                null;
 
             return;
 
@@ -711,63 +795,31 @@ function saveIncome(event) {
             transactions[index];
 
 
-        /*
-         * Safety check:
-         * Do not allow an expense to be
-         * accidentally converted here.
-         */
-
-        if (
-            typeof window.RDKHNormalizeTransactionType ===
-            "function"
-        ) {
-
-            const oldType =
-                window.RDKHNormalizeTransactionType(
-                    oldTransaction.type
-                );
-
-            if (
-                oldType !== "income"
-            ) {
-
-                alert(
-                    "हा जमा व्यवहार नाही."
-                );
-
-                return;
-
-            }
-
-        }
-
-
         transactions[index] = {
 
             ...oldTransaction,
 
             type: "income",
 
-            date,
+            date: date,
 
-            category,
+            category: category,
 
             categoryId: category,
 
-            categoryName,
+            categoryName:
+                categoryName,
 
-            amount,
+            description: note,
 
-            accountId,
+            amount: amount,
 
-            accountName,
+            accountId: accountId,
 
-            account:
-                accountName,
+            paymentMode:
+                paymentMode,
 
-            paymentMode,
-
-            note,
+            note: note,
 
             updatedAt:
                 new Date().toISOString()
@@ -780,289 +832,343 @@ function saveIncome(event) {
         );
 
 
-        showLastSaved(
-            transactions[index],
-            true
-        );
+        /*
+         * Clear edit mode
+         */
+
+        incomeEditMode =
+            false;
+
+        incomeEditId =
+            null;
 
 
-        alert(
-            "जमा व्यवहार यशस्वीपणे अपडेट केला."
-        );
+        try {
+
+            sessionStorage.removeItem(
+                "rdkh_edit_transaction"
+            );
+
+        } catch (error) {
+
+            console.warn(error);
+
+        }
 
 
-        exitIncomeEditMode(
-            false
+        /*
+         * Success
+         */
+
+        showIncomeSavedMessage(
+            "जमा व्यवहार यशस्वीरित्या अपडेट केला आहे.",
+            transactions[index]
         );
 
 
         updateIncomeSummary();
 
 
-        if (
-            typeof window.updateDashboard ===
-            "function"
-        ) {
-
-            try {
-
-                window.updateDashboard();
-
-            } catch (error) {}
-
-        }
-
-
         return;
 
     }
 
 
-    /* -----------------------------------------------------
+    /* =====================================================
        NEW INCOME
-    ----------------------------------------------------- */
+    ===================================================== */
 
-    let transactionId = "";
-
-    if (
-        typeof window.generateTransactionId ===
-        "function"
-    ) {
-
-        /*
-         * If another existing global function
-         * already provides transaction IDs,
-         * use it.
-         */
-
-        try {
-
-            transactionId =
-                window.generateTransactionId();
-
-        } catch (error) {}
-
-    }
-
-
-    /*
-     * Our own fallback ID.
-     */
-
-    if (!transactionId) {
-
-        transactionId =
-            "INC-" +
-            Date.now() +
-            "-" +
-            Math.random()
-                .toString(36)
-                .substring(2, 8)
-                .toUpperCase();
-
-    }
-
-
-    const newTransaction = {
+    const transaction = {
 
         id:
-            transactionId,
+            generateIncomeTransactionId(),
 
         type:
             "income",
 
-        date,
+        date:
+            date,
 
-        category,
+        category:
+            category,
 
         categoryId:
             category,
 
-        categoryName,
-
-        description:
+        categoryName:
             categoryName,
 
-        amount,
+        description:
+            note,
 
-        accountId,
+        amount:
+            amount,
 
-        accountName,
+        accountId:
+            accountId,
 
-        account:
-            accountName,
+        paymentMode:
+            paymentMode,
 
-        paymentMode,
-
-        note,
+        note:
+            note,
 
         createdAt:
-            new Date().toISOString(),
-
-        updatedAt:
-            ""
+            new Date().toISOString()
 
     };
 
 
+    const transactions =
+        window.getTransactions();
+
+
     transactions.push(
-        newTransaction
+        transaction
     );
 
-
-    /*
-     * Save into CENTRAL STORAGE.
-     */
 
     window.saveTransactions(
         transactions
     );
 
 
-    /* -----------------------------------------------------
-       LAST SAVED
-    ----------------------------------------------------- */
+    /*
+     * Show success
+     */
 
-    showLastSaved(
-        newTransaction,
-        false
+    showIncomeSavedMessage(
+        "जमा नोंदवली आहे.",
+        transaction
     );
 
 
-    /* -----------------------------------------------------
-       SUCCESS
-    ----------------------------------------------------- */
-
-    alert(
-        "जमा यशस्वीपणे नोंदवली."
-    );
-
-
-    /* -----------------------------------------------------
-       RESET FORM
-    ----------------------------------------------------- */
-
-    resetIncomeForm();
-
-
-    /* -----------------------------------------------------
-       REFRESH
-    ----------------------------------------------------- */
+    /*
+     * Update summary
+     */
 
     updateIncomeSummary();
 
 
-    if (
-        typeof window.updateDashboard ===
-        "function"
-    ) {
+    /*
+     * Reset form
+     */
 
-        try {
-
-            window.updateDashboard();
-
-        } catch (error) {}
-
-    }
-
+    resetIncomeForm();
 
 }
 
 
 /* =========================================================
-   LAST SAVED
+   CATEGORY NAME
 ========================================================= */
 
-function showLastSaved(
-    transaction,
-    isUpdate
+function getIncomeCategoryName(
+    category
 ) {
 
-    const section =
-        document.getElementById(
-            "lastSaved"
-        );
+    const names = {
 
-    const text =
-        document.getElementById(
-            "lastSavedText"
-        );
+        Salary:
+            "पगार",
+
+        Business:
+            "व्यवसाय",
+
+        Freelance:
+            "Freelance",
+
+        Interest:
+            "व्याज",
+
+        Gift:
+            "भेट / मिळालेली रक्कम",
+
+        Refund:
+            "Refund",
+
+        Other:
+            "इतर"
+
+    };
 
 
-    if (!section) {
-        return;
-    }
+    return (
+        names[category] ||
+        category
+    );
+
+}
 
 
-    let accountName =
-        transaction.accountName ||
-        transaction.account ||
-        "";
+/* =========================================================
+   GENERATE INCOME ID
+========================================================= */
 
+function generateIncomeTransactionId() {
+
+    return (
+        "INC-" +
+        Date.now() +
+        "-" +
+        Math.random()
+            .toString(36)
+            .substring(2, 8)
+            .toUpperCase()
+    );
+
+}
+
+
+/* =========================================================
+   UPDATE SUMMARY
+========================================================= */
+
+function updateIncomeSummary() {
+
+    let today = 0;
+
+    let month = 0;
+
+    let total = 0;
+
+
+    /*
+     * Use central helper if available
+     */
 
     if (
-        !accountName &&
-        transaction.accountId &&
-        typeof window.getAccounts ===
+        typeof window.getTodayIncome ===
         "function"
     ) {
 
-        const accounts =
-            window.getAccounts() || [];
+        today =
+            Number(
+                window.getTodayIncome()
+            ) || 0;
 
-        const account =
-            accounts.find(
-                function (account) {
+    }
 
-                    return (
-                        account.id ===
-                        transaction.accountId
-                    );
 
-                }
+    if (
+        typeof window.getMonthIncome ===
+        "function"
+    ) {
+
+        month =
+            Number(
+                window.getMonthIncome()
+            ) || 0;
+
+    }
+
+
+    if (
+        typeof window.getTotalIncome ===
+        "function"
+    ) {
+
+        total =
+            Number(
+                window.getTotalIncome()
+            ) || 0;
+
+    }
+
+
+    /*
+     * Fallback calculation
+     */
+
+    if (
+        typeof window.getTotalIncome !==
+        "function"
+    ) {
+
+        const transactions =
+            typeof window.getTransactions ===
+            "function"
+                ? window.getTransactions()
+                : [];
+
+
+        const todayDate =
+            getTodayDate();
+
+
+        const currentMonth =
+            todayDate.slice(
+                0,
+                7
             );
 
-        if (account) {
 
-            accountName =
-                account.name;
+        transactions.forEach(
+            transaction => {
 
-        }
+                if (
+                    transaction.type !==
+                    "income"
+                ) {
 
-    }
+                    return;
 
-
-    const categoryName =
-        transaction.categoryName ||
-        transaction.category ||
-        "";
+                }
 
 
-    const amount =
-        formatIncomeMoney(
-            transaction.amount
+                const value =
+                    Number(
+                        transaction.amount
+                    ) || 0;
+
+
+                total += value;
+
+
+                if (
+                    transaction.date ===
+                    todayDate
+                ) {
+
+                    today += value;
+
+                }
+
+
+                if (
+                    String(
+                        transaction.date
+                    ).startsWith(
+                        currentMonth
+                    )
+                ) {
+
+                    month += value;
+
+                }
+
+            }
         );
 
-
-    if (text) {
-
-        if (isUpdate) {
-
-            text.textContent =
-                `${categoryName} • ${amount} • ${accountName}`;
-
-        } else {
-
-            text.textContent =
-                `${categoryName} • ${amount} • ${accountName}`;
-
-        }
-
     }
 
 
-    section.style.display =
-        "flex";
+    setText(
+        "todayIncome",
+        formatIncomeMoney(today)
+    );
+
+
+    setText(
+        "monthIncome",
+        formatIncomeMoney(month)
+    );
+
+
+    setText(
+        "totalIncome",
+        formatIncomeMoney(total)
+    );
 
 }
 
@@ -1079,28 +1185,23 @@ function resetIncomeForm() {
         );
 
 
-    if (form) {
-
-        form.reset();
-
+    if (!form) {
+        return;
     }
 
 
-    /*
-     * Set today's date again.
-     */
-
-    setDefaultIncomeDate();
+    form.reset();
 
 
     /*
-     * Reset payment mode to Cash
+     * Default payment mode
      */
 
     const paymentMode =
         document.getElementById(
             "incomePaymentMode"
         );
+
 
     if (paymentMode) {
 
@@ -1111,67 +1212,33 @@ function resetIncomeForm() {
 
 
     /*
-     * Reset note counter
+     * Today's date
      */
 
-    updateIncomeNoteCounter();
+    setDefaultIncomeDate();
 
 
     /*
-     * Hide last saved only when
-     * resetting manually.
+     * Account placeholder
      */
 
-    const lastSaved =
+    const account =
         document.getElementById(
-            "lastSaved"
+            "incomeAccount"
         );
 
-    if (lastSaved) {
 
-        lastSaved.style.display =
-            "none";
+    if (account) {
+
+        account.value =
+            "";
 
     }
 
 
     /*
-     * Do not clear edit mode here if
-     * reset is being called from
-     * edit initialization.
+     * Note counter
      */
-
-}
-
-
-/* =========================================================
-   NOTE COUNTER
-========================================================= */
-
-function setupNoteCounter() {
-
-    const note =
-        document.getElementById(
-            "incomeNote"
-        );
-
-    if (!note) {
-        return;
-    }
-
-
-    note.addEventListener(
-        "input",
-        updateIncomeNoteCounter
-    );
-
-
-    updateIncomeNoteCounter();
-
-}
-
-
-function updateIncomeNoteCounter() {
 
     const note =
         document.getElementById(
@@ -1184,341 +1251,29 @@ function updateIncomeNoteCounter() {
         );
 
 
-    if (!note || !counter) {
-        return;
-    }
+    if (note) {
 
-
-    counter.textContent =
-        `${note.value.length} / 300`;
-
-}
-
-
-/* =========================================================
-   EDIT MODE CHECK
-========================================================= */
-
-function checkIncomeEditMode() {
-
-    const params =
-        new URLSearchParams(
-            window.location.search
-        );
-
-
-    const editId =
-        params.get("edit");
-
-
-    /*
-     * No edit parameter
-     */
-
-    if (!editId) {
-
-        return;
+        note.value = "";
 
     }
 
 
-    let transaction = null;
+    if (counter) {
 
-
-    /*
-     * First try central storage.
-     */
-
-    if (
-        typeof window.getTransactionById ===
-        "function"
-    ) {
-
-        transaction =
-            window.getTransactionById(
-                editId
-            );
+        counter.textContent =
+            "0 / 300";
 
     }
 
 
     /*
-     * If unavailable, try sessionStorage.
+     * Exit edit mode
      */
-
-    if (!transaction) {
-
-        try {
-
-            const stored =
-                sessionStorage.getItem(
-                    "rdkh_edit_transaction"
-                );
-
-            if (stored) {
-
-                const parsed =
-                    JSON.parse(stored);
-
-                if (
-                    parsed &&
-                    String(
-                        parsed.id
-                    ) ===
-                    String(editId)
-                ) {
-
-                    transaction =
-                        parsed;
-
-                }
-
-            }
-
-        } catch (error) {}
-
-    }
-
-
-    if (!transaction) {
-
-        alert(
-            "Edit करण्यासाठी जमा व्यवहार सापडला नाही."
-        );
-
-        return;
-
-    }
-
-
-    /*
-     * Safety check.
-     */
-
-    let type = "";
-
-    if (
-        typeof window.RDKHNormalizeTransactionType ===
-        "function"
-    ) {
-
-        type =
-            window.RDKHNormalizeTransactionType(
-                transaction.type
-            );
-
-    } else {
-
-        type =
-            String(
-                transaction.type || ""
-            ).toLowerCase();
-
-    }
-
-
-    if (type !== "income") {
-
-        alert(
-            "हा जमा व्यवहार नाही."
-        );
-
-        return;
-
-    }
-
-
-    incomeEditMode =
-        true;
-
-    incomeEditTransactionId =
-        transaction.id;
-
-
-    populateIncomeEditForm(
-        transaction
-    );
-
-
-}
-
-
-/* =========================================================
-   POPULATE EDIT FORM
-========================================================= */
-
-function populateIncomeEditForm(
-    transaction
-) {
-
-    const dateInput =
-        document.getElementById(
-            "incomeDate"
-        );
-
-    const amountInput =
-        document.getElementById(
-            "incomeAmount"
-        );
-
-    const categoryInput =
-        document.getElementById(
-            "incomeCategory"
-        );
-
-    const accountInput =
-        document.getElementById(
-            "incomeAccount"
-        );
-
-    const paymentModeInput =
-        document.getElementById(
-            "incomePaymentMode"
-        );
-
-    const noteInput =
-        document.getElementById(
-            "incomeNote"
-        );
-
-
-    if (dateInput) {
-
-        dateInput.value =
-            transaction.date || "";
-
-    }
-
-
-    if (amountInput) {
-
-        amountInput.value =
-            transaction.amount || "";
-
-    }
-
-
-    if (categoryInput) {
-
-        categoryInput.value =
-            transaction.categoryId ||
-            transaction.category ||
-            "";
-
-    }
-
-
-    if (accountInput) {
-
-        /*
-         * accountId is the central value.
-         */
-
-        accountInput.value =
-            transaction.accountId ||
-            "";
-
-    }
-
-
-    if (paymentModeInput) {
-
-        paymentModeInput.value =
-            transaction.paymentMode ||
-            "Cash";
-
-    }
-
-
-    if (noteInput) {
-
-        noteInput.value =
-            transaction.note ||
-            "";
-
-    }
-
-
-    updateIncomeNoteCounter();
-
-
-    /*
-     * Change button text to UPDATE.
-     */
-
-    const form =
-        document.getElementById(
-            "incomeForm"
-        );
-
-
-    if (form) {
-
-        const submitButton =
-            form.querySelector(
-                'button[type="submit"]'
-            );
-
-
-        if (submitButton) {
-
-            submitButton.innerHTML = `
-                <i class="fa-solid fa-pen-to-square"></i>
-                जमा अपडेट करा
-            `;
-
-        }
-
-    }
-
-
-    /*
-     * Change page heading if available.
-     */
-
-    const heading =
-        document.querySelector(
-            ".page-intro h2"
-        );
-
-
-    if (heading) {
-
-        heading.textContent =
-            "जमा व्यवहार अपडेट करा";
-
-    }
-
-
-    const introText =
-        document.querySelector(
-            ".page-intro p"
-        );
-
-
-    if (introText) {
-
-        introText.textContent =
-            "जमा व्यवहारातील माहिती बदला.";
-
-    }
-
-
-}
-
-
-/* =========================================================
-   EXIT EDIT MODE
-========================================================= */
-
-function exitIncomeEditMode(
-    clearUrl = true
-) {
 
     incomeEditMode =
         false;
 
-    incomeEditTransactionId =
+    incomeEditId =
         null;
 
 
@@ -1528,34 +1283,33 @@ function exitIncomeEditMode(
             "rdkh_edit_transaction"
         );
 
-    } catch (error) {}
+    } catch (error) {
 
-
-    /*
-     * Remove edit parameter from URL.
-     */
-
-    if (
-        clearUrl &&
-        window.history &&
-        window.history.replaceState
-    ) {
-
-        try {
-
-            window.history.replaceState(
-                {},
-                document.title,
-                "income.html"
-            );
-
-        } catch (error) {}
+        console.warn(error);
 
     }
 
 
     /*
-     * Restore normal heading.
+     * Restore button
+     */
+
+    const submitButton =
+        document.querySelector(
+            "#incomeForm button[type='submit']"
+        );
+
+
+    if (submitButton) {
+
+        submitButton.innerHTML =
+            '<i class="fa-solid fa-check"></i> जमा नोंदवा';
+
+    }
+
+
+    /*
+     * Restore heading
      */
 
     const heading =
@@ -1571,43 +1325,75 @@ function exitIncomeEditMode(
 
     }
 
+}
 
-    const introText =
-        document.querySelector(
-            ".page-intro p"
+
+/* =========================================================
+   SUCCESS MESSAGE
+========================================================= */
+
+function showIncomeSavedMessage(
+    message,
+    transaction
+) {
+
+    const section =
+        document.getElementById(
+            "lastSaved"
         );
 
 
-    if (introText) {
+    const text =
+        document.getElementById(
+            "lastSavedText"
+        );
 
-        introText.textContent =
-            "मिळालेली रक्कम येथे नोंदवा.";
+
+    if (!section) {
+
+        alert(message);
+
+        return;
 
     }
 
 
-    const form =
-        document.getElementById(
-            "incomeForm"
-        );
+    section.style.display =
+        "flex";
 
 
-    if (form) {
+    if (text) {
 
-        const submitButton =
-            form.querySelector(
-                'button[type="submit"]'
-            );
+        const category =
+            transaction.categoryName ||
+            transaction.category ||
+            "जमा";
 
 
-        if (submitButton) {
+        text.textContent =
+            `${category} • ${formatIncomeMoney(
+                transaction.amount
+            )} • ${formatIncomeDate(
+                transaction.date
+            )}`;
 
-            submitButton.innerHTML = `
-                <i class="fa-solid fa-check"></i>
-                जमा नोंदवा
-            `;
+    }
 
-        }
+
+    /*
+     * Scroll to success message
+     */
+
+    try {
+
+        section.scrollIntoView({
+            behavior: "smooth",
+            block: "center"
+        });
+
+    } catch (error) {
+
+        console.warn(error);
 
     }
 
@@ -1615,122 +1401,164 @@ function exitIncomeEditMode(
 
 
 /* =========================================================
-   STORAGE EVENT
+   ELEMENT VALUE
 ========================================================= */
 
-window.addEventListener(
-    "storage",
-    function (event) {
+function getElementValue(
+    id
+) {
 
-        if (
-            event.key ===
-                "rdkh_transactions_v2" ||
-            event.key ===
-                "rdkh_transactions" ||
-            event.key ===
-                "rdkh_accounts"
-        ) {
+    const element =
+        document.getElementById(
+            id
+        );
 
-            loadIncomeAccounts();
 
-            updateIncomeSummary();
-
-        }
-
+    if (!element) {
+        return "";
     }
-);
+
+
+    return String(
+        element.value || ""
+    ).trim();
+
+}
 
 
 /* =========================================================
-   CENTRAL TRANSACTION EVENT
+   SET TEXT
 ========================================================= */
 
-window.addEventListener(
-    "rdkhTransactionsUpdated",
-    function () {
+function setText(
+    id,
+    value
+) {
 
-        loadIncomeAccounts();
+    const element =
+        document.getElementById(
+            id
+        );
 
-        updateIncomeSummary();
+
+    if (element) {
+
+        element.textContent =
+            value;
 
     }
-);
+
+}
 
 
 /* =========================================================
-   WINDOW FOCUS
+   FORMAT MONEY
 ========================================================= */
 
-window.addEventListener(
-    "focus",
-    function () {
+function formatIncomeMoney(
+    amount
+) {
 
-        /*
-         * Refresh account list and
-         * summary whenever user returns
-         * to income page.
-         */
+    const number =
+        Number(amount) || 0;
 
-        loadIncomeAccounts();
 
-        updateIncomeSummary();
+    return (
+        "₹" +
+        number.toLocaleString(
+            "en-IN",
+            {
+                minimumFractionDigits:
+                    2,
+
+                maximumFractionDigits:
+                    2
+            }
+        )
+    );
+
+}
+
+
+/* =========================================================
+   FORMAT DATE
+========================================================= */
+
+function formatIncomeDate(
+    date
+) {
+
+    if (!date) {
+        return "--";
+    }
+
+
+    const parts =
+        String(date).split("-");
+
+
+    if (
+        parts.length === 3
+    ) {
+
+        return (
+            parts[2] +
+            "/" +
+            parts[1] +
+            "/" +
+            parts[0]
+        );
 
     }
-);
+
+
+    return date;
+
+}
 
 
 /* =========================================================
    NAVIGATION
 ========================================================= */
 
-window.goHome =
-    window.goHome ||
-    function () {
+function goHome() {
 
-        window.location.href =
-            "index.html";
+    window.location.href =
+        "index.html";
 
-    };
+}
 
 
-window.goToTransactions =
-    window.goToTransactions ||
-    function () {
+function goToTransactions() {
 
-        window.location.href =
-            "transactions.html";
+    window.location.href =
+        "transactions.html";
 
-    };
+}
 
 
-window.goToExpense =
-    window.goToExpense ||
-    function () {
+function goToExpense() {
 
-        window.location.href =
-            "expense.html";
+    window.location.href =
+        "expense.html";
 
-    };
+}
 
 
-window.goToReports =
-    window.goToReports ||
-    function () {
+function goToReports() {
 
-        window.location.href =
-            "reports.html";
+    window.location.href =
+        "reports.html";
 
-    };
+}
 
 
-window.goToSettings =
-    window.goToSettings ||
-    function () {
+function goToSettings() {
 
-        window.location.href =
-            "settings.html";
+    window.location.href =
+        "settings.html";
 
-    };
+}
 
 
 /* =========================================================
@@ -1743,11 +1571,11 @@ window.saveIncome =
 window.resetIncomeForm =
     resetIncomeForm;
 
-window.loadIncomeAccounts =
-    loadIncomeAccounts;
-
 window.updateIncomeSummary =
     updateIncomeSummary;
+
+window.loadIncomeAccounts =
+    loadIncomeAccounts;
 
 window.checkIncomeEditMode =
     checkIncomeEditMode;
