@@ -1,41 +1,59 @@
 /* =========================================================
    reports.js
-
    रोजचा जमा खर्च अहवाल
+   REPORT MANAGEMENT
 
-   REPORT SYSTEM
+   CENTRAL SYSTEM VERSION
+
+   CONNECTED WITH:
+   - transactions.js
+   - income.js
+   - expense.js
+   - monthly-budget.js
+   - accounts.js
+
+   FEATURES:
    ---------------------------------------------------------
    ✅ Daily Report
    ✅ Monthly Report
    ✅ Yearly Report
    ✅ All Transactions
-   ✅ Income
-   ✅ Expense
-   ✅ Balance
+   ✅ Income Report
+   ✅ Expense Report
    ✅ Category-wise Expense
-   ✅ Budget vs Actual
+   ✅ Budget Report
+   ✅ Search
    ✅ CSV Export
-   ✅ Print
+   ✅ Print Report
+   ✅ Central Transaction Storage
    ========================================================= */
 
 
 /* =========================================================
-   STORAGE
+   STORAGE KEYS
 ========================================================= */
 
 const REPORT_TRANSACTIONS_KEY =
+    "rdkh_transactions_v2";
+
+const REPORT_LEGACY_TRANSACTION_KEY =
     "rdkh_transactions";
 
 const REPORT_BUDGET_KEY =
-    "rdkh_monthly_budgets";
-
-const REPORT_CATEGORY_KEY =
-    "rdkh_budget_categories";
-
+    "monthly_budgets";
 
 
 /* =========================================================
-   INITIALIZE
+   VARIABLES
+========================================================= */
+
+let reportTransactions = [];
+
+let filteredReportTransactions = [];
+
+
+/* =========================================================
+   DOM READY
 ========================================================= */
 
 document.addEventListener(
@@ -48,294 +66,21 @@ document.addEventListener(
 );
 
 
-
 /* =========================================================
    INITIALIZE
 ========================================================= */
 
 function initializeReports() {
 
-    setDefaultReportDate();
-
-    populateYears();
+    loadReportTransactions();
 
     setupReportEvents();
 
-    generateReport();
+    setDefaultReportDate();
+
+    renderReport();
 
 }
-
-
-
-/* =========================================================
-   DEFAULT DATE
-========================================================= */
-
-function setDefaultReportDate() {
-
-    const now =
-        new Date();
-
-
-    const year =
-        now.getFullYear();
-
-
-    const month =
-        String(
-            now.getMonth() + 1
-        ).padStart(
-            2,
-            "0"
-        );
-
-
-    const day =
-        String(
-            now.getDate()
-        ).padStart(
-            2,
-            "0"
-        );
-
-
-    const monthInput =
-        document.getElementById(
-            "reportMonth"
-        );
-
-
-    const dateInput =
-        document.getElementById(
-            "reportDate"
-        );
-
-
-    if (monthInput) {
-
-        monthInput.value =
-            `${year}-${month}`;
-
-    }
-
-
-    if (dateInput) {
-
-        dateInput.value =
-            `${year}-${month}-${day}`;
-
-    }
-
-}
-
-
-
-/* =========================================================
-   POPULATE YEARS
-========================================================= */
-
-function populateYears() {
-
-    const select =
-        document.getElementById(
-            "reportYear"
-        );
-
-
-    if (!select) {
-
-        return;
-
-    }
-
-
-    const currentYear =
-        new Date().getFullYear();
-
-
-    select.innerHTML =
-        "";
-
-
-    for (
-        let year =
-            currentYear - 5;
-
-        year <=
-            currentYear + 2;
-
-        year++
-    ) {
-
-        const option =
-            document.createElement(
-                "option"
-            );
-
-
-        option.value =
-            year;
-
-
-        option.textContent =
-            year;
-
-
-        if (
-            year ===
-            currentYear
-        ) {
-
-            option.selected =
-                true;
-
-        }
-
-
-        select.appendChild(
-            option
-        );
-
-    }
-
-}
-
-
-
-/* =========================================================
-   EVENTS
-========================================================= */
-
-function setupReportEvents() {
-
-    const type =
-        document.getElementById(
-            "reportType"
-        );
-
-
-    if (type) {
-
-        type.addEventListener(
-            "change",
-            function () {
-
-                updateReportFilterVisibility();
-
-                generateReport();
-
-            }
-        );
-
-    }
-
-}
-
-
-
-/* =========================================================
-   FILTER VISIBILITY
-========================================================= */
-
-function updateReportFilterVisibility() {
-
-    const type =
-        document.getElementById(
-            "reportType"
-        )?.value;
-
-
-    const monthGroup =
-        document.getElementById(
-            "reportMonthGroup"
-        );
-
-
-    const dateGroup =
-        document.getElementById(
-            "reportDateGroup"
-        );
-
-
-    const yearGroup =
-        document.getElementById(
-            "reportYearGroup"
-        );
-
-
-    if (monthGroup) {
-
-        monthGroup.style.display =
-            type === "monthly"
-                ? "block"
-                : "none";
-
-    }
-
-
-    if (dateGroup) {
-
-        dateGroup.style.display =
-            type === "daily"
-                ? "block"
-                : "none";
-
-    }
-
-
-    if (yearGroup) {
-
-        yearGroup.style.display =
-            type === "yearly"
-                ? "block"
-                : "none";
-
-    }
-
-}
-
-
-
-/* =========================================================
-   GENERATE REPORT
-========================================================= */
-
-function generateReport() {
-
-    updateReportFilterVisibility();
-
-
-    const transactions =
-        getReportTransactions();
-
-
-    const filtered =
-        filterTransactions(
-            transactions
-        );
-
-
-    renderSummary(
-        filtered
-    );
-
-
-    renderCategoryReport(
-        filtered
-    );
-
-
-    renderTransactions(
-        filtered
-    );
-
-
-    renderBudgetReport(
-        filtered
-    );
-
-}
-
 
 
 /* =========================================================
@@ -345,23 +90,39 @@ function generateReport() {
 function getReportTransactions() {
 
     /*
-       First try app.js function.
-    */
+     * CENTRAL SYSTEM
+     */
 
     if (
-        typeof getTransactions ===
+        typeof window.getTransactions ===
         "function"
     ) {
 
-        const data =
-            getTransactions();
+        try {
 
+            const transactions =
+                window.getTransactions();
 
-        if (
-            Array.isArray(data)
-        ) {
+            if (
+                Array.isArray(
+                    transactions
+                )
+            ) {
 
-            return data;
+                return transactions
+                    .map(
+                        normalizeReportTransaction
+                    )
+                    .filter(Boolean);
+
+            }
+
+        } catch (error) {
+
+            console.warn(
+                "Central transactions read error:",
+                error
+            );
 
         }
 
@@ -369,66 +130,85 @@ function getReportTransactions() {
 
 
     /*
-       Direct LocalStorage
-    */
+     * Fallback V2
+     */
 
-    const keys = [
+    try {
 
-        REPORT_TRANSACTIONS_KEY,
-
-        "rdkh_transaction",
-
-        "transactions",
-
-        "income_expense_transactions",
-
-        "expense_transactions",
-
-        "income_transactions"
-
-    ];
+        const raw =
+            localStorage.getItem(
+                REPORT_TRANSACTIONS_KEY
+            );
 
 
-    for (
-        const key of keys
-    ) {
-
-        try {
-
-            const stored =
-                localStorage.getItem(
-                    key
-                );
-
-
-            if (!stored) {
-
-                continue;
-
-            }
-
+        if (raw) {
 
             const data =
-                JSON.parse(
-                    stored
-                );
+                JSON.parse(raw);
 
 
             if (
                 Array.isArray(data)
             ) {
 
-                return data;
+                return data
+                    .map(
+                        normalizeReportTransaction
+                    )
+                    .filter(Boolean);
 
             }
 
         }
 
-        catch {
+    } catch (error) {
 
-            continue;
+        console.warn(
+            "V2 transaction read error:",
+            error
+        );
+
+    }
+
+
+    /*
+     * Legacy
+     */
+
+    try {
+
+        const raw =
+            localStorage.getItem(
+                REPORT_LEGACY_TRANSACTION_KEY
+            );
+
+
+        if (raw) {
+
+            const data =
+                JSON.parse(raw);
+
+
+            if (
+                Array.isArray(data)
+            ) {
+
+                return data
+                    .map(
+                        normalizeReportTransaction
+                    )
+                    .filter(Boolean);
+
+            }
 
         }
+
+    } catch (error) {
+
+        console.warn(
+            "Legacy transaction read error:",
+            error
+        );
 
     }
 
@@ -438,92 +218,681 @@ function getReportTransactions() {
 }
 
 
+/* =========================================================
+   NORMALIZE TRANSACTION
+========================================================= */
+
+function normalizeReportTransaction(
+    transaction
+) {
+
+    if (
+        !transaction ||
+        typeof transaction !==
+        "object"
+    ) {
+
+        return null;
+
+    }
+
+
+    let type =
+        String(
+            transaction.type ||
+            transaction.transactionType ||
+            ""
+        )
+            .toLowerCase()
+            .trim();
+
+
+    if (
+        type === "जमा" ||
+        type === "credit" ||
+        type === "income"
+    ) {
+
+        type = "income";
+
+    } else if (
+        type === "खर्च" ||
+        type === "debit" ||
+        type === "expense"
+    ) {
+
+        type = "expense";
+
+    } else {
+
+        /*
+         * Legacy detection
+         */
+
+        if (
+            transaction.expenseAmount ||
+            transaction.expenseCategory
+        ) {
+
+            type = "expense";
+
+        } else if (
+            transaction.incomeAmount ||
+            transaction.incomeCategory
+        ) {
+
+            type = "income";
+
+        }
+
+    }
+
+
+    if (
+        type !== "income" &&
+        type !== "expense"
+    ) {
+
+        return null;
+
+    }
+
+
+    const amount =
+        Number(
+            transaction.amount ||
+            transaction.incomeAmount ||
+            transaction.expenseAmount ||
+            0
+        );
+
+
+    if (
+        !Number.isFinite(amount) ||
+        amount <= 0
+    ) {
+
+        return null;
+
+    }
+
+
+    const date =
+        normalizeReportDate(
+            transaction.date ||
+            transaction.transactionDate ||
+            transaction.incomeDate ||
+            transaction.expenseDate
+        );
+
+
+    const categoryId =
+        transaction.categoryId ||
+        transaction.category ||
+        transaction.incomeCategory ||
+        transaction.expenseCategory ||
+        "";
+
+
+    const categoryName =
+        transaction.categoryName ||
+        transaction.categoryLabel ||
+        getReportCategoryName(
+            categoryId,
+            type
+        );
+
+
+    return {
+
+        id:
+            transaction.id ||
+            transaction.transactionId ||
+            "",
+
+        type:
+            type,
+
+        date:
+            date,
+
+        amount:
+            amount,
+
+        category:
+            categoryId,
+
+        categoryId:
+            categoryId,
+
+        categoryName:
+            categoryName,
+
+        description:
+            transaction.description ||
+            transaction.note ||
+            transaction.details ||
+            "",
+
+        accountId:
+            transaction.accountId ||
+            "",
+
+        paymentMode:
+            transaction.paymentMode ||
+            "",
+
+        note:
+            transaction.note ||
+            "",
+
+        createdAt:
+            transaction.createdAt ||
+            ""
+
+    };
+
+}
+
+
+/* =========================================================
+   NORMALIZE DATE
+========================================================= */
+
+function normalizeReportDate(
+    value
+) {
+
+    if (!value) {
+
+        return "";
+
+    }
+
+
+    const text =
+        String(value);
+
+
+    if (
+        /^\d{4}-\d{2}-\d{2}$/
+            .test(text)
+    ) {
+
+        return text;
+
+    }
+
+
+    const date =
+        new Date(value);
+
+
+    if (
+        !isNaN(
+            date.getTime()
+        )
+    ) {
+
+        return date
+            .toISOString()
+            .slice(
+                0,
+                10
+            );
+
+    }
+
+
+    return text.slice(
+        0,
+        10
+    );
+
+}
+
+
+/* =========================================================
+   LOAD
+========================================================= */
+
+function loadReportTransactions() {
+
+    reportTransactions =
+        getReportTransactions();
+
+}
+
+
+/* =========================================================
+   DEFAULT DATE
+========================================================= */
+
+function setDefaultReportDate() {
+
+    const dateInput =
+        document.getElementById(
+            "reportDate"
+        );
+
+
+    if (
+        dateInput &&
+        !dateInput.value
+    ) {
+
+        dateInput.value =
+            new Date()
+                .toISOString()
+                .slice(
+                    0,
+                    10
+                );
+
+    }
+
+}
+
+
+/* =========================================================
+   EVENTS
+========================================================= */
+
+function setupReportEvents() {
+
+    const elements =
+        document.querySelectorAll(
+            "#reportType, " +
+            "#reportPeriod, " +
+            "#reportDate, " +
+            "#reportMonth, " +
+            "#reportYear, " +
+            "#reportSearch, " +
+            "#reportCategory, " +
+            "#reportAccount"
+        );
+
+
+    elements.forEach(
+        element => {
+
+            element.addEventListener(
+                "change",
+                renderReport
+            );
+
+
+            element.addEventListener(
+                "input",
+                renderReport
+            );
+
+        }
+    );
+
+
+    /*
+     * Central transaction update
+     */
+
+    window.addEventListener(
+        "rdkhTransactionsUpdated",
+        function () {
+
+            loadReportTransactions();
+
+            renderReport();
+
+        }
+    );
+
+
+    /*
+     * Budget update
+     */
+
+    window.addEventListener(
+        "rdkhBudgetUpdated",
+        function () {
+
+            renderReport();
+
+        }
+    );
+
+
+    /*
+     * Storage update
+     */
+
+    window.addEventListener(
+        "storage",
+        function (event) {
+
+            if (
+                event.key ===
+                REPORT_TRANSACTIONS_KEY ||
+
+                event.key ===
+                REPORT_LEGACY_TRANSACTION_KEY ||
+
+                event.key ===
+                REPORT_BUDGET_KEY
+            ) {
+
+                loadReportTransactions();
+
+                renderReport();
+
+            }
+
+        }
+    );
+
+}
+
+
+/* =========================================================
+   GET REPORT FILTER
+========================================================= */
+
+function getReportFilter() {
+
+    const typeElement =
+        document.getElementById(
+            "reportType"
+        );
+
+
+    const periodElement =
+        document.getElementById(
+            "reportPeriod"
+        );
+
+
+    const dateElement =
+        document.getElementById(
+            "reportDate"
+        );
+
+
+    const monthElement =
+        document.getElementById(
+            "reportMonth"
+        );
+
+
+    const yearElement =
+        document.getElementById(
+            "reportYear"
+        );
+
+
+    const searchElement =
+        document.getElementById(
+            "reportSearch"
+        );
+
+
+    const categoryElement =
+        document.getElementById(
+            "reportCategory"
+        );
+
+
+    const accountElement =
+        document.getElementById(
+            "reportAccount"
+        );
+
+
+    return {
+
+        type:
+            typeElement
+                ? typeElement.value
+                : "",
+
+        period:
+            periodElement
+                ? periodElement.value
+                : "monthly",
+
+        date:
+            dateElement
+                ? dateElement.value
+                : "",
+
+        month:
+            monthElement
+                ? monthElement.value
+                : getCurrentReportMonth(),
+
+        year:
+            yearElement
+                ? yearElement.value
+                : String(
+                    new Date()
+                        .getFullYear()
+                ),
+
+        search:
+            searchElement
+                ? searchElement.value
+                    .trim()
+                    .toLowerCase()
+                : "",
+
+        category:
+            categoryElement
+                ? categoryElement.value
+                : "",
+
+        account:
+            accountElement
+                ? accountElement.value
+                : ""
+
+    };
+
+}
+
 
 /* =========================================================
    FILTER TRANSACTIONS
 ========================================================= */
 
-function filterTransactions(
-    transactions
+function filterReportTransactions(
+    transactions,
+    filter
 ) {
-
-    const type =
-        document.getElementById(
-            "reportType"
-        )?.value ||
-        "monthly";
-
 
     return transactions.filter(
         transaction => {
 
-            const date =
-                normalizeReportDate(
-                    transaction.date
-                );
+            /*
+             * Type
+             */
 
-
-            if (!date) {
+            if (
+                filter.type &&
+                filter.type !== "all" &&
+                transaction.type !==
+                filter.type
+            ) {
 
                 return false;
 
             }
 
 
-            if (
-                type === "daily"
-            ) {
-
-                const selected =
-                    document.getElementById(
-                        "reportDate"
-                    )?.value;
-
-
-                return date === selected;
-
-            }
-
+            /*
+             * Category
+             */
 
             if (
-                type === "monthly"
+                filter.category &&
+                String(
+                    transaction.categoryId
+                ) !==
+                String(
+                    filter.category
+                )
             ) {
 
-                const selected =
-                    document.getElementById(
-                        "reportMonth"
-                    )?.value;
-
-
-                return date.startsWith(
-                    selected
-                );
-
-            }
-
-
-            if (
-                type === "yearly"
-            ) {
-
-                const selected =
-                    String(
-                        document.getElementById(
-                            "reportYear"
-                        )?.value
-                    );
-
-
-                return date.startsWith(
-                    selected
-                );
+                return false;
 
             }
 
 
             /*
-               all
-            */
+             * Account
+             */
+
+            if (
+                filter.account &&
+                String(
+                    transaction.accountId
+                ) !==
+                String(
+                    filter.account
+                )
+            ) {
+
+                return false;
+
+            }
+
+
+            /*
+             * Period
+             */
+
+            if (
+                filter.period ===
+                "daily"
+            ) {
+
+                const targetDate =
+                    filter.date ||
+                    new Date()
+                        .toISOString()
+                        .slice(
+                            0,
+                            10
+                        );
+
+
+                if (
+                    transaction.date !==
+                    targetDate
+                ) {
+
+                    return false;
+
+                }
+
+            }
+
+
+            else if (
+                filter.period ===
+                "monthly"
+            ) {
+
+                const targetMonth =
+                    filter.month ||
+                    getCurrentReportMonth();
+
+
+                if (
+                    !String(
+                        transaction.date
+                    )
+                        .startsWith(
+                            targetMonth
+                        )
+                ) {
+
+                    return false;
+
+                }
+
+            }
+
+
+            else if (
+                filter.period ===
+                "yearly"
+            ) {
+
+                const targetYear =
+                    String(
+                        filter.year ||
+                        new Date()
+                            .getFullYear()
+                    );
+
+
+                if (
+                    !String(
+                        transaction.date
+                    )
+                        .startsWith(
+                            targetYear
+                        )
+                ) {
+
+                    return false;
+
+                }
+
+            }
+
+
+            /*
+             * Search
+             */
+
+            if (
+                filter.search
+            ) {
+
+                const searchableText = [
+
+                    transaction.id,
+
+                    transaction.categoryName,
+
+                    transaction.categoryId,
+
+                    transaction.description,
+
+                    transaction.note,
+
+                    transaction.paymentMode,
+
+                    transaction.accountId
+
+                ]
+                    .filter(Boolean)
+                    .join(" ")
+                    .toLowerCase();
+
+
+                if (
+                    !searchableText
+                        .includes(
+                            filter.search
+                        )
+                ) {
+
+                    return false;
+
+                }
+
+            }
+
 
             return true;
 
@@ -533,144 +902,51 @@ function filterTransactions(
 }
 
 
-
 /* =========================================================
-   NORMALIZE DATE
+   RENDER REPORT
 ========================================================= */
 
-function normalizeReportDate(
-    date
-) {
+function renderReport() {
 
-    if (!date) {
-
-        return "";
-
-    }
+    loadReportTransactions();
 
 
-    const value =
-        String(
-            date
+    const filter =
+        getReportFilter();
+
+
+    filteredReportTransactions =
+        filterReportTransactions(
+            reportTransactions,
+            filter
         );
 
 
-    if (
-        /^\d{4}-\d{2}-\d{2}$/
-            .test(value)
-    ) {
-
-        return value;
-
-    }
-
-
-    const parsed =
-        new Date(
-            date
-        );
-
-
-    if (
-        isNaN(
-            parsed.getTime()
-        )
-    ) {
-
-        return "";
-
-    }
-
-
-    return (
-
-        parsed.getFullYear() +
-        "-" +
-        String(
-            parsed.getMonth() + 1
-        ).padStart(
-            2,
-            "0"
-        ) +
-        "-" +
-        String(
-            parsed.getDate()
-        ).padStart(
-            2,
-            "0"
-        )
-
+    renderSummary(
+        filteredReportTransactions
     );
 
-}
+
+    renderTransactionReport(
+        filteredReportTransactions
+    );
 
 
-
-/* =========================================================
-   GET TRANSACTION TYPE
-========================================================= */
-
-function getReportTransactionType(
-    transaction
-) {
-
-    const type =
-        String(
-            transaction.type ||
-            ""
-        )
-            .trim()
-            .toLowerCase();
+    renderCategoryReport(
+        filteredReportTransactions
+    );
 
 
-    if (
-        type === "income" ||
-        type === "जमा"
-    ) {
-
-        return "income";
-
-    }
+    renderBudgetReport(
+        filter.month
+    );
 
 
-    if (
-        type === "expense" ||
-        type === "खर्च"
-    ) {
+    populateReportCategoryFilter();
 
-        return "expense";
-
-    }
-
-
-    /*
-       Some old data may use category/typeName
-    */
-
-    if (
-        String(
-            transaction.transactionType ||
-            ""
-        )
-            .toLowerCase()
-            .includes(
-                "income"
-            )
-    ) {
-
-        return "income";
-
-    }
-
-
-    return type === "expense"
-        ? "expense"
-        : type === "income"
-            ? "income"
-            : "";
+    populateReportAccountFilter();
 
 }
-
 
 
 /* =========================================================
@@ -681,11 +957,9 @@ function renderSummary(
     transactions
 ) {
 
-    let income =
-        0;
+    let income = 0;
 
-    let expense =
-        0;
+    let expense = 0;
 
 
     transactions.forEach(
@@ -697,28 +971,22 @@ function renderSummary(
                 ) || 0;
 
 
-            const type =
-                getReportTransactionType(
-                    transaction
-                );
-
-
             if (
-                type === "income"
+                transaction.type ===
+                "income"
             ) {
 
-                income +=
-                    amount;
+                income += amount;
 
             }
 
 
-            else if (
-                type === "expense"
+            if (
+                transaction.type ===
+                "expense"
             ) {
 
-                expense +=
-                    amount;
+                expense += amount;
 
             }
 
@@ -727,12 +995,15 @@ function renderSummary(
 
 
     const balance =
-        income -
-        expense;
+        income - expense;
 
 
     setReportText(
-        "reportTotalIncome",
+        [
+            "reportTotalIncome",
+            "totalReportIncome",
+            "summaryIncome"
+        ],
         formatReportMoney(
             income
         )
@@ -740,7 +1011,11 @@ function renderSummary(
 
 
     setReportText(
-        "reportTotalExpense",
+        [
+            "reportTotalExpense",
+            "totalReportExpense",
+            "summaryExpense"
+        ],
         formatReportMoney(
             expense
         )
@@ -748,7 +1023,11 @@ function renderSummary(
 
 
     setReportText(
-        "reportBalance",
+        [
+            "reportNetBalance",
+            "netReportBalance",
+            "summaryBalance"
+        ],
         formatReportMoney(
             balance
         )
@@ -756,262 +1035,36 @@ function renderSummary(
 
 
     setReportText(
-        "reportTransactionCount",
-        transactions.length
-    );
-
-
-    const balanceElement =
-        document.getElementById(
-            "reportBalance"
-        );
-
-
-    if (balanceElement) {
-
-        balanceElement.style.color =
-            balance < 0
-                ? "var(--expense)"
-                : "var(--income)";
-
-    }
-
-}
-
-
-
-/* =========================================================
-   CATEGORY REPORT
-========================================================= */
-
-function renderCategoryReport(
-    transactions
-) {
-
-    const container =
-        document.getElementById(
-            "categoryReportList"
-        );
-
-
-    if (!container) {
-
-        return;
-
-    }
-
-
-    container.innerHTML =
-        "";
-
-
-    const expenseTransactions =
-        transactions.filter(
-            transaction =>
-                getReportTransactionType(
-                    transaction
-                ) === "expense"
-        );
-
-
-    if (
-        expenseTransactions.length ===
-        0
-    ) {
-
-        container.innerHTML = `
-
-            <div class="empty-report">
-
-                <i class="fa-solid fa-chart-pie"
-                   style="font-size:25px;">
-                </i>
-
-                <br><br>
-
-                या कालावधीमध्ये खर्चाची नोंद उपलब्ध नाही.
-
-            </div>
-
-        `;
-
-        return;
-
-    }
-
-
-    const categoryTotals = {};
-
-
-    expenseTransactions.forEach(
-        transaction => {
-
-            const category =
-                String(
-                    transaction.category ||
-                    "Other"
-                ).trim();
-
-
-            const amount =
-                Number(
-                    transaction.amount
-                ) || 0;
-
-
-            if (
-                !categoryTotals[
-                    category
-                ]
-            ) {
-
-                categoryTotals[
-                    category
-                ] = 0;
-
-            }
-
-
-            categoryTotals[
-                category
-            ] += amount;
-
-        }
-    );
-
-
-    const sorted =
-        Object.entries(
-            categoryTotals
+        [
+            "reportTransactionCount",
+            "transactionCount",
+            "summaryCount"
+        ],
+        String(
+            transactions.length
         )
-        .sort(
-            (a, b) =>
-                b[1] - a[1]
-        );
-
-
-    const totalExpense =
-        sorted.reduce(
-            (
-                total,
-                item
-            ) =>
-                total +
-                item[1],
-            0
-        );
-
-
-    sorted.forEach(
-        (
-            [category, amount]
-        ) => {
-
-            const percentage =
-                totalExpense > 0
-                    ? (
-                        amount /
-                        totalExpense
-                    ) * 100
-                    : 0;
-
-
-            const item =
-                document.createElement(
-                    "div"
-                );
-
-
-            item.className =
-                "category-report-item";
-
-
-            item.innerHTML = `
-
-                <div class="category-report-top">
-
-                    <div class="category-report-name">
-
-                        <div class="category-report-icon">
-
-                            <i class="fa-solid fa-tag"></i>
-
-                        </div>
-
-
-                        <span>
-
-                            ${escapeReportHTML(
-                                category
-                            )}
-
-                        </span>
-
-                    </div>
-
-
-                    <div class="category-report-amount">
-
-                        ${formatReportMoney(
-                            amount
-                        )}
-
-                    </div>
-
-                </div>
-
-
-                <div class="category-report-progress">
-
-                    <div
-                        class="category-report-progress-inner"
-                        style="width:${Math.min(
-                            percentage,
-                            100
-                        )}%"
-                    ></div>
-
-                </div>
-
-
-                <div
-                    style="
-                        font-size:9px;
-                        color:var(--muted);
-                        margin-top:4px;
-                    "
-                >
-
-                    ${percentage.toFixed(1)}%
-                    of total expense
-
-                </div>
-
-            `;
-
-
-            container.appendChild(
-                item
-            );
-
-        }
     );
 
 }
 
 
-
 /* =========================================================
-   TRANSACTION LIST
+   TRANSACTION REPORT
 ========================================================= */
 
-function renderTransactions(
+function renderTransactionReport(
     transactions
 ) {
 
     const container =
         document.getElementById(
             "reportTransactionsList"
+        ) ||
+        document.getElementById(
+            "reportsTransactionList"
+        ) ||
+        document.getElementById(
+            "reportList"
         );
 
 
@@ -1022,57 +1075,21 @@ function renderTransactions(
     }
 
 
-    container.innerHTML =
-        "";
+    container.innerHTML = "";
 
 
-    const sorted =
-        [...transactions]
-            .sort(
-                (
-                    a,
-                    b
-                ) => {
-
-                    const dateA =
-                        new Date(
-                            a.date ||
-                            0
-                        );
-
-
-                    const dateB =
-                        new Date(
-                            b.date ||
-                            0
-                        );
-
-
-                    return (
-                        dateB -
-                        dateA
-                    );
-
-                }
-            );
-
-
-    if (
-        sorted.length ===
-        0
-    ) {
+    if (!transactions.length) {
 
         container.innerHTML = `
 
-            <div class="empty-report">
+            <div class="empty-report-state">
 
-                <i class="fa-solid fa-receipt"
-                   style="font-size:25px;">
-                </i>
+                <i class="fa-solid fa-file-circle-xmark"></i>
 
-                <br><br>
-
-                कोणतेही Transactions उपलब्ध नाहीत.
+                <p>
+                    या filter साठी कोणतेही
+                    व्यवहार उपलब्ध नाहीत.
+                </p>
 
             </div>
 
@@ -1083,39 +1100,47 @@ function renderTransactions(
     }
 
 
+    const sorted =
+        [...transactions].sort(
+            (a, b) => {
+
+                const dateCompare =
+                    String(
+                        b.date
+                    )
+                        .localeCompare(
+                            String(
+                                a.date
+                            )
+                        );
+
+
+                if (
+                    dateCompare !== 0
+                ) {
+
+                    return dateCompare;
+
+                }
+
+
+                return String(
+                    b.createdAt ||
+                    ""
+                )
+                    .localeCompare(
+                        String(
+                            a.createdAt ||
+                            ""
+                        )
+                    );
+
+            }
+        );
+
+
     sorted.forEach(
         transaction => {
-
-            const type =
-                getReportTransactionType(
-                    transaction
-                );
-
-
-            const amount =
-                Number(
-                    transaction.amount
-                ) || 0;
-
-
-            const category =
-                transaction.category ||
-                "";
-
-
-            const description =
-                transaction.description ||
-                transaction.note ||
-                transaction.title ||
-                category ||
-                "Transaction";
-
-
-            const date =
-                normalizeReportDate(
-                    transaction.date
-                );
-
 
             const row =
                 document.createElement(
@@ -1124,80 +1149,87 @@ function renderTransactions(
 
 
             row.className =
-                "report-transaction";
+                "report-transaction-row";
+
+
+            const isIncome =
+                transaction.type ===
+                "income";
+
+
+            const label =
+                isIncome
+                    ? "जमा"
+                    : "खर्च";
+
+
+            const amountClass =
+                isIncome
+                    ? "income"
+                    : "expense";
+
+
+            const sign =
+                isIncome
+                    ? "+"
+                    : "-";
 
 
             row.innerHTML = `
 
-                <div
-                    class="
-                        report-transaction-icon
-                        ${type === "income"
-                            ? "income"
-                            : "expense"}
-                    "
-                >
+                <div class="report-row-date">
 
-                    <i
-                        class="
-                            fa-solid
-                            ${
-                                type === "income"
-                                    ? "fa-arrow-down"
-                                    : "fa-arrow-up"
-                            }
-                        "
-                    ></i>
+                    ${formatReportDate(
+                        transaction.date
+                    )}
 
                 </div>
 
 
-                <div class="report-transaction-info">
+                <div class="report-row-info">
 
                     <strong>
-
                         ${escapeReportHTML(
-                            description
+                            transaction.categoryName ||
+                            transaction.categoryId ||
+                            label
                         )}
-
                     </strong>
 
+                    ${
+                        transaction.description
+                            ? `
+                                <small>
+                                    ${escapeReportHTML(
+                                        transaction.description
+                                    )}
+                                </small>
+                            `
+                            : ""
+                    }
 
-                    <span>
-
+                    <small>
+                        ${label}
                         ${
-                            category
-                                ? escapeReportHTML(
-                                    category
-                                  ) +
-                                  " • "
+                            transaction.paymentMode
+                                ? " • " +
+                                  escapeReportHTML(
+                                      transaction.paymentMode
+                                  )
                                 : ""
                         }
-
-                        ${formatReportDate(
-                            date
-                        )}
-
-                    </span>
+                    </small>
 
                 </div>
 
 
-                <div
-                    class="
-                        report-transaction-amount
-                        ${type}
-                    "
-                >
+                <div class="
+                    report-row-amount
+                    ${amountClass}">
 
-                    ${
-                        type === "income"
-                            ? "+"
-                            : "-"
-                    }
-
+                    ${sign}
                     ${formatReportMoney(
-                        amount
+                        transaction.amount
                     )}
 
                 </div>
@@ -1212,23 +1244,235 @@ function renderTransactions(
         }
     );
 
+}
 
-    const label =
+
+/* =========================================================
+   CATEGORY REPORT
+========================================================= */
+
+function renderCategoryReport(
+    transactions
+) {
+
+    const container =
         document.getElementById(
-            "transactionReportLabel"
+            "categoryReportList"
+        ) ||
+        document.getElementById(
+            "reportCategoryList"
+        ) ||
+        document.getElementById(
+            "categoryReport"
         );
 
 
-    if (label) {
+    if (!container) {
 
-        label.textContent =
-            sorted.length +
-            " transactions";
+        return;
 
     }
 
-}
 
+    container.innerHTML = "";
+
+
+    const expenses =
+        transactions.filter(
+            transaction =>
+                transaction.type ===
+                "expense"
+        );
+
+
+    if (!expenses.length) {
+
+        container.innerHTML = `
+
+            <div class="empty-report-state">
+
+                <i class="fa-solid fa-chart-pie"></i>
+
+                <p>
+                    या कालावधीत खर्च उपलब्ध नाही.
+                </p>
+
+            </div>
+
+        `;
+
+        return;
+
+    }
+
+
+    const categoryTotals =
+        {};
+
+
+    expenses.forEach(
+        transaction => {
+
+            const id =
+                transaction.categoryId ||
+                transaction.category ||
+                "other_expense";
+
+
+            const name =
+                transaction.categoryName ||
+                getReportCategoryName(
+                    id,
+                    "expense"
+                );
+
+
+            if (
+                !categoryTotals[id]
+            ) {
+
+                categoryTotals[id] = {
+
+                    id:
+                        id,
+
+                    name:
+                        name,
+
+                    amount:
+                        0,
+
+                    count:
+                        0
+
+                };
+
+            }
+
+
+            categoryTotals[id].amount +=
+                Number(
+                    transaction.amount
+                ) || 0;
+
+
+            categoryTotals[id].count +=
+                1;
+
+        }
+    );
+
+
+    const list =
+        Object.values(
+            categoryTotals
+        )
+            .sort(
+                (a, b) =>
+                    b.amount -
+                    a.amount
+            );
+
+
+    const totalExpense =
+        list.reduce(
+            (
+                total,
+                item
+            ) =>
+                total +
+                item.amount,
+            0
+        );
+
+
+    list.forEach(
+        item => {
+
+            const percentage =
+                totalExpense > 0
+                    ? (
+                        item.amount /
+                        totalExpense
+                    ) * 100
+                    : 0;
+
+
+            const row =
+                document.createElement(
+                    "div"
+                );
+
+
+            row.className =
+                "category-report-row";
+
+
+            row.innerHTML = `
+
+                <div class="
+                    category-report-header">
+
+                    <strong>
+                        ${escapeReportHTML(
+                            item.name
+                        )}
+                    </strong>
+
+                    <span>
+                        ${formatReportMoney(
+                            item.amount
+                        )}
+                    </span>
+
+                </div>
+
+
+                <div class="
+                    category-report-progress">
+
+                    <div
+                        class="
+                            category-report-progress-bar
+                        "
+                        style="
+                            width:${Math.min(
+                                percentage,
+                                100
+                            )}%;
+                        ">
+                    </div>
+
+                </div>
+
+
+                <div class="
+                    category-report-footer">
+
+                    <span>
+                        ${percentage.toFixed(
+                            1
+                        )}%
+                    </span>
+
+                    <span>
+                        ${item.count}
+                        व्यवहार
+                    </span>
+
+                </div>
+
+            `;
+
+
+            container.appendChild(
+                row
+            );
+
+        }
+    );
+
+}
 
 
 /* =========================================================
@@ -1236,407 +1480,1091 @@ function renderTransactions(
 ========================================================= */
 
 function renderBudgetReport(
-    transactions
+    month
 ) {
 
-    const month =
-        getReportMonthForBudget();
+    const container =
+        document.getElementById(
+            "budgetReportList"
+        ) ||
+        document.getElementById(
+            "reportBudgetList"
+        ) ||
+        document.getElementById(
+            "budgetReport"
+        );
 
 
-    if (!month) {
-
-        clearBudgetReport();
+    if (!container) {
 
         return;
 
     }
 
 
-    const budgets =
-        getReportBudgets();
+    const selectedMonth =
+        month ||
+        getCurrentReportMonth();
 
 
-    const budget =
-        budgets[month];
+    let budget = null;
+
+
+    /*
+     * Preferred:
+     * monthly-budget.js
+     */
+
+    if (
+        typeof window.getBudgetForMonth ===
+        "function"
+    ) {
+
+        try {
+
+            budget =
+                window.getBudgetForMonth(
+                    selectedMonth
+                );
+
+        } catch (error) {
+
+            console.warn(error);
+
+        }
+
+    }
+
+
+    /*
+     * Fallback localStorage
+     */
+
+    if (!budget) {
+
+        budget =
+            getBudgetFromStorage(
+                selectedMonth
+            );
+
+    }
 
 
     if (!budget) {
 
-        clearBudgetReport(
-            month
-        );
+        container.innerHTML = `
+
+            <div class="empty-report-state">
+
+                <i class="fa-solid fa-wallet"></i>
+
+                <p>
+                    या महिन्यासाठी बजेट उपलब्ध नाही.
+                </p>
+
+            </div>
+
+        `;
 
         return;
 
     }
 
 
-    const plannedMoney =
+    const planned =
         Number(
-            budget.plannedMoney
+            budget.total ??
+            budget.plannedMoney ??
+            0
         ) || 0;
 
 
-    const totalBudget =
-        Object.values(
-            budget.categories ||
-            {}
-        )
-        .reduce(
-            (
-                total,
-                amount
-            ) =>
-                total +
-                (
-                    Number(
-                        amount
-                    ) || 0
-                ),
-            0
+    const categories =
+        budget.categories || {};
+
+
+    const tracking =
+        [];
+
+
+    Object.keys(
+        categories
+    ).forEach(
+        categoryId => {
+
+            const plannedAmount =
+                Number(
+                    categories[
+                        categoryId
+                    ]
+                ) || 0;
+
+
+            const actual =
+                getReportCategoryActual(
+                    categoryId,
+                    selectedMonth
+                );
+
+
+            const remaining =
+                plannedAmount -
+                actual;
+
+
+            const usedPercent =
+                plannedAmount > 0
+                    ? (
+                        actual /
+                        plannedAmount
+                    ) * 100
+                    : 0;
+
+
+            tracking.push({
+
+                id:
+                    categoryId,
+
+                name:
+                    getReportCategoryName(
+                        categoryId,
+                        "expense"
+                    ),
+
+                planned:
+                    plannedAmount,
+
+                actual:
+                    actual,
+
+                remaining:
+                    remaining,
+
+                usedPercent:
+                    usedPercent
+
+            });
+
+        }
+    );
+
+
+    /*
+     * Include actual expense categories
+     * which have no budget.
+     */
+
+    const actualCategories =
+        getActualCategoryIds(
+            selectedMonth
         );
 
 
-    const actualExpense =
-        transactions
-            .filter(
-                transaction =>
-                    getReportTransactionType(
-                        transaction
-                    ) === "expense"
-            )
-            .reduce(
-                (
-                    total,
-                    transaction
-                ) =>
-                    total +
-                    (
-                        Number(
-                            transaction.amount
-                        ) || 0
-                    ),
-                0
-            );
+    actualCategories.forEach(
+        categoryId => {
+
+            const exists =
+                tracking.some(
+                    item =>
+                        String(
+                            item.id
+                        ) ===
+                        String(
+                            categoryId
+                        )
+                );
+
+
+            if (!exists) {
+
+                const actual =
+                    getReportCategoryActual(
+                        categoryId,
+                        selectedMonth
+                    );
+
+
+                tracking.push({
+
+                    id:
+                        categoryId,
+
+                    name:
+                        getReportCategoryName(
+                            categoryId,
+                            "expense"
+                        ),
+
+                    planned:
+                        0,
+
+                    actual:
+                        actual,
+
+                    remaining:
+                        -actual,
+
+                    usedPercent:
+                        0
+
+                });
+
+            }
+
+        }
+    );
+
+
+    container.innerHTML = "";
+
+
+    if (!tracking.length) {
+
+        container.innerHTML = `
+
+            <div class="empty-report-state">
+
+                <i class="fa-solid fa-wallet"></i>
+
+                <p>
+                    बजेट category उपलब्ध नाहीत.
+                </p>
+
+            </div>
+
+        `;
+
+        return;
+
+    }
+
+
+    tracking
+        .sort(
+            (a, b) =>
+                b.actual -
+                a.actual
+        )
+        .forEach(
+            item => {
+
+                const row =
+                    document.createElement(
+                        "div"
+                    );
+
+
+                const percentage =
+                    item.planned > 0
+                        ? Math.min(
+                            Math.max(
+                                item.usedPercent,
+                                0
+                            ),
+                            100
+                        )
+                        : 0;
+
+
+                row.className =
+                    "budget-report-row";
+
+
+                row.innerHTML = `
+
+                    <div class="
+                        budget-report-header">
+
+                        <strong>
+                            ${escapeReportHTML(
+                                item.name
+                            )}
+                        </strong>
+
+                        <span>
+                            ${formatReportMoney(
+                                item.actual
+                            )}
+                        </span>
+
+                    </div>
+
+
+                    <div class="
+                        budget-report-values">
+
+                        <span>
+                            Budget:
+                            ${formatReportMoney(
+                                item.planned
+                            )}
+                        </span>
+
+                        <span>
+                            ${
+                                item.remaining >= 0
+                                    ? "बाकी"
+                                    : "ओव्हर"
+                            }:
+                            ${formatReportMoney(
+                                Math.abs(
+                                    item.remaining
+                                )
+                            )}
+                        </span>
+
+                    </div>
+
+
+                    <div class="
+                        budget-report-progress">
+
+                        <div
+                            class="
+                                budget-report-progress-bar
+                            "
+                            style="
+                                width:${percentage}%;
+                            ">
+                        </div>
+
+                    </div>
+
+
+                    <small>
+                        ${
+                            item.planned > 0
+                                ? Math.round(
+                                    item.usedPercent
+                                ) +
+                                  "% वापरले"
+                                : "Budget set केलेले नाही"
+                        }
+                    </small>
+
+                `;
+
+
+                container.appendChild(
+                    row
+                );
+
+            }
+        );
+
+
+    /*
+     * Overall budget summary
+     */
+
+    const actualTotal =
+        getReportMonthExpenseTotal(
+            selectedMonth
+        );
 
 
     const remaining =
-        totalBudget -
-        actualExpense;
-
-
-    const percentage =
-        totalBudget > 0
-            ? (
-                actualExpense /
-                totalBudget
-            ) * 100
-            : 0;
+        planned -
+        actualTotal;
 
 
     setReportText(
-        "reportPlannedMoney",
+        [
+            "reportBudgetPlanned",
+            "budgetReportPlanned"
+        ],
         formatReportMoney(
-            plannedMoney
+            planned
         )
     );
 
 
     setReportText(
-        "reportTotalBudget",
+        [
+            "reportBudgetActual",
+            "budgetReportActual"
+        ],
         formatReportMoney(
-            totalBudget
+            actualTotal
         )
     );
 
 
     setReportText(
-        "reportBudgetActual",
-        formatReportMoney(
-            actualExpense
-        )
-    );
-
-
-    setReportText(
-        "reportBudgetRemaining",
+        [
+            "reportBudgetRemaining",
+            "budgetReportRemaining"
+        ],
         formatReportMoney(
             remaining
         )
     );
 
-
-    setReportText(
-        "budgetReportMonthText",
-        formatBudgetMonthText(
-            month
-        )
-    );
-
-
-    const progress =
-        document.getElementById(
-            "reportBudgetProgress"
-        );
-
-
-    if (progress) {
-
-        progress.style.width =
-            Math.min(
-                Math.max(
-                    percentage,
-                    0
-                ),
-                100
-            ) + "%";
-
-    }
-
-
-    const status =
-        document.getElementById(
-            "reportBudgetStatus"
-        );
-
-
-    if (status) {
-
-        if (
-            totalBudget <= 0
-        ) {
-
-            status.textContent =
-                "या महिन्यासाठी Category Budget सेट केलेले नाही.";
-
-            status.style.color =
-                "#9b6a00";
-
-        }
-
-        else if (
-            actualExpense >
-            totalBudget
-        ) {
-
-            status.textContent =
-                "⚠️ Budget पेक्षा " +
-                formatReportMoney(
-                    actualExpense -
-                    totalBudget
-                ) +
-                " जास्त खर्च झाला आहे.";
-
-            status.style.color =
-                "var(--expense)";
-
-        }
-
-        else {
-
-            status.textContent =
-                "Budget चा " +
-                percentage.toFixed(
-                    1
-                ) +
-                "% वापर झाला आहे.";
-
-            status.style.color =
-                percentage >=
-                (
-                    Number(
-                        budget.alertPercent
-                    ) || 80
-                )
-                    ? "#b57900"
-                    : "var(--income)";
-
-        }
-
-    }
-
 }
 
 
-
 /* =========================================================
-   GET BUDGET MONTH
+   GET BUDGET FROM STORAGE
 ========================================================= */
 
-function getReportMonthForBudget() {
-
-    const type =
-        document.getElementById(
-            "reportType"
-        )?.value;
-
-
-    if (
-        type === "monthly"
-    ) {
-
-        return document.getElementById(
-            "reportMonth"
-        )?.value;
-
-    }
-
-
-    /*
-       Daily report साठी त्याच month चे
-       Budget दाखवता येईल.
-    */
-
-    if (
-        type === "daily"
-    ) {
-
-        const date =
-            document.getElementById(
-                "reportDate"
-            )?.value;
-
-
-        return date
-            ? date.substring(
-                0,
-                7
-            )
-            : "";
-
-    }
-
-
-    /*
-       Yearly / All मध्ये Budget section
-       specific month नसल्यामुळे hide/clear.
-    */
-
-    return "";
-
-}
-
-
-
-/* =========================================================
-   GET BUDGET STORAGE
-========================================================= */
-
-function getReportBudgets() {
+function getBudgetFromStorage(
+    month
+) {
 
     try {
 
-        const stored =
+        const raw =
             localStorage.getItem(
                 REPORT_BUDGET_KEY
             );
 
 
-        if (!stored) {
+        if (!raw) {
 
-            return {};
+            return null;
 
         }
 
 
+        const budgets =
+            JSON.parse(raw);
+
+
         const data =
-            JSON.parse(
-                stored
-            );
+            budgets[
+                month
+            ];
 
 
-        return (
-            data &&
-            typeof data === "object"
-        )
-            ? data
-            : {};
+        if (!data) {
 
-    }
+            return null;
 
-    catch {
+        }
 
-        return {};
+
+        return {
+
+            total:
+                Number(
+                    data.total ??
+                    data.plannedMoney ??
+                    0
+                ) || 0,
+
+            plannedMoney:
+                Number(
+                    data.plannedMoney ??
+                    data.total ??
+                    0
+                ) || 0,
+
+            categories:
+                data.categories || {},
+
+            alertPercent:
+                Number(
+                    data.alertPercent ||
+                    80
+                )
+
+        };
+
+    } catch (error) {
+
+        console.warn(
+            "Budget read error:",
+            error
+        );
+
+        return null;
 
     }
 
 }
-
 
 
 /* =========================================================
-   CLEAR BUDGET
+   CATEGORY ACTUAL
 ========================================================= */
 
-function clearBudgetReport(
-    month = ""
+function getReportCategoryActual(
+    categoryId,
+    month
 ) {
 
-    setReportText(
-        "reportPlannedMoney",
-        "₹0.00"
-    );
+    if (
+        typeof window.getCategoryExpenseTotal ===
+        "function"
+    ) {
 
-
-    setReportText(
-        "reportTotalBudget",
-        "₹0.00"
-    );
-
-
-    setReportText(
-        "reportBudgetActual",
-        "₹0.00"
-    );
-
-
-    setReportText(
-        "reportBudgetRemaining",
-        "₹0.00"
-    );
-
-
-    setReportText(
-        "budgetReportMonthText",
-        month
-            ? formatBudgetMonthText(
+        return Number(
+            window.getCategoryExpenseTotal(
+                categoryId,
                 month
-              )
-            : "-"
-    );
-
-
-    const progress =
-        document.getElementById(
-            "reportBudgetProgress"
-        );
-
-
-    if (progress) {
-
-        progress.style.width =
-            "0%";
+            )
+        ) || 0;
 
     }
 
 
-    const status =
-        document.getElementById(
-            "reportBudgetStatus"
+    return reportTransactions
+        .filter(
+            transaction => {
+
+                return (
+                    transaction.type ===
+                    "expense" &&
+
+                    String(
+                        transaction.categoryId
+                    ) ===
+                    String(
+                        categoryId
+                    ) &&
+
+                    String(
+                        transaction.date
+                    )
+                        .startsWith(
+                            month
+                        )
+                );
+
+            }
+        )
+        .reduce(
+            (
+                total,
+                transaction
+            ) =>
+                total +
+                (
+                    Number(
+                        transaction.amount
+                    ) || 0
+                ),
+            0
+        );
+
+}
+
+
+/* =========================================================
+   MONTH EXPENSE TOTAL
+========================================================= */
+
+function getReportMonthExpenseTotal(
+    month
+) {
+
+    return reportTransactions
+        .filter(
+            transaction =>
+                transaction.type ===
+                "expense" &&
+
+                String(
+                    transaction.date
+                )
+                    .startsWith(
+                        month
+                    )
+        )
+        .reduce(
+            (
+                total,
+                transaction
+            ) =>
+                total +
+                (
+                    Number(
+                        transaction.amount
+                    ) || 0
+                ),
+            0
+        );
+
+}
+
+
+/* =========================================================
+   ACTUAL CATEGORY IDS
+========================================================= */
+
+function getActualCategoryIds(
+    month
+) {
+
+    const ids =
+        new Set();
+
+
+    reportTransactions
+        .filter(
+            transaction =>
+                transaction.type ===
+                "expense" &&
+
+                String(
+                    transaction.date
+                )
+                    .startsWith(
+                        month
+                    )
+        )
+        .forEach(
+            transaction => {
+
+                if (
+                    transaction.categoryId
+                ) {
+
+                    ids.add(
+                        transaction.categoryId
+                    );
+
+                }
+
+            }
         );
 
 
-    if (status) {
+    return Array.from(
+        ids
+    );
 
-        status.textContent =
-            month
-                ? "या महिन्यासाठी Budget उपलब्ध नाही."
-                : "Budget comparison फक्त Monthly / Daily report मध्ये उपलब्ध आहे.";
+}
+
+
+/* =========================================================
+   CATEGORY NAME
+========================================================= */
+
+function getReportCategoryName(
+    categoryId,
+    type
+) {
+
+    /*
+     * Expense categories
+     */
+
+    if (
+        type === "expense"
+    ) {
+
+        const categories =
+            window.EXPENSE_CATEGORIES ||
+            [];
+
+
+        const category =
+            categories.find(
+                item =>
+                    String(
+                        item.id
+                    ) ===
+                    String(
+                        categoryId
+                    )
+            );
+
+
+        if (category) {
+
+            return category.name;
+
+        }
+
+    }
+
+
+    /*
+     * Income categories
+     */
+
+    const incomeCategories = {
+
+        Salary:
+            "पगार",
+
+        Business:
+            "व्यवसाय",
+
+        Freelance:
+            "Freelance",
+
+        Interest:
+            "व्याज",
+
+        Gift:
+            "भेट / मिळालेली रक्कम",
+
+        Refund:
+            "Refund",
+
+        Other:
+            "इतर"
+
+    };
+
+
+    if (
+        incomeCategories[
+            categoryId
+        ]
+    ) {
+
+        return incomeCategories[
+            categoryId
+        ];
+
+    }
+
+
+    return (
+        categoryId ||
+        (
+            type === "income"
+                ? "जमा"
+                : "इतर खर्च"
+        )
+    );
+
+}
+
+
+/* =========================================================
+   CATEGORY FILTER
+========================================================= */
+
+function populateReportCategoryFilter() {
+
+    const select =
+        document.getElementById(
+            "reportCategory"
+        );
+
+
+    if (!select) {
+
+        return;
+
+    }
+
+
+    const current =
+        select.value;
+
+
+    /*
+     * Keep first option
+     */
+
+    select.innerHTML =
+        '<option value="">सर्व Categories</option>';
+
+
+    const categoryMap =
+        new Map();
+
+
+    reportTransactions
+        .filter(
+            transaction =>
+                transaction.type ===
+                "expense"
+        )
+        .forEach(
+            transaction => {
+
+                const id =
+                    transaction.categoryId;
+
+
+                if (!id) {
+                    return;
+                }
+
+
+                if (
+                    !categoryMap.has(
+                        id
+                    )
+                ) {
+
+                    categoryMap.set(
+                        id,
+                        transaction.categoryName ||
+                        getReportCategoryName(
+                            id,
+                            "expense"
+                        )
+                    );
+
+                }
+
+            }
+        );
+
+
+    /*
+     * Add known categories
+     */
+
+    const categories =
+        window.EXPENSE_CATEGORIES ||
+        [];
+
+
+    categories.forEach(
+        category => {
+
+            categoryMap.set(
+                category.id,
+                category.name
+            );
+
+        }
+    );
+
+
+    Array.from(
+        categoryMap.entries()
+    )
+        .sort(
+            (a, b) =>
+                String(
+                    a[1]
+                )
+                    .localeCompare(
+                        String(
+                            b[1]
+                        ),
+                        "mr"
+                    )
+        )
+        .forEach(
+            ([id, name]) => {
+
+                const option =
+                    document.createElement(
+                        "option"
+                    );
+
+
+                option.value =
+                    id;
+
+
+                option.textContent =
+                    name;
+
+
+                select.appendChild(
+                    option
+                );
+
+            }
+        );
+
+
+    if (current) {
+
+        select.value =
+            current;
 
     }
 
 }
 
+
+/* =========================================================
+   ACCOUNT FILTER
+========================================================= */
+
+function populateReportAccountFilter() {
+
+    const select =
+        document.getElementById(
+            "reportAccount"
+        );
+
+
+    if (!select) {
+
+        return;
+
+    }
+
+
+    const current =
+        select.value;
+
+
+    select.innerHTML =
+        '<option value="">सर्व खाती</option>';
+
+
+    if (
+        typeof window.getAccounts !==
+        "function"
+    ) {
+
+        return;
+
+    }
+
+
+    const accounts =
+        window.getAccounts();
+
+
+    accounts.forEach(
+        account => {
+
+            const option =
+                document.createElement(
+                    "option"
+                );
+
+
+            option.value =
+                account.id;
+
+
+            option.textContent =
+                account.name;
+
+
+            select.appendChild(
+                option
+            );
+
+        }
+    );
+
+
+    if (current) {
+
+        select.value =
+            current;
+
+    }
+
+}
+
+
+/* =========================================================
+   CLEAR FILTERS
+========================================================= */
+
+function clearReportFilters() {
+
+    const elements = [
+
+        "reportType",
+
+        "reportSearch",
+
+        "reportCategory",
+
+        "reportAccount",
+
+        "reportDate"
+
+    ];
+
+
+    elements.forEach(
+        id => {
+
+            const element =
+                document.getElementById(
+                    id
+                );
+
+
+            if (element) {
+
+                element.value =
+                    "";
+
+            }
+
+        }
+    );
+
+
+    const period =
+        document.getElementById(
+            "reportPeriod"
+        );
+
+
+    if (period) {
+
+        period.value =
+            "monthly";
+
+    }
+
+
+    const month =
+        document.getElementById(
+            "reportMonth"
+        );
+
+
+    if (month) {
+
+        month.value =
+            getCurrentReportMonth();
+
+    }
+
+
+    const year =
+        document.getElementById(
+            "reportYear"
+        );
+
+
+    if (year) {
+
+        year.value =
+            String(
+                new Date()
+                    .getFullYear()
+            );
+
+    }
+
+
+    renderReport();
+
+}
+
+
+window.clearReportFilters =
+    clearReportFilters;
+
+
+/* =========================================================
+   APPLY FILTERS
+========================================================= */
+
+function applyReportFilters() {
+
+    renderReport();
+
+}
+
+
+window.applyReportFilters =
+    applyReportFilters;
 
 
 /* =========================================================
@@ -1646,18 +2574,13 @@ function clearBudgetReport(
 function exportReportCSV() {
 
     const transactions =
-        filterTransactions(
-            getReportTransactions()
-        );
+        filteredReportTransactions;
 
 
-    if (
-        transactions.length ===
-        0
-    ) {
+    if (!transactions.length) {
 
         alert(
-            "Export करण्यासाठी कोणतेही transactions नाहीत."
+            "Export करण्यासाठी कोणतेही व्यवहार उपलब्ध नाहीत."
         );
 
         return;
@@ -1665,80 +2588,77 @@ function exportReportCSV() {
     }
 
 
-    const rows = [
+    const rows = [];
 
-        [
-            "Date",
-            "Type",
-            "Category",
-            "Description",
-            "Amount"
-        ]
 
-    ];
+    rows.push([
+        "तारीख",
+        "प्रकार",
+        "Category",
+        "Description",
+        "Account",
+        "Payment Mode",
+        "रक्कम"
+    ]);
 
 
     transactions.forEach(
         transaction => {
 
-            const type =
-                getReportTransactionType(
-                    transaction
-                );
+            rows.push([
 
+                transaction.date,
 
-            rows.push(
+                transaction.type ===
+                "income"
+                    ? "जमा"
+                    : "खर्च",
 
-                [
+                transaction.categoryName ||
+                transaction.categoryId ||
+                "",
 
-                    normalizeReportDate(
-                        transaction.date
-                    ),
+                transaction.description ||
+                "",
 
-                    type === "income"
-                        ? "जमा"
-                        : "खर्च",
+                getReportAccountName(
+                    transaction.accountId
+                ),
 
-                    transaction.category ||
-                        "",
+                transaction.paymentMode ||
+                "",
 
-                    transaction.description ||
-                        transaction.note ||
-                        transaction.title ||
-                        "",
+                Number(
+                    transaction.amount
+                ).toFixed(2)
 
-                    Number(
-                        transaction.amount
-                    ) || 0
-
-                ]
-
-            );
+            ]);
 
         }
     );
 
 
     const csv =
-        rows
-            .map(
-                row =>
-                    row
-                        .map(
-                            value =>
-                                csvEscape(
-                                    value
-                                )
+        rows.map(
+            row =>
+                row.map(
+                    value =>
+                        `"${String(
+                            value ?? ""
                         )
-                        .join(",")
-            )
+                            .replace(
+                                /"/g,
+                                '""'
+                            )}"`
+                )
+                    .join(",")
+        )
             .join("\n");
 
 
     /*
-       UTF-8 BOM
-       Marathi Excel मध्ये योग्य दिसण्यासाठी.
-    */
+     * UTF-8 BOM
+     */
 
     const blob =
         new Blob(
@@ -1770,7 +2690,14 @@ function exportReportCSV() {
 
 
     link.download =
-        "Rojcha-Jama-Kharch-Report.csv";
+        "rdkh-report-" +
+        new Date()
+            .toISOString()
+            .slice(
+                0,
+                10
+            ) +
+        ".csv";
 
 
     document.body.appendChild(
@@ -1781,9 +2708,7 @@ function exportReportCSV() {
     link.click();
 
 
-    document.body.removeChild(
-        link
-    );
+    link.remove();
 
 
     URL.revokeObjectURL(
@@ -1793,47 +2718,12 @@ function exportReportCSV() {
 }
 
 
-
-/* =========================================================
-   CSV ESCAPE
-========================================================= */
-
-function csvEscape(
-    value
-) {
-
-    const text =
-        String(
-            value ?? ""
-        );
-
-
-    if (
-        text.includes(",") ||
-        text.includes('"') ||
-        text.includes("\n")
-    ) {
-
-        return (
-            '"' +
-            text.replace(
-                /"/g,
-                '""'
-            ) +
-            '"'
-        );
-
-    }
-
-
-    return text;
-
-}
-
+window.exportReportCSV =
+    exportReportCSV;
 
 
 /* =========================================================
-   PRINT
+   PRINT REPORT
 ========================================================= */
 
 function printReport() {
@@ -1843,9 +2733,89 @@ function printReport() {
 }
 
 
+window.printReport =
+    printReport;
+
 
 /* =========================================================
-   MONEY FORMAT
+   ACCOUNT NAME
+========================================================= */
+
+function getReportAccountName(
+    accountId
+) {
+
+    if (!accountId) {
+
+        return "";
+
+    }
+
+
+    if (
+        typeof window.getAccounts !==
+        "function"
+    ) {
+
+        return accountId;
+
+    }
+
+
+    try {
+
+        const accounts =
+            window.getAccounts();
+
+
+        const account =
+            accounts.find(
+                item =>
+                    String(
+                        item.id
+                    ) ===
+                    String(
+                        accountId
+                    )
+            );
+
+
+        if (account) {
+
+            return account.name;
+
+        }
+
+    } catch (error) {
+
+        console.warn(error);
+
+    }
+
+
+    return accountId;
+
+}
+
+
+/* =========================================================
+   CURRENT MONTH
+========================================================= */
+
+function getCurrentReportMonth() {
+
+    return new Date()
+        .toISOString()
+        .slice(
+            0,
+            7
+        );
+
+}
+
+
+/* =========================================================
+   FORMAT MONEY
 ========================================================= */
 
 function formatReportMoney(
@@ -1853,42 +2823,28 @@ function formatReportMoney(
 ) {
 
     const value =
-        Number(
-            amount
-        ) || 0;
-
-
-    if (
-        typeof formatMoney ===
-        "function"
-    ) {
-
-        return formatMoney(
-            value
-        );
-
-    }
+        Number(amount) || 0;
 
 
     return (
-
         "₹" +
         value.toLocaleString(
             "en-IN",
             {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2
+                minimumFractionDigits:
+                    2,
+
+                maximumFractionDigits:
+                    2
             }
         )
-
     );
 
 }
 
 
-
 /* =========================================================
-   DATE FORMAT
+   FORMAT DATE
 ========================================================= */
 
 function formatReportDate(
@@ -1897,105 +2853,33 @@ function formatReportDate(
 
     if (!date) {
 
-        return "-";
+        return "--";
 
     }
 
 
     const parts =
-        date.split(
-            "-"
-        );
+        String(date).split("-");
 
 
     if (
-        parts.length !==
-        3
+        parts.length === 3
     ) {
 
-        return date;
-
-    }
-
-
-    return (
-        parts[2] +
-        "-" +
-        parts[1] +
-        "-" +
-        parts[0]
-    );
-
-}
-
-
-
-/* =========================================================
-   MONTH FORMAT
-========================================================= */
-
-function formatBudgetMonthText(
-    month
-) {
-
-    if (!month) {
-
-        return "-";
-
-    }
-
-
-    const parts =
-        month.split(
-            "-"
+        return (
+            parts[2] +
+            "/" +
+            parts[1] +
+            "/" +
+            parts[0]
         );
 
-
-    if (
-        parts.length !==
-        2
-    ) {
-
-        return month;
-
     }
 
 
-    const months = [
-
-        "जानेवारी",
-        "फेब्रुवारी",
-        "मार्च",
-        "एप्रिल",
-        "मे",
-        "जून",
-        "जुलै",
-        "ऑगस्ट",
-        "सप्टेंबर",
-        "ऑक्टोबर",
-        "नोव्हेंबर",
-        "डिसेंबर"
-
-    ];
-
-
-    const index =
-        Number(
-            parts[1]
-        ) - 1;
-
-
-    return (
-
-        months[index] ||
-        parts[1]
-
-    ) +
-    " " +
-    parts[0];
+    return date;
 
 }
-
 
 
 /* =========================================================
@@ -2003,29 +2887,34 @@ function formatBudgetMonthText(
 ========================================================= */
 
 function setReportText(
-    id,
+    ids,
     value
 ) {
 
-    const element =
-        document.getElementById(
-            id
-        );
+    ids.forEach(
+        id => {
+
+            const element =
+                document.getElementById(
+                    id
+                );
 
 
-    if (element) {
+            if (element) {
 
-        element.textContent =
-            value;
+                element.textContent =
+                    value;
 
-    }
+            }
+
+        }
+    );
 
 }
 
 
-
 /* =========================================================
-   ESCAPE HTML
+   HTML ESCAPE
 ========================================================= */
 
 function escapeReportHTML(
@@ -2035,27 +2924,22 @@ function escapeReportHTML(
     return String(
         value ?? ""
     )
-
         .replace(
             /&/g,
             "&amp;"
         )
-
         .replace(
             /</g,
             "&lt;"
         )
-
         .replace(
             />/g,
             "&gt;"
         )
-
         .replace(
             /"/g,
             "&quot;"
         )
-
         .replace(
             /'/g,
             "&#039;"
@@ -2064,100 +2948,21 @@ function escapeReportHTML(
 }
 
 
-
 /* =========================================================
-   NAVIGATION
+   GLOBAL EXPORTS
 ========================================================= */
 
-function goHome() {
+window.getReportTransactions =
+    getReportTransactions;
 
-    window.location.href =
-        "index.html";
+window.renderReport =
+    renderReport;
 
-}
+window.filterReportTransactions =
+    filterReportTransactions;
 
+window.exportReportCSV =
+    exportReportCSV;
 
-function goToTransactions() {
-
-    window.location.href =
-        "transactions.html";
-
-}
-
-
-function goToBudget() {
-
-    window.location.href =
-        "monthly-budget.html";
-
-}
-
-
-function goToIncome() {
-
-    window.location.href =
-        "income.html";
-
-}
-
-
-function goToExpense() {
-
-    window.location.href =
-        "expense.html";
-
-}
-
-
-
-/* =========================================================
-   QUICK ADD
-========================================================= */
-
-function openQuickAdd() {
-
-    const menu =
-        document.getElementById(
-            "quickAddMenu"
-        );
-
-
-    if (!menu) {
-
-        return;
-
-    }
-
-
-    menu.style.display =
-        menu.style.display ===
-        "block"
-            ? "none"
-            : "block";
-
-}
-
-
-
-/* =========================================================
-   AUTO REFRESH
-========================================================= */
-
-window.addEventListener(
-    "storage",
-    function () {
-
-        generateReport();
-
-    }
-);
-
-
-window.addEventListener(
-    "rdkhTransactionsUpdated",
-    function () {
-
-        generateReport();
-
-    }
-);
+window.printReport =
+    printReport;
