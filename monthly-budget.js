@@ -5,6 +5,7 @@
    MONTHLY BUDGET MANAGEMENT
 
    CONNECTED WITH:
+   - app.js
    - transactions.js
    - expense.js
    - accounts.js
@@ -12,7 +13,7 @@
 
    FEATURES:
    ---------------------------------------------------------
-   ✅ Monthly Planned Money
+   ✅ Monthly Planned Budget
    ✅ Category-wise Budget
    ✅ Actual Expense automatic
    ✅ Remaining Budget
@@ -20,6 +21,8 @@
    ✅ Category-wise progress
    ✅ Budget alert %
    ✅ Central transaction integration
+   ✅ Category transaction modal
+   ✅ Edit/Delete transaction support through transactions page
    ✅ Budget does NOT affect account balance
    ========================================================= */
 
@@ -28,16 +31,17 @@
    STORAGE
 ========================================================= */
 
-const MONTHLY_BUDGET_STORAGE_KEY =
-    "monthly_budgets";
+const MONTHLY_BUDGET_STORAGE_KEY = "monthly_budgets";
+
+const LEGACY_MONTHLY_BUDGET_STORAGE_KEY =
+    "rdkh_monthly_budgets";
 
 
 /* =========================================================
    DEFAULT ALERT
 ========================================================= */
 
-const DEFAULT_BUDGET_ALERT_PERCENT =
-    80;
+const DEFAULT_BUDGET_ALERT_PERCENT = 80;
 
 
 /* =========================================================
@@ -155,7 +159,7 @@ const BUDGET_EXPENSE_CATEGORIES = [
 
 
 /* =========================================================
-   MAKE AVAILABLE GLOBALLY
+   GLOBAL CATEGORY LIST
 ========================================================= */
 
 window.EXPENSE_CATEGORIES =
@@ -164,32 +168,121 @@ window.EXPENSE_CATEGORIES =
 
 
 /* =========================================================
-   GET BUDGET DATA
+   CURRENT MONTH
+========================================================= */
+
+function getBudgetCurrentMonth() {
+
+    const now = new Date();
+
+    return (
+        now.getFullYear() +
+        "-" +
+        String(
+            now.getMonth() + 1
+        ).padStart(2, "0")
+    );
+
+}
+
+
+/* =========================================================
+   GET BUDGET MONTH FROM HTML
+========================================================= */
+
+function getBudgetMonth() {
+
+    const input =
+        document.getElementById(
+            "budgetMonth"
+        );
+
+    if (
+        input &&
+        input.value
+    ) {
+
+        return input.value;
+
+    }
+
+    return getBudgetCurrentMonth();
+
+}
+
+
+/* =========================================================
+   GET MONTHLY BUDGETS
 ========================================================= */
 
 function getMonthlyBudgets() {
 
     try {
 
+        /*
+         * New storage
+         */
+
         const raw =
             localStorage.getItem(
                 MONTHLY_BUDGET_STORAGE_KEY
             );
 
-        if (!raw) {
-            return {};
+
+        if (raw) {
+
+            const data =
+                JSON.parse(raw);
+
+
+            if (
+                data &&
+                typeof data === "object" &&
+                !Array.isArray(data)
+            ) {
+
+                return data;
+
+            }
+
         }
 
-        const data =
-            JSON.parse(raw);
 
-        if (
-            data &&
-            typeof data === "object" &&
-            !Array.isArray(data)
-        ) {
+        /*
+         * Legacy storage support
+         */
 
-            return data;
+        const legacyRaw =
+            localStorage.getItem(
+                LEGACY_MONTHLY_BUDGET_STORAGE_KEY
+            );
+
+
+        if (legacyRaw) {
+
+            const legacyData =
+                JSON.parse(
+                    legacyRaw
+                );
+
+
+            if (
+                legacyData &&
+                typeof legacyData === "object" &&
+                !Array.isArray(legacyData)
+            ) {
+
+                localStorage.setItem(
+                    MONTHLY_BUDGET_STORAGE_KEY,
+                    JSON.stringify(
+                        legacyData
+                    )
+                );
+
+
+                return legacyData;
+
+            }
 
         }
 
@@ -202,13 +295,14 @@ function getMonthlyBudgets() {
 
     }
 
+
     return {};
 
 }
 
 
 /* =========================================================
-   SAVE BUDGET DATA
+   SAVE MONTHLY BUDGETS
 ========================================================= */
 
 function saveMonthlyBudgets(
@@ -231,11 +325,9 @@ function saveMonthlyBudgets(
 
 
     /*
-     * Budget event
-     *
-     * Important:
-     * Budget transaction नाही.
-     * त्यामुळे account balance बदलत नाही.
+     * IMPORTANT:
+     * Budget is NOT a transaction.
+     * Account balance will NOT change.
      */
 
     try {
@@ -265,52 +357,6 @@ function saveMonthlyBudgets(
 
 
 /* =========================================================
-   CURRENT MONTH
-========================================================= */
-
-function getBudgetCurrentMonth() {
-
-    return new Date()
-        .toISOString()
-        .slice(0, 7);
-
-}
-
-
-/* =========================================================
-   GET MONTH
-========================================================= */
-
-function getBudgetMonth() {
-
-    const input =
-        document.getElementById(
-            "budgetMonth"
-        ) ||
-        document.getElementById(
-            "budgetMonthInput"
-        ) ||
-        document.getElementById(
-            "month"
-        );
-
-
-    if (
-        input &&
-        input.value
-    ) {
-
-        return input.value;
-
-    }
-
-
-    return getBudgetCurrentMonth();
-
-}
-
-
-/* =========================================================
    GET SINGLE MONTH BUDGET
 ========================================================= */
 
@@ -318,12 +364,17 @@ function getBudgetForMonth(
     month
 ) {
 
+    const selectedMonth =
+        month ||
+        getBudgetCurrentMonth();
+
+
     const budgets =
         getMonthlyBudgets();
 
 
     const data =
-        budgets[month];
+        budgets[selectedMonth];
 
 
     if (
@@ -349,8 +400,7 @@ function getBudgetForMonth(
 
             categories:
                 data.categories &&
-                typeof data.categories ===
-                    "object"
+                typeof data.categories === "object"
                     ? data.categories
                     : {},
 
@@ -361,8 +411,7 @@ function getBudgetForMonth(
                 ) || DEFAULT_BUDGET_ALERT_PERCENT,
 
             updatedAt:
-                data.updatedAt ||
-                ""
+                data.updatedAt || ""
 
         };
 
@@ -414,7 +463,108 @@ function formatBudgetMoney(
 
 
 /* =========================================================
-   ACTUAL EXPENSE
+   GET CENTRAL TRANSACTIONS
+========================================================= */
+
+function getBudgetTransactions() {
+
+    if (
+        typeof window.getTransactions ===
+        "function"
+    ) {
+
+        try {
+
+            const transactions =
+                window.getTransactions();
+
+
+            return Array.isArray(
+                transactions
+            )
+                ? transactions
+                : [];
+
+        } catch (error) {
+
+            console.error(
+                "Transaction read error:",
+                error
+            );
+
+        }
+
+    }
+
+
+    /*
+     * Direct fallback
+     */
+
+    const keys = [
+
+        "rdkh_transactions_v2",
+
+        "rdkh_transactions",
+
+        "transactions",
+
+        "income_expense_transactions",
+
+        "expense_transactions"
+
+    ];
+
+
+    for (
+        const key of keys
+    ) {
+
+        try {
+
+            const raw =
+                localStorage.getItem(
+                    key
+                );
+
+
+            if (!raw) {
+                continue;
+            }
+
+
+            const data =
+                JSON.parse(raw);
+
+
+            if (
+                Array.isArray(data)
+            ) {
+
+                return data;
+
+            }
+
+        } catch (error) {
+
+            console.warn(
+                "Transaction fallback error:",
+                key,
+                error
+            );
+
+        }
+
+    }
+
+
+    return [];
+
+}
+
+
+/* =========================================================
+   ACTUAL EXPENSE BY CATEGORY
 ========================================================= */
 
 function getActualExpense(
@@ -422,8 +572,13 @@ function getActualExpense(
     month
 ) {
 
+    const selectedMonth =
+        month ||
+        getBudgetCurrentMonth();
+
+
     /*
-     * Central transaction system
+     * Use central helper if available
      */
 
     if (
@@ -431,32 +586,29 @@ function getActualExpense(
         "function"
     ) {
 
-        return Number(
-            window.getCategoryExpenseTotal(
-                categoryId,
-                month
-            )
-        ) || 0;
+        try {
 
-    }
+            return Number(
+                window.getCategoryExpenseTotal(
+                    categoryId,
+                    selectedMonth
+                )
+            ) || 0;
 
+        } catch (error) {
 
-    /*
-     * Fallback
-     */
+            console.warn(
+                "Central category expense helper error:",
+                error
+            );
 
-    if (
-        typeof window.getTransactions !==
-        "function"
-    ) {
-
-        return 0;
+        }
 
     }
 
 
     const transactions =
-        window.getTransactions();
+        getBudgetTransactions();
 
 
     return transactions
@@ -464,7 +616,9 @@ function getActualExpense(
             transaction => {
 
                 if (
-                    transaction.type !==
+                    String(
+                        transaction.type
+                    ).toLowerCase() !==
                     "expense"
                 ) {
 
@@ -494,12 +648,12 @@ function getActualExpense(
 
 
                 if (
-                    month &&
+                    selectedMonth &&
                     !String(
-                        transaction.date
+                        transaction.date || ""
                     )
                         .startsWith(
-                            month
+                            selectedMonth
                         )
                 ) {
 
@@ -542,18 +696,13 @@ function getActualExpenseForMonth(
     month
 ) {
 
-    if (
-        typeof window.getTransactions !==
-        "function"
-    ) {
-
-        return 0;
-
-    }
+    const selectedMonth =
+        month ||
+        getBudgetCurrentMonth();
 
 
     const transactions =
-        window.getTransactions();
+        getBudgetTransactions();
 
 
     return transactions
@@ -561,15 +710,19 @@ function getActualExpenseForMonth(
             transaction => {
 
                 return (
-                    transaction.type ===
+
+                    String(
+                        transaction.type
+                    ).toLowerCase() ===
                     "expense" &&
 
                     String(
-                        transaction.date
+                        transaction.date || ""
                     )
                         .startsWith(
-                            month
+                            selectedMonth
                         )
+
                 );
 
             }
@@ -628,7 +781,7 @@ function getBudgetTracking(
                     budget.categories[
                         category.id
                     ] || 0
-                );
+                ) || 0;
 
 
             const actual =
@@ -646,7 +799,9 @@ function getBudgetTracking(
             let usedPercent = 0;
 
 
-            if (planned > 0) {
+            if (
+                planned > 0
+            ) {
 
                 usedPercent =
                     (
@@ -657,12 +812,6 @@ function getBudgetTracking(
 
             }
 
-
-            /*
-             * If no budget:
-             * actual expense exists but
-             * used percentage remains 0
-             */
 
             if (
                 !Number.isFinite(
@@ -719,9 +868,9 @@ document.addEventListener(
 
         initializeBudgetForm();
 
-        renderMonthlyBudget();
-
         setupBudgetEvents();
+
+        renderMonthlyBudget();
 
     }
 );
@@ -736,12 +885,6 @@ function initializeBudgetForm() {
     const monthInput =
         document.getElementById(
             "budgetMonth"
-        ) ||
-        document.getElementById(
-            "budgetMonthInput"
-        ) ||
-        document.getElementById(
-            "month"
         );
 
 
@@ -773,13 +916,7 @@ function renderBudgetCategoryInputs() {
 
     const container =
         document.getElementById(
-            "budgetCategories"
-        ) ||
-        document.getElementById(
-            "categoryBudgetList"
-        ) ||
-        document.getElementById(
-            "budgetCategoryList"
+            "budgetCategoryInputs"
         );
 
 
@@ -789,10 +926,6 @@ function renderBudgetCategoryInputs() {
 
     }
 
-
-    /*
-     * Don't duplicate
-     */
 
     container.innerHTML = "";
 
@@ -820,10 +953,13 @@ function renderBudgetCategoryInputs() {
                 <div class="budget-category-info">
 
                     <span class="budget-category-icon">
-                        ${category.icon}
+                        ${escapeBudgetHTML(
+                            category.icon
+                        )}
                     </span>
 
                     <div>
+
                         <strong>
                             ${escapeBudgetHTML(
                                 category.name
@@ -835,6 +971,7 @@ function renderBudgetCategoryInputs() {
                                 category.frequency
                             )}
                         </small>
+
                     </div>
 
                 </div>
@@ -878,7 +1015,11 @@ function getFrequencyLabel(
     frequency
 ) {
 
-    switch (frequency) {
+    switch (
+        String(
+            frequency || ""
+        ).toLowerCase()
+    ) {
 
         case "daily":
             return "दररोज";
@@ -898,7 +1039,7 @@ function getFrequencyLabel(
 
 
 /* =========================================================
-   LOAD SAVED BUDGET
+   LOAD SAVED BUDGET INTO FORM
 ========================================================= */
 
 function loadSavedBudgetIntoForm() {
@@ -913,44 +1054,30 @@ function loadSavedBudgetIntoForm() {
         );
 
 
+    /*
+     * IMPORTANT:
+     * HTML ID = plannedTotalBudget
+     */
+
     const totalInput =
         document.getElementById(
-            "budgetTotal"
-        ) ||
-        document.getElementById(
-            "plannedMoney"
-        ) ||
-        document.getElementById(
-            "monthlyBudget"
+            "plannedTotalBudget"
         );
 
 
     if (totalInput) {
 
         totalInput.value =
-            budget.total ||
-            "";
+            budget.total > 0
+                ? budget.total
+                : "";
 
     }
 
 
-    const alertInput =
-        document.getElementById(
-            "budgetAlertPercent"
-        ) ||
-        document.getElementById(
-            "alertPercent"
-        );
-
-
-    if (alertInput) {
-
-        alertInput.value =
-            budget.alertPercent ||
-            DEFAULT_BUDGET_ALERT_PERCENT;
-
-    }
-
+    /*
+     * Category values
+     */
 
     const inputs =
         document.querySelectorAll(
@@ -965,10 +1092,16 @@ function loadSavedBudgetIntoForm() {
                 input.dataset.categoryId;
 
 
-            input.value =
+            const value =
                 budget.categories[
                     id
-                ] || "";
+                ];
+
+
+            input.value =
+                Number(value) > 0
+                    ? value
+                    : "";
 
         }
     );
@@ -985,9 +1118,6 @@ function setupBudgetFormSubmit() {
     const form =
         document.getElementById(
             "monthlyBudgetForm"
-        ) ||
-        document.getElementById(
-            "budgetForm"
         );
 
 
@@ -1027,7 +1157,7 @@ function setupBudgetFormSubmit() {
 
 
 /* =========================================================
-   SAVE BUDGET
+   SAVE BUDGET DATA
 ========================================================= */
 
 function saveBudgetData() {
@@ -1047,15 +1177,16 @@ function saveBudgetData() {
     }
 
 
+    /*
+     * Total budget
+     *
+     * HTML ID:
+     * plannedTotalBudget
+     */
+
     const totalInput =
         document.getElementById(
-            "budgetTotal"
-        ) ||
-        document.getElementById(
-            "plannedMoney"
-        ) ||
-        document.getElementById(
-            "monthlyBudget"
+            "plannedTotalBudget"
         );
 
 
@@ -1087,6 +1218,11 @@ function saveBudgetData() {
                 input.dataset.categoryId;
 
 
+            if (!id) {
+                return;
+            }
+
+
             const value =
                 Number(
                     input.value
@@ -1101,8 +1237,8 @@ function saveBudgetData() {
 
 
     /*
-     * If total is empty/zero,
-     * calculate from category budgets.
+     * If total budget is empty,
+     * calculate it from categories.
      */
 
     if (
@@ -1117,39 +1253,38 @@ function saveBudgetData() {
                     (
                         sum,
                         value
-                    ) =>
-                        sum +
-                        (
-                            Number(
-                                value
-                            ) || 0
-                        ),
+                    ) => {
+
+                        return (
+                            sum +
+                            (
+                                Number(
+                                    value
+                                ) || 0
+                            )
+                        );
+
+                    },
                     0
                 );
 
     }
 
 
-    const alertInput =
-        document.getElementById(
-            "budgetAlertPercent"
-        ) ||
-        document.getElementById(
-            "alertPercent"
-        );
-
-
-    const alertPercent =
-        alertInput
-            ? Number(
-                alertInput.value
-            ) ||
-            DEFAULT_BUDGET_ALERT_PERCENT
-            : DEFAULT_BUDGET_ALERT_PERCENT;
-
-
     const budgets =
         getMonthlyBudgets();
+
+
+    /*
+     * Preserve existing alert %
+     * because current HTML has no
+     * alert percentage field.
+     */
+
+    const oldBudget =
+        getBudgetForMonth(
+            month
+        );
 
 
     budgets[month] = {
@@ -1164,7 +1299,8 @@ function saveBudgetData() {
             categories,
 
         alertPercent:
-            alertPercent,
+            oldBudget.alertPercent ||
+            DEFAULT_BUDGET_ALERT_PERCENT,
 
         updatedAt:
             new Date().toISOString()
@@ -1175,12 +1311,9 @@ function saveBudgetData() {
     /*
      * IMPORTANT
      *
-     * येथे फक्त budget storage update होत आहे.
+     * येथे transaction तयार होत नाही.
      *
-     * कोणताही income/expense transaction
-     * तयार केला जात नाही.
-     *
-     * त्यामुळे account balance बदलत नाही.
+     * Account balance वर कोणताही परिणाम नाही.
      */
 
     saveMonthlyBudgets(
@@ -1188,7 +1321,13 @@ function saveBudgetData() {
     );
 
 
-    renderMonthlyBudget();
+    /*
+     * Refresh UI
+     */
+
+    renderMonthlyBudget(
+        month
+    );
 
 
     showBudgetMessage(
@@ -1224,7 +1363,7 @@ function renderMonthlyBudget(
 
 
     /*
-     * Total actual
+     * Actual total
      */
 
     const actualTotal =
@@ -1232,12 +1371,21 @@ function renderMonthlyBudget(
             (
                 total,
                 item
-            ) =>
-                total +
-                item.actual,
+            ) => {
+
+                return (
+                    total +
+                    item.actual
+                );
+
+            },
             0
         );
 
+
+    /*
+     * Planned total
+     */
 
     const plannedTotal =
         Number(
@@ -1245,10 +1393,18 @@ function renderMonthlyBudget(
         ) || 0;
 
 
+    /*
+     * Remaining
+     */
+
     const remaining =
         plannedTotal -
         actualTotal;
 
+
+    /*
+     * Used %
+     */
 
     let usedPercent = 0;
 
@@ -1279,15 +1435,11 @@ function renderMonthlyBudget(
 
 
     /*
-     * Summary IDs
+     * HTML SUMMARY IDs
      */
 
     setBudgetText(
-        [
-            "plannedBudget",
-            "totalPlannedBudget",
-            "budgetPlanned"
-        ],
+        "budgetPlannedTotal",
         formatBudgetMoney(
             plannedTotal
         )
@@ -1295,11 +1447,7 @@ function renderMonthlyBudget(
 
 
     setBudgetText(
-        [
-            "actualBudget",
-            "totalActualBudget",
-            "budgetActual"
-        ],
+        "budgetActualTotal",
         formatBudgetMoney(
             actualTotal
         )
@@ -1307,11 +1455,69 @@ function renderMonthlyBudget(
 
 
     setBudgetText(
-        [
-            "remainingBudget",
-            "totalRemainingBudget",
-            "budgetRemaining"
-        ],
+        "budgetRemainingTotal",
+        formatBudgetMoney(
+            remaining
+        )
+    );
+
+
+    /*
+     * Optional IDs
+     * for compatibility with
+     * older HTML versions.
+     */
+
+    setBudgetText(
+        "plannedBudget",
+        formatBudgetMoney(
+            plannedTotal
+        )
+    );
+
+
+    setBudgetText(
+        "totalPlannedBudget",
+        formatBudgetMoney(
+            plannedTotal
+        )
+    );
+
+
+    setBudgetText(
+        "budgetPlanned",
+        formatBudgetMoney(
+            plannedTotal
+        )
+    );
+
+
+    setBudgetText(
+        "actualBudget",
+        formatBudgetMoney(
+            actualTotal
+        )
+    );
+
+
+    setBudgetText(
+        "totalActualBudget",
+        formatBudgetMoney(
+            actualTotal
+        )
+    );
+
+
+    setBudgetText(
+        "budgetActual",
+        formatBudgetMoney(
+            actualTotal
+        )
+    );
+
+
+    setBudgetText(
+        "remainingBudget",
         formatBudgetMoney(
             remaining
         )
@@ -1319,11 +1525,39 @@ function renderMonthlyBudget(
 
 
     setBudgetText(
-        [
-            "budgetUsedPercent",
-            "totalBudgetUsedPercent",
-            "budgetPercentage"
-        ],
+        "totalRemainingBudget",
+        formatBudgetMoney(
+            remaining
+        )
+    );
+
+
+    setBudgetText(
+        "budgetRemaining",
+        formatBudgetMoney(
+            remaining
+        )
+    );
+
+
+    setBudgetText(
+        "budgetUsedPercent",
+        Math.round(
+            usedPercent
+        ) + "%"
+    );
+
+
+    setBudgetText(
+        "totalBudgetUsedPercent",
+        Math.round(
+            usedPercent
+        ) + "%"
+    );
+
+
+    setBudgetText(
+        "budgetPercentage",
         Math.round(
             usedPercent
         ) + "%"
@@ -1331,7 +1565,7 @@ function renderMonthlyBudget(
 
 
     /*
-     * Category list
+     * Category tracking
      */
 
     renderBudgetTracking(
@@ -1341,7 +1575,7 @@ function renderMonthlyBudget(
 
 
     /*
-     * Update form if same page
+     * Update form
      */
 
     loadSavedBudgetIntoForm();
@@ -1350,7 +1584,7 @@ function renderMonthlyBudget(
 
 
 /* =========================================================
-   RENDER TRACKING
+   RENDER CATEGORY TRACKING
 ========================================================= */
 
 function renderBudgetTracking(
@@ -1361,12 +1595,6 @@ function renderBudgetTracking(
     const container =
         document.getElementById(
             "budgetTracking"
-        ) ||
-        document.getElementById(
-            "categoryBudgetTracking"
-        ) ||
-        document.getElementById(
-            "budgetProgressList"
         );
 
 
@@ -1380,13 +1608,36 @@ function renderBudgetTracking(
     container.innerHTML = "";
 
 
+    if (!tracking.length) {
+
+        container.innerHTML = `
+
+            <div class="empty-budget-state">
+
+                <i class="fa-solid fa-chart-column"></i>
+
+                <p>
+                    Category budget उपलब्ध नाही.
+                </p>
+
+            </div>
+
+        `;
+
+        return;
+
+    }
+
+
     tracking.forEach(
         item => {
 
             const percentage =
                 Math.min(
                     Math.max(
-                        item.usedPercent,
+                        Number(
+                            item.usedPercent
+                        ) || 0,
                         0
                     ),
                     100
@@ -1394,9 +1645,9 @@ function renderBudgetTracking(
 
 
             const exceeded =
+                item.planned > 0 &&
                 item.actual >
-                item.planned &&
-                item.planned > 0;
+                item.planned;
 
 
             const alert =
@@ -1440,7 +1691,9 @@ function renderBudgetTracking(
                     <div class="budget-track-title">
 
                         <span class="budget-track-icon">
-                            ${item.icon}
+                            ${escapeBudgetHTML(
+                                item.icon
+                            )}
                         </span>
 
                         <div>
@@ -1480,6 +1733,7 @@ function renderBudgetTracking(
                         </strong>
                     </span>
 
+
                     <span>
                         खर्च:
                         <strong>
@@ -1488,6 +1742,7 @@ function renderBudgetTracking(
                             )}
                         </strong>
                     </span>
+
 
                     <span>
                         उर्वरित:
@@ -1504,8 +1759,7 @@ function renderBudgetTracking(
                 <div class="budget-progress">
 
                     <div
-                        class="budget-progress-bar
-                        ${statusClass}"
+                        class="budget-progress-bar ${statusClass}"
                         style="width:${percentage}%">
                     </div>
 
@@ -1520,11 +1774,13 @@ function renderBudgetTracking(
                         )}% वापरले
                     </span>
 
+
                     <button
                         type="button"
                         onclick="openCategoryTransactions('${escapeBudgetAttribute(
                             item.id
-                        )}')">
+                        )}')"
+                    >
 
                         व्यवहार पहा
 
@@ -1559,21 +1815,16 @@ function openCategoryTransactions(
         );
 
 
-    const list =
+    const tbody =
         document.getElementById(
-            "categoryTransactionList"
+            "categoryTransactionBody"
         );
 
 
     if (
         !modal ||
-        !list
+        !tbody
     ) {
-
-        /*
-         * Fallback:
-         * transactions page
-         */
 
         window.location.href =
             "transactions.html";
@@ -1588,10 +1839,7 @@ function openCategoryTransactions(
 
 
     const transactions =
-        typeof window.getTransactions ===
-        "function"
-            ? window.getTransactions()
-            : [];
+        getBudgetTransactions();
 
 
     const filtered =
@@ -1606,7 +1854,10 @@ function openCategoryTransactions(
 
 
                     return (
-                        transaction.type ===
+
+                        String(
+                            transaction.type
+                        ).toLowerCase() ===
                         "expense" &&
 
                         String(
@@ -1617,114 +1868,57 @@ function openCategoryTransactions(
                         ) &&
 
                         String(
-                            transaction.date
+                            transaction.date || ""
                         )
                             .startsWith(
                                 month
                             )
+
                     );
 
                 }
             )
             .sort(
-                (a, b) =>
-                    String(
-                        b.date
+                (
+                    a,
+                    b
+                ) => {
+
+                    const dateCompare =
+                        String(
+                            b.date || ""
+                        )
+                            .localeCompare(
+                                String(
+                                    a.date || ""
+                                )
+                            );
+
+
+                    if (
+                        dateCompare !== 0
+                    ) {
+
+                        return dateCompare;
+
+                    }
+
+
+                    return String(
+                        b.createdAt || ""
                     )
                         .localeCompare(
                             String(
-                                a.date
+                                a.createdAt || ""
                             )
-                        )
+                        );
+
+                }
             );
 
 
-    list.innerHTML = "";
-
-
-    if (!filtered.length) {
-
-        list.innerHTML = `
-
-            <div class="empty-category-transactions">
-
-                <i class="fa-solid fa-receipt"></i>
-
-                <p>
-                    या महिन्यात या category चा
-                    कोणताही खर्च नाही.
-                </p>
-
-            </div>
-
-        `;
-
-    } else {
-
-        filtered.forEach(
-            transaction => {
-
-                const row =
-                    document.createElement(
-                        "div"
-                    );
-
-
-                row.className =
-                    "category-transaction-row";
-
-
-                row.innerHTML = `
-
-                    <div>
-
-                        <strong>
-                            ${escapeBudgetHTML(
-                                transaction.description ||
-                                transaction.note ||
-                                "खर्च"
-                            )}
-                        </strong>
-
-                        <small>
-                            ${formatBudgetDate(
-                                transaction.date
-                            )}
-
-                            ${
-                                transaction.paymentMode
-                                    ? " • " +
-                                      escapeBudgetHTML(
-                                          transaction.paymentMode
-                                      )
-                                    : ""
-                            }
-                        </small>
-
-                    </div>
-
-
-                    <strong class="expense-amount">
-                        -${formatBudgetMoney(
-                            transaction.amount
-                        )}
-                    </strong>
-
-                `;
-
-
-                list.appendChild(
-                    row
-                );
-
-            }
-        );
-
-    }
-
-
     /*
-     * Modal title
+     * Modal category title
      */
 
     const title =
@@ -1733,19 +1927,23 @@ function openCategoryTransactions(
         );
 
 
+    const category =
+        (
+            window.EXPENSE_CATEGORIES ||
+            BUDGET_EXPENSE_CATEGORIES
+        )
+            .find(
+                item =>
+                    String(
+                        item.id
+                    ) ===
+                    String(
+                        categoryId
+                    )
+            );
+
+
     if (title) {
-
-        const category =
-            (
-                window.EXPENSE_CATEGORIES ||
-                BUDGET_EXPENSE_CATEGORIES
-            )
-                .find(
-                    item =>
-                        String(item.id) ===
-                        String(categoryId)
-                );
-
 
         title.textContent =
             category
@@ -1755,17 +1953,392 @@ function openCategoryTransactions(
     }
 
 
+    /*
+     * Modal month
+     */
+
+    const monthLabel =
+        document.getElementById(
+            "categoryTransactionMonth"
+        );
+
+
+    if (monthLabel) {
+
+        monthLabel.textContent =
+            formatBudgetMonth(
+                month
+            );
+
+    }
+
+
+    /*
+     * Total
+     */
+
+    const total =
+        filtered.reduce(
+            (
+                sum,
+                transaction
+            ) => {
+
+                return (
+                    sum +
+                    (
+                        Number(
+                            transaction.amount
+                        ) || 0
+                    )
+                );
+
+            },
+            0
+        );
+
+
+    setBudgetText(
+        "categoryTransactionTotal",
+        formatBudgetMoney(
+            total
+        )
+    );
+
+
+    setBudgetText(
+        "categoryTransactionCount",
+        filtered.length +
+        (
+            filtered.length === 1
+                ? " Transaction"
+                : " Transactions"
+        )
+    );
+
+
+    /*
+     * Clear table
+     */
+
+    tbody.innerHTML = "";
+
+
+    if (!filtered.length) {
+
+        tbody.innerHTML = `
+
+            <tr>
+
+                <td
+                    colspan="7"
+                    style="text-align:center;"
+                >
+
+                    <i class="fa-solid fa-receipt"></i>
+
+                    <br>
+
+                    या महिन्यात या category चा
+                    कोणताही खर्च नाही.
+
+                </td>
+
+            </tr>
+
+        `;
+
+    } else {
+
+        filtered.forEach(
+            transaction => {
+
+                const tr =
+                    document.createElement(
+                        "tr"
+                    );
+
+
+                const description =
+                    transaction.description ||
+                    transaction.categoryName ||
+                    "खर्च";
+
+
+                const accountName =
+                    getBudgetAccountName(
+                        transaction.accountId
+                    );
+
+
+                tr.innerHTML = `
+
+                    <td>
+                        ${formatBudgetDate(
+                            transaction.date
+                        )}
+                    </td>
+
+
+                    <td>
+                        ${escapeBudgetHTML(
+                            description
+                        )}
+                    </td>
+
+
+                    <td>
+                        <strong class="expense-amount">
+                            -${formatBudgetMoney(
+                                transaction.amount
+                            )}
+                        </strong>
+                    </td>
+
+
+                    <td>
+                        ${escapeBudgetHTML(
+                            transaction.paymentMode ||
+                            "-"
+                        )}
+                    </td>
+
+
+                    <td>
+                        ${escapeBudgetHTML(
+                            accountName
+                        )}
+                    </td>
+
+
+                    <td>
+                        ${escapeBudgetHTML(
+                            transaction.note ||
+                            "-"
+                        )}
+                    </td>
+
+
+                    <td>
+
+                        <button
+                            type="button"
+                            class="budget-view-transaction-btn"
+                            onclick="editBudgetTransaction('${escapeBudgetAttribute(
+                                transaction.id
+                            )}')"
+                            title="Edit"
+                        >
+
+                            <i class="fa-solid fa-pen"></i>
+
+                        </button>
+
+                    </td>
+
+                `;
+
+
+                tbody.appendChild(
+                    tr
+                );
+
+            }
+        );
+
+    }
+
+
+    /*
+     * Open modal
+     */
+
     modal.style.display =
         "flex";
+
+
+    /*
+     * Prevent background scroll
+     */
+
+    document.body.classList.add(
+        "modal-open"
+    );
 
 }
 
 
 /* =========================================================
-   CLOSE CATEGORY MODAL
+   GET ACCOUNT NAME
 ========================================================= */
 
-function closeCategoryTransactionModal() {
+function getBudgetAccountName(
+    accountId
+) {
+
+    if (!accountId) {
+
+        return "-";
+
+    }
+
+
+    if (
+        typeof window.getAccounts ===
+        "function"
+    ) {
+
+        try {
+
+            const accounts =
+                window.getAccounts();
+
+
+            const account =
+                accounts.find(
+                    item =>
+                        String(
+                            item.id
+                        ) ===
+                        String(
+                            accountId
+                        )
+                );
+
+
+            if (account) {
+
+                return (
+                    account.name ||
+                    account.type ||
+                    "-"
+                );
+
+            }
+
+        } catch (error) {
+
+            console.warn(
+                "Account name error:",
+                error
+            );
+
+        }
+
+    }
+
+
+    return accountId;
+
+}
+
+
+/* =========================================================
+   EDIT TRANSACTION
+========================================================= */
+
+function editBudgetTransaction(
+    transactionId
+) {
+
+    if (!transactionId) {
+        return;
+    }
+
+
+    const transactions =
+        getBudgetTransactions();
+
+
+    const transaction =
+        transactions.find(
+            item =>
+                String(
+                    item.id
+                ) ===
+                String(
+                    transactionId
+                )
+        );
+
+
+    if (!transaction) {
+
+        alert(
+            "Transaction सापडला नाही."
+        );
+
+        return;
+
+    }
+
+
+    /*
+     * Existing transactions.js
+     * sessionStorage format
+     */
+
+    try {
+
+        sessionStorage.setItem(
+            "rdkh_edit_transaction",
+            JSON.stringify(
+                transaction
+            )
+        );
+
+    } catch (error) {
+
+        console.error(
+            "Edit transaction session error:",
+            error
+        );
+
+    }
+
+
+    /*
+     * Expense transaction
+     */
+
+    if (
+        String(
+            transaction.type
+        ).toLowerCase() ===
+        "expense"
+    ) {
+
+        window.location.href =
+            "expense.html?edit=" +
+            encodeURIComponent(
+                transaction.id
+            );
+
+        return;
+
+    }
+
+
+    /*
+     * Income transaction
+     */
+
+    window.location.href =
+        "income.html?edit=" +
+        encodeURIComponent(
+            transaction.id
+        );
+
+}
+
+
+/* =========================================================
+   CLOSE CATEGORY TRANSACTIONS
+   HTML calls:
+   closeCategoryTransactions()
+========================================================= */
+
+function closeCategoryTransactions() {
 
     const modal =
         document.getElementById(
@@ -1780,11 +2353,50 @@ function closeCategoryTransactionModal() {
 
     }
 
+
+    document.body.classList.remove(
+        "modal-open"
+    );
+
 }
 
 
-window.closeCategoryTransactionModal =
-    closeCategoryTransactionModal;
+/*
+ * Compatibility name
+ */
+
+function closeCategoryTransactionModal() {
+
+    closeCategoryTransactions();
+
+}
+
+
+/* =========================================================
+   MODAL BACKGROUND CLICK
+========================================================= */
+
+window.addEventListener(
+    "click",
+    function (event) {
+
+        const modal =
+            document.getElementById(
+                "categoryTransactionModal"
+            );
+
+
+        if (
+            modal &&
+            event.target === modal
+        ) {
+
+            closeCategoryTransactions();
+
+        }
+
+    }
+);
 
 
 /* =========================================================
@@ -1793,13 +2405,19 @@ window.closeCategoryTransactionModal =
 
 function refreshMonthlyBudget() {
 
-    renderMonthlyBudget();
+    const month =
+        getBudgetMonth();
+
+
+    renderBudgetCategoryInputs();
+
+    loadSavedBudgetIntoForm();
+
+    renderMonthlyBudget(
+        month
+    );
 
 }
-
-
-window.refreshMonthlyBudget =
-    refreshMonthlyBudget;
 
 
 /* =========================================================
@@ -1808,32 +2426,30 @@ window.refreshMonthlyBudget =
 
 function setupBudgetEvents() {
 
-    const monthInputs =
-        document.querySelectorAll(
-            "#budgetMonth, #budgetMonthInput, #month"
+    const monthInput =
+        document.getElementById(
+            "budgetMonth"
         );
 
 
-    monthInputs.forEach(
-        input => {
+    if (monthInput) {
 
-            input.addEventListener(
-                "change",
-                function () {
+        monthInput.addEventListener(
+            "change",
+            function () {
 
-                    renderBudgetCategoryInputs();
+                renderBudgetCategoryInputs();
 
-                    loadSavedBudgetIntoForm();
+                loadSavedBudgetIntoForm();
 
-                    renderMonthlyBudget(
-                        input.value
-                    );
+                renderMonthlyBudget(
+                    monthInput.value
+                );
 
-                }
-            );
+            }
+        );
 
-        }
-    );
+    }
 
 
     /*
@@ -1845,6 +2461,30 @@ function setupBudgetEvents() {
         function () {
 
             renderMonthlyBudget();
+
+            /*
+             * If modal is open,
+             * refresh its data.
+             */
+
+            const modal =
+                document.getElementById(
+                    "categoryTransactionModal"
+                );
+
+
+            if (
+                modal &&
+                modal.style.display ===
+                "flex"
+            ) {
+
+                /*
+                 * Modal category can be
+                 * reopened by user.
+                 */
+
+            }
 
         }
     );
@@ -1865,7 +2505,7 @@ function setupBudgetEvents() {
 
 
     /*
-     * Storage
+     * Storage synchronization
      */
 
     window.addEventListener(
@@ -1873,11 +2513,19 @@ function setupBudgetEvents() {
         function (event) {
 
             if (
+
                 event.key ===
                 MONTHLY_BUDGET_STORAGE_KEY ||
 
                 event.key ===
-                "rdkh_transactions_v2"
+                LEGACY_MONTHLY_BUDGET_STORAGE_KEY ||
+
+                event.key ===
+                "rdkh_transactions_v2" ||
+
+                event.key ===
+                "rdkh_transactions"
+
             ) {
 
                 renderMonthlyBudget();
@@ -1895,34 +2543,28 @@ function setupBudgetEvents() {
 ========================================================= */
 
 function setBudgetText(
-    ids,
+    id,
     value
 ) {
 
-    ids.forEach(
-        id => {
-
-            const element =
-                document.getElementById(
-                    id
-                );
+    const element =
+        document.getElementById(
+            id
+        );
 
 
-            if (element) {
+    if (element) {
 
-                element.textContent =
-                    value;
+        element.textContent =
+            value;
 
-            }
-
-        }
-    );
+    }
 
 }
 
 
 /* =========================================================
-   DATE FORMAT
+   FORMAT DATE
 ========================================================= */
 
 function formatBudgetDate(
@@ -1930,12 +2572,16 @@ function formatBudgetDate(
 ) {
 
     if (!date) {
+
         return "--";
+
     }
 
 
     const parts =
-        String(date).split("-");
+        String(
+            date
+        ).split("-");
 
 
     if (
@@ -1953,7 +2599,86 @@ function formatBudgetDate(
     }
 
 
-    return date;
+    return String(
+        date
+    );
+
+}
+
+
+/* =========================================================
+   FORMAT MONTH
+========================================================= */
+
+function formatBudgetMonth(
+    month
+) {
+
+    if (!month) {
+
+        return "चालू महिना";
+
+    }
+
+
+    const parts =
+        String(
+            month
+        ).split("-");
+
+
+    if (
+        parts.length !== 2
+    ) {
+
+        return month;
+
+    }
+
+
+    const monthNames = [
+
+        "जानेवारी",
+
+        "फेब्रुवारी",
+
+        "मार्च",
+
+        "एप्रिल",
+
+        "मे",
+
+        "जून",
+
+        "जुलै",
+
+        "ऑगस्ट",
+
+        "सप्टेंबर",
+
+        "ऑक्टोबर",
+
+        "नोव्हेंबर",
+
+        "डिसेंबर"
+
+    ];
+
+
+    const monthIndex =
+        Number(
+            parts[1]
+        ) - 1;
+
+
+    return (
+        monthNames[
+            monthIndex
+        ] ||
+        parts[1]
+    ) +
+    " " +
+    parts[0];
 
 }
 
@@ -2028,10 +2753,6 @@ function showBudgetMessage(
     message
 ) {
 
-    /*
-     * Existing toast
-     */
-
     if (
         typeof window.showToast ===
         "function"
@@ -2046,11 +2767,9 @@ function showBudgetMessage(
     }
 
 
-    /*
-     * Existing alert
-     */
-
-    alert(message);
+    alert(
+        message
+    );
 
 }
 
@@ -2077,11 +2796,20 @@ window.getBudgetForMonth =
 window.getActualExpense =
     getActualExpense;
 
+window.getActualExpenseForMonth =
+    getActualExpenseForMonth;
+
 window.getBudgetTracking =
     getBudgetTracking;
 
 window.renderMonthlyBudget =
     renderMonthlyBudget;
+
+window.renderBudgetTracking =
+    renderBudgetTracking;
+
+window.renderBudgetCategoryInputs =
+    renderBudgetCategoryInputs;
 
 window.saveBudgetData =
     saveBudgetData;
@@ -2091,3 +2819,15 @@ window.formatBudgetMoney =
 
 window.openCategoryTransactions =
     openCategoryTransactions;
+
+window.closeCategoryTransactions =
+    closeCategoryTransactions;
+
+window.closeCategoryTransactionModal =
+    closeCategoryTransactionModal;
+
+window.editBudgetTransaction =
+    editBudgetTransaction;
+
+window.refreshMonthlyBudget =
+    refreshMonthlyBudget;
