@@ -1,185 +1,115 @@
 /* =========================================================
    app.js
    रोजचा जमा खर्च अहवाल
+   CENTRAL APPLICATION CONTROLLER
 
-   CENTRAL APPLICATION SYSTEM
+   VERSION:
+   Central Transaction System + Account System
 
-   CONNECTED MODULES:
-   - index.html
-   - income.html / income.js
-   - expense.html / expense.js
-   - accounts.html / accounts.js
-   - transactions.html / transactions.js
-   - monthly-budget.html / monthly-budget.js
-   - reports.html / reports.js
-   - settings.html / settings.js
-   - login.html / login.js
-
-   CENTRAL STORAGE:
-   - rdkh_transactions_v2
-   - rdkh_accounts
-   - monthly_budgets
-   - rdkh_settings
-   - rdkh_login_session
-
-   IMPORTANT:
-   Budget is NOT a transaction.
-   Budget save does NOT change account balance.
-
-   Account Balance:
-   Opening Balance
-   + Income
-   - Expense
-========================================================= */
+   FEATURES
+   ---------------------------------------------------------
+   ✅ Login Session Check
+   ✅ Central Transactions
+   ✅ Old Transaction Data Migration
+   ✅ Income / Expense Totals
+   ✅ Today / Monthly Totals
+   ✅ Account Balance
+   ✅ Monthly Budget Compatibility
+   ✅ Dashboard Updates
+   ✅ Balance Visibility
+   ✅ Navigation
+   ✅ Add Menu
+   ✅ HTML Safety
+   ✅ Storage Events
+   ========================================================= */
 
 
 /* =========================================================
-   AUTHENTICATION CHECK
+   1. LOGIN / PAGE ACCESS
 ========================================================= */
 
-(function checkAuthentication() {
+(function checkLoginAccess() {
 
     const currentPage =
-        window.location.pathname
-            .split("/")
-            .pop()
-            .toLowerCase();
+        window.location.pathname.split("/").pop().toLowerCase();
 
+    const publicPages = [
+        "",
+        "login.html"
+    ];
 
-    /*
-       Login page ला protection लागू नाही
-    */
-
-    if (
-        currentPage === "" ||
-        currentPage === "login.html"
-    ) {
-
+    if (publicPages.includes(currentPage)) {
         return;
-
     }
-
 
     let session = null;
 
     try {
-
-        session =
-            JSON.parse(
-                localStorage.getItem(
-                    "rdkh_login_session"
-                )
-            );
-
-    }
-
-    catch (error) {
-
+        session = JSON.parse(
+            localStorage.getItem("rdkh_login_session")
+        );
+    } catch (error) {
         session = null;
-
     }
 
-
-    const loggedIn =
+    const isLoggedIn =
         session &&
         (
             session.loggedIn === true ||
             session.isLoggedIn === true
         );
 
-
-    if (!loggedIn) {
-
-        window.location.replace(
-            "login.html"
-        );
-
+    if (!isLoggedIn) {
+        window.location.href = "login.html";
     }
 
 })();
 
 
-
 /* =========================================================
-   CENTRAL STORAGE KEYS
+   2. STORAGE KEYS
 ========================================================= */
 
 const STORAGE_KEYS = {
 
-    /*
-       NEW CENTRAL TRANSACTION STORAGE
-    */
-    transactions:
-        "rdkh_transactions_v2",
+    // New central transaction storage
+    transactions: "rdkh_transactions_v2",
 
-    /*
-       Accounts
-    */
-    accounts:
-        "rdkh_accounts",
+    // Old transaction storage - compatibility
+    oldTransactions: "rdkh_transactions",
 
-    /*
-       NEW MONTHLY BUDGET STORAGE
-    */
-    budgets:
-        "monthly_budgets",
+    accounts: "rdkh_accounts",
 
-    /*
-       Legacy budget categories compatibility
-    */
-    budgetCategories:
-        "rdkh_budget_categories",
+    budgets: "monthly_budgets",
 
-    /*
-       Settings
-    */
-    settings:
-        "rdkh_settings",
+    oldBudgets: "rdkh_monthly_budgets",
 
-    /*
-       Login
-    */
-    loginSession:
-        "rdkh_login_session"
+    budgetCategories: "rdkh_budget_categories",
 
+    settings: "rdkh_settings",
+
+    loginSession: "rdkh_login_session"
 };
 
 
-
 /* =========================================================
-   LEGACY STORAGE KEYS
+   3. OLD TRANSACTION STORAGE KEYS
 ========================================================= */
 
-const LEGACY_STORAGE_KEYS = {
+const LEGACY_TRANSACTION_KEYS = [
 
-    transactions: [
-
-        "rdkh_transactions",
-
-        "rdkh_transaction",
-
-        "transactions",
-
-        "income_expense_transactions",
-
-        "expense_transactions",
-
-        "income_transactions"
-
-    ],
-
-    budgets: [
-
-        "rdkh_monthly_budgets"
-
-    ]
-
-};
-
+    "rdkh_transactions",
+    "rdkh_transaction",
+    "transactions",
+    "income_expense_transactions",
+    "expense_transactions",
+    "income_transactions",
+    "expenses"
+];
 
 
 /* =========================================================
-   DEFAULT ACCOUNTS
+   4. DEFAULT ACCOUNTS
 ========================================================= */
 
 const DEFAULT_ACCOUNTS = [
@@ -187,87 +117,60 @@ const DEFAULT_ACCOUNTS = [
     {
         id: "ACC-CASH",
         name: "Cash",
-        type: "Cash",
+        type: "cash",
         openingBalance: 0,
-        note: "Cash in hand",
-        createdAt: null
+        createdAt: new Date().toISOString()
     },
 
     {
         id: "ACC-BANK",
-        name: "Bank Account",
-        type: "Bank",
+        name: "Bank",
+        type: "bank",
         openingBalance: 0,
-        note: "Main bank account",
-        createdAt: null
+        createdAt: new Date().toISOString()
     },
 
     {
         id: "ACC-UPI",
         name: "UPI",
-        type: "UPI",
+        type: "upi",
         openingBalance: 0,
-        note: "UPI balance",
-        createdAt: null
+        createdAt: new Date().toISOString()
     }
 
 ];
 
 
-
 /* =========================================================
-   BASIC STORAGE
+   5. BASIC STORAGE FUNCTIONS
 ========================================================= */
 
-function getData(
-    key,
-    defaultValue = []
-) {
+function getData(key, defaultValue = null) {
 
     try {
 
-        const data =
-            localStorage.getItem(
-                key
-            );
+        const data = localStorage.getItem(key);
 
-
-        if (
-            data === null ||
-            data === ""
-        ) {
-
+        if (data === null) {
             return defaultValue;
-
         }
 
+        return JSON.parse(data);
 
-        return JSON.parse(
-            data
-        );
-
-    }
-
-    catch (error) {
+    } catch (error) {
 
         console.error(
-            "Storage Read Error:",
+            "Storage read error:",
             key,
             error
         );
 
         return defaultValue;
-
     }
-
 }
 
 
-
-function saveData(
-    key,
-    data
-) {
+function saveData(key, data) {
 
     try {
 
@@ -278,802 +181,642 @@ function saveData(
 
         return true;
 
-    }
-
-    catch (error) {
+    } catch (error) {
 
         console.error(
-            "Storage Save Error:",
+            "Storage save error:",
             key,
             error
         );
 
         return false;
-
     }
-
 }
 
 
-
-function removeData(
-    key
-) {
+function removeData(key) {
 
     try {
 
-        localStorage.removeItem(
-            key
-        );
+        localStorage.removeItem(key);
 
         return true;
 
-    }
-
-    catch (error) {
+    } catch (error) {
 
         console.error(
-            "Storage Remove Error:",
+            "Storage remove error:",
+            key,
             error
         );
 
         return false;
-
     }
-
 }
 
 
-
 /* =========================================================
-   TRANSACTION TYPE NORMALIZER
+   6. DATE FUNCTIONS
 ========================================================= */
 
-function normalizeTransactionType(
-    type
-) {
+function getTodayString() {
 
-    const value =
-        String(
-            type || ""
-        )
-        .trim()
-        .toLowerCase();
+    const date = new Date();
 
+    const year = date.getFullYear();
+
+    const month = String(
+        date.getMonth() + 1
+    ).padStart(2, "0");
+
+    const day = String(
+        date.getDate()
+    ).padStart(2, "0");
+
+    return `${year}-${month}-${day}`;
+}
+
+
+function getCurrentMonth() {
+
+    const date = new Date();
+
+    const year = date.getFullYear();
+
+    const month = String(
+        date.getMonth() + 1
+    ).padStart(2, "0");
+
+    return `${year}-${month}`;
+}
+
+
+function normalizeDate(dateValue) {
+
+    if (!dateValue) {
+        return "";
+    }
+
+    if (dateValue instanceof Date) {
+
+        const year = dateValue.getFullYear();
+
+        const month = String(
+            dateValue.getMonth() + 1
+        ).padStart(2, "0");
+
+        const day = String(
+            dateValue.getDate()
+        ).padStart(2, "0");
+
+        return `${year}-${month}-${day}`;
+    }
+
+    const value = String(dateValue).trim();
+
+    if (/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+        return value;
+    }
+
+    const parsed = new Date(value);
+
+    if (isNaN(parsed.getTime())) {
+        return "";
+    }
+
+    const year = parsed.getFullYear();
+
+    const month = String(
+        parsed.getMonth() + 1
+    ).padStart(2, "0");
+
+    const day = String(
+        parsed.getDate()
+    ).padStart(2, "0");
+
+    return `${year}-${month}-${day}`;
+}
+
+
+function formatDisplayDate(dateValue) {
+
+    const date = normalizeDate(dateValue);
+
+    if (!date) {
+        return "-";
+    }
+
+    const parts = date.split("-");
+
+    if (parts.length !== 3) {
+        return date;
+    }
+
+    return `${parts[2]}-${parts[1]}-${parts[0]}`;
+}
+
+
+/* =========================================================
+   7. MONEY FUNCTIONS
+========================================================= */
+
+function formatMoney(amount) {
+
+    const value = Number(amount) || 0;
+
+    return "₹" + value.toLocaleString(
+        "en-IN",
+        {
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 2
+        }
+    );
+}
+
+
+/* =========================================================
+   8. NORMALIZE TRANSACTION TYPE
+========================================================= */
+
+function normalizeTransactionType(type) {
+
+    const value = String(
+        type || ""
+    )
+    .trim()
+    .toLowerCase();
 
     if (
         value === "income" ||
-        value === "in" ||
         value === "credit" ||
+        value === "jamaa" ||
         value === "जमा" ||
         value === "उत्पन्न"
     ) {
-
         return "income";
-
     }
-
 
     if (
         value === "expense" ||
-        value === "out" ||
         value === "debit" ||
+        value === "kharch" ||
         value === "खर्च"
     ) {
-
         return "expense";
-
     }
-
 
     return value;
-
 }
 
 
-
 /* =========================================================
-   CATEGORY NAME MAP
+   9. NORMALIZE TRANSACTION
 ========================================================= */
 
-const CENTRAL_EXPENSE_CATEGORIES = [
+function normalizeTransaction(transaction, forcedType = "") {
 
-    {
-        id: "daily_grocery",
-        name: "दररोजचा किराणा खर्च",
-        icon: "🛒",
-        frequency: "daily"
-    },
-
-    {
-        id: "monthly_grocery",
-        name: "महिन्याचा किराणा खर्च",
-        icon: "🛍️",
-        frequency: "monthly"
-    },
-
-    {
-        id: "travel",
-        name: "प्रवास",
-        icon: "🚗",
-        frequency: "daily"
-    },
-
-    {
-        id: "shopping",
-        name: "खरेदी",
-        icon: "🛍️",
-        frequency: "monthly"
-    },
-
-    {
-        id: "outside_food",
-        name: "बाहेर जेवण",
-        icon: "🍽️",
-        frequency: "daily"
-    },
-
-    {
-        id: "electricity",
-        name: "लाईट बिल",
-        icon: "💡",
-        frequency: "monthly"
-    },
-
-    {
-        id: "medicine",
-        name: "औषधे",
-        icon: "💊",
-        frequency: "monthly"
-    },
-
-    {
-        id: "home_emi",
-        name: "घराचा EMI",
-        icon: "🏠",
-        frequency: "monthly"
-    },
-
-    {
-        id: "home_maintenance",
-        name: "घरचा मेंटेनन्स",
-        icon: "🏢",
-        frequency: "monthly"
-    },
-
-    {
-        id: "insurance",
-        name: "इन्शुरन्स पॉलिसी",
-        icon: "🛡️",
-        frequency: "yearly"
-    },
-
-    {
-        id: "other_loan",
-        name: "इतर लोन",
-        icon: "💳",
-        frequency: "monthly"
-    },
-
-    {
-        id: "mobile_bill",
-        name: "मोबाईल बिल",
-        icon: "📱",
-        frequency: "monthly"
-    },
-
-    {
-        id: "other_expense",
-        name: "इतर खर्च",
-        icon: "📦",
-        frequency: "daily"
-    },
-
-    {
-        id: "monthly_gas",
-        name: "महिन्याचा गॅस",
-        icon: "🔥",
-        frequency: "monthly"
-    },
-
-    {
-        id: "fish",
-        name: "मच्छी",
-        icon: "🐟",
-        frequency: "daily"
-    }
-
-];
-
-
-/*
-   Other modules साठी global category list
-*/
-
-if (
-    !window.EXPENSE_CATEGORIES
-) {
-
-    window.EXPENSE_CATEGORIES =
-        CENTRAL_EXPENSE_CATEGORIES;
-
-}
-
-
-
-/* =========================================================
-   GET CATEGORY NAME
-========================================================= */
-
-function getExpenseCategoryName(
-    categoryId
-) {
-
-    const category =
-        CENTRAL_EXPENSE_CATEGORIES.find(
-            item =>
-                item.id ===
-                categoryId
-        );
-
-
-    if (category) {
-
-        return category.name;
-
-    }
-
-
-    return categoryId || "";
-
-}
-
-
-
-/* =========================================================
-   NORMALIZE TRANSACTION
-========================================================= */
-
-function normalizeTransaction(
-    transaction
-) {
-
-    if (
-        !transaction ||
-        typeof transaction !== "object"
-    ) {
-
+    if (!transaction || typeof transaction !== "object") {
         return null;
-
     }
 
+    let type = normalizeTransactionType(
+        forcedType ||
+        transaction.type ||
+        transaction.transactionType
+    );
 
-    const type =
-        normalizeTransactionType(
-            transaction.type
-        );
+
+    /* -----------------------------------------
+       Determine type from old structures
+    ----------------------------------------- */
+
+    if (!type) {
+
+        if (
+            transaction.incomeAmount !== undefined ||
+            transaction.income !== undefined
+        ) {
+            type = "income";
+        }
+
+        else if (
+            transaction.expenseAmount !== undefined ||
+            transaction.expense !== undefined
+        ) {
+            type = "expense";
+        }
+    }
 
 
     if (
         type !== "income" &&
         type !== "expense"
     ) {
-
         return null;
-
     }
 
 
-    let categoryId =
+    /* -----------------------------------------
+       Amount
+    ----------------------------------------- */
+
+    let amount = 0;
+
+    if (
+        transaction.amount !== undefined &&
+        transaction.amount !== null &&
+        transaction.amount !== ""
+    ) {
+        amount = Number(
+            String(transaction.amount)
+                .replace(/,/g, "")
+                .replace(/[₹\s]/g, "")
+        );
+    }
+
+    else if (
+        type === "income" &&
+        transaction.incomeAmount !== undefined
+    ) {
+        amount = Number(
+            String(transaction.incomeAmount)
+                .replace(/,/g, "")
+                .replace(/[₹\s]/g, "")
+        );
+    }
+
+    else if (
+        type === "expense" &&
+        transaction.expenseAmount !== undefined
+    ) {
+        amount = Number(
+            String(transaction.expenseAmount)
+                .replace(/,/g, "")
+                .replace(/[₹\s]/g, "")
+        );
+    }
+
+    if (!Number.isFinite(amount)) {
+        amount = 0;
+    }
+
+
+    /* -----------------------------------------
+       Date
+    ----------------------------------------- */
+
+    const date = normalizeDate(
+        transaction.date ||
+        transaction.transactionDate ||
+        transaction.expenseDate ||
+        transaction.incomeDate ||
+        transaction.paymentDate ||
+        transaction.createdDate ||
+        getTodayString()
+    );
+
+
+    /* -----------------------------------------
+       Category
+    ----------------------------------------- */
+
+    const categoryId =
         transaction.categoryId ||
         transaction.category ||
-        "";
+        transaction.expenseCategory ||
+        transaction.incomeCategory ||
+        "other";
 
 
-    let categoryName =
+    const categoryName =
         transaction.categoryName ||
-        "";
+        transaction.categoryLabel ||
+        transaction.categoryText ||
+        transaction.expenseCategoryName ||
+        transaction.incomeCategoryName ||
+        categoryId;
 
 
-    /*
-       Legacy expense category object
-    */
+    /* -----------------------------------------
+       Account
+    ----------------------------------------- */
 
-    if (
-        typeof categoryId === "object" &&
-        categoryId !== null
-    ) {
-
-        categoryName =
-            categoryId.name ||
-            categoryId.label ||
-            "";
-
-        categoryId =
-            categoryId.id ||
-            "";
-
-    }
-
-
-    if (
-        !categoryName &&
-        type === "expense"
-    ) {
-
-        categoryName =
-            getExpenseCategoryName(
-                categoryId
-            );
-
-    }
-
-
-    let accountId =
+    const accountId =
         transaction.accountId ||
+        transaction.accountID ||
+        transaction.account ||
+        transaction.accountName ||
         "";
 
 
-    /*
-       काही legacy records मध्ये
-       account field असू शकतो.
-    */
+    /* -----------------------------------------
+       Payment Mode
+    ----------------------------------------- */
 
-    if (
-        !accountId &&
-        transaction.account
-    ) {
-
-        accountId =
-            findAccountIdByName(
-                transaction.account
-            );
-
-    }
+    const paymentMode =
+        transaction.paymentMode ||
+        transaction.payment_type ||
+        transaction.mode ||
+        "";
 
 
-    const amount =
-        Number(
-            transaction.amount
-        ) || 0;
+    /* -----------------------------------------
+       Description
+    ----------------------------------------- */
+
+    const description =
+        transaction.description ||
+        transaction.title ||
+        transaction.name ||
+        "";
+
+
+    /* -----------------------------------------
+       Note
+    ----------------------------------------- */
+
+    const note =
+        transaction.note ||
+        transaction.notes ||
+        "";
+
+
+    /* -----------------------------------------
+       ID
+    ----------------------------------------- */
+
+    const id =
+        transaction.id ||
+        transaction.transactionId ||
+        transaction.txnId ||
+        (
+            "TXN-" +
+            Date.now() +
+            "-" +
+            Math.random()
+                .toString(36)
+                .substring(2, 8)
+        );
 
 
     return {
 
-        id:
-            transaction.id ||
-            generateTransactionId(
-                type
-            ),
+        id: String(id),
 
-        type:
-            type,
+        type: type,
 
-        date:
-            normalizeDate(
-                transaction.date ||
-                transaction.transactionDate ||
-                transaction.createdAt
-            ),
+        date: date,
 
-        category:
-            categoryId,
+        category: String(categoryId),
 
-        categoryId:
-            categoryId,
+        categoryId: String(categoryId),
 
-        categoryName:
-            categoryName,
+        categoryName: String(categoryName),
 
-        description:
-            transaction.description ||
-            transaction.title ||
-            "",
+        description: String(description),
 
-        amount:
-            amount,
+        amount: amount,
 
-        accountId:
-            accountId,
+        accountId: String(accountId),
 
-        paymentMode:
-            transaction.paymentMode ||
-            transaction.mode ||
-            "",
+        paymentMode: String(paymentMode),
 
-        note:
-            transaction.note ||
-            transaction.notes ||
-            "",
+        note: String(note),
 
         createdAt:
             transaction.createdAt ||
-            new Date().toISOString(),
-
-        updatedAt:
-            transaction.updatedAt ||
-            null
+            transaction.createdDate ||
+            new Date().toISOString()
 
     };
-
 }
 
 
-
 /* =========================================================
-   GENERATE TRANSACTION ID
+   10. READ LEGACY TRANSACTIONS
 ========================================================= */
 
-function generateTransactionId(
-    type = "transaction"
-) {
+function readLegacyTransactions() {
 
-    const prefix =
-        type === "income"
-            ? "INC"
-            : type === "expense"
-                ? "EXP"
-                : "TXN";
+    const result = [];
 
+    LEGACY_TRANSACTION_KEYS.forEach(key => {
 
-    return (
+        const data = getData(key, null);
 
-        prefix +
-        "-" +
-        Date.now() +
-        "-" +
-        Math.random()
-            .toString(36)
-            .substring(2, 8)
-
-    );
-
-}
-
-
-
-/* =========================================================
-   FIND ACCOUNT ID BY NAME
-========================================================= */
-
-function findAccountIdByName(
-    accountName
-) {
-
-    if (!accountName) {
-
-        return "";
-
-    }
-
-
-    const accounts =
-        getAccounts();
-
-
-    const value =
-        String(
-            accountName
-        )
-        .trim()
-        .toLowerCase();
-
-
-    const account =
-        accounts.find(
-            item =>
-
-                String(
-                    item.name || ""
-                )
-                .trim()
-                .toLowerCase() ===
-                value
-        );
-
-
-    return account
-        ? account.id
-        : "";
-
-}
-
-
-
-/* =========================================================
-   MIGRATE OLD TRANSACTIONS
-========================================================= */
-
-function migrateLegacyTransactions() {
-
-    /*
-       जर new storage मध्ये data आहे
-       तर migration पुन्हा करू नका.
-    */
-
-    const current =
-        getData(
-            STORAGE_KEYS.transactions,
-            null
-        );
-
-
-    if (
-        Array.isArray(current) &&
-        current.length > 0
-    ) {
-
-        return current;
-
-    }
-
-
-    let legacyTransactions =
-        [];
-
-
-    for (
-        const key
-        of LEGACY_STORAGE_KEYS.transactions
-    ) {
-
-        const data =
-            getData(
-                key,
-                null
-            );
-
-
-        if (
-            Array.isArray(data) &&
-            data.length > 0
-        ) {
-
-            legacyTransactions =
-                data;
-
-            break;
-
+        if (!data) {
+            return;
         }
 
-    }
 
+        /* -----------------------------------------
+           Array format
+        ----------------------------------------- */
 
-    /*
-       Legacy expenses storage
-    */
+        if (Array.isArray(data)) {
 
-    if (
-        legacyTransactions.length === 0
-    ) {
+            data.forEach(item => {
 
-        const expenses =
-            getData(
-                "expenses",
-                []
-            );
+                const normalized =
+                    normalizeTransaction(item);
 
+                if (normalized) {
+                    result.push(normalized);
+                }
 
-        if (
-            Array.isArray(expenses) &&
-            expenses.length > 0
-        ) {
+            });
 
-            legacyTransactions =
-                expenses.map(
-                    item => ({
-
-                        ...item,
-
-                        type:
-                            "expense"
-
-                    })
-                );
-
+            return;
         }
 
-    }
 
+        /* -----------------------------------------
+           Object format
+        ----------------------------------------- */
 
-    if (
-        legacyTransactions.length === 0
-    ) {
+        if (
+            typeof data === "object" &&
+            !Array.isArray(data)
+        ) {
 
-        return [];
+            Object.keys(data).forEach(keyName => {
 
-    }
+                const item = data[keyName];
 
+                if (Array.isArray(item)) {
 
-    const normalized =
-        legacyTransactions
-            .map(
-                normalizeTransaction
-            )
-            .filter(
-                Boolean
-            );
+                    item.forEach(row => {
 
+                        const normalized =
+                            normalizeTransaction(
+                                row,
+                                keyName
+                            );
 
-    if (
-        normalized.length > 0
-    ) {
+                        if (normalized) {
+                            result.push(normalized);
+                        }
 
-        saveData(
-            STORAGE_KEYS.transactions,
-            normalized
-        );
+                    });
 
-        console.log(
-            "Legacy transactions migrated:",
-            normalized.length
-        );
+                }
 
-    }
+                else if (
+                    item &&
+                    typeof item === "object"
+                ) {
 
+                    const normalized =
+                        normalizeTransaction(
+                            item,
+                            keyName
+                        );
 
-    return normalized;
+                    if (normalized) {
+                        result.push(normalized);
+                    }
+                }
 
+            });
+        }
+
+    });
+
+    return result;
 }
 
 
+/* =========================================================
+   11. REMOVE DUPLICATE TRANSACTIONS
+========================================================= */
+
+function removeDuplicateTransactions(transactions) {
+
+    const map = new Map();
+
+    transactions.forEach(transaction => {
+
+        if (!transaction) {
+            return;
+        }
+
+        const key =
+            transaction.id ||
+            [
+                transaction.type,
+                transaction.date,
+                transaction.amount,
+                transaction.description,
+                transaction.accountId
+            ].join("|");
+
+
+        if (!map.has(key)) {
+            map.set(key, transaction);
+        }
+
+    });
+
+    return Array.from(map.values());
+}
+
 
 /* =========================================================
-   CENTRAL GET TRANSACTIONS
+   12. CENTRAL GET TRANSACTIONS
 ========================================================= */
 
 function getTransactions() {
 
-    let transactions =
+    let central =
         getData(
             STORAGE_KEYS.transactions,
             null
         );
 
 
-    /*
-       New storage not available
-       → migrate old data
-    */
+    /* -----------------------------------------
+       New v2 storage exists
+    ----------------------------------------- */
 
-    if (
-        !Array.isArray(transactions)
-    ) {
+    if (Array.isArray(central)) {
 
-        transactions =
-            migrateLegacyTransactions();
+        const normalized =
+            central
+                .map(item =>
+                    normalizeTransaction(item)
+                )
+                .filter(Boolean);
 
+        return removeDuplicateTransactions(
+            normalized
+        );
     }
 
 
-    if (
-        !Array.isArray(transactions)
-    ) {
+    /* -----------------------------------------
+       v2 not found
+       Read old data and migrate
+    ----------------------------------------- */
 
-        return [];
+    const legacy =
+        readLegacyTransactions();
 
+    const cleaned =
+        removeDuplicateTransactions(
+            legacy
+        );
+
+
+    if (cleaned.length > 0) {
+
+        saveData(
+            STORAGE_KEYS.transactions,
+            cleaned
+        );
+
+        console.log(
+            "Old transaction data migrated:",
+            cleaned.length
+        );
     }
 
 
-    return transactions;
-
+    return cleaned;
 }
 
 
-
 /* =========================================================
-   CENTRAL SAVE TRANSACTIONS
+   13. CENTRAL SAVE TRANSACTIONS
 ========================================================= */
 
-function saveTransactions(
-    transactions
-) {
+function saveTransactions(transactions) {
 
-    if (
-        !Array.isArray(
-            transactions
-        )
-    ) {
-
-        return false;
-
+    if (!Array.isArray(transactions)) {
+        transactions = [];
     }
-
 
     const normalized =
         transactions
-            .map(
-                normalizeTransaction
+            .map(item =>
+                normalizeTransaction(item)
             )
-            .filter(
-                Boolean
-            );
+            .filter(Boolean);
+
+
+    const cleaned =
+        removeDuplicateTransactions(
+            normalized
+        );
 
 
     const saved =
         saveData(
             STORAGE_KEYS.transactions,
-            normalized
+            cleaned
         );
 
 
     if (saved) {
-
-        dispatchTransactionsUpdated();
-
-    }
-
-
-    return saved;
-
-}
-
-
-
-/* =========================================================
-   GET TRANSACTION BY ID
-========================================================= */
-
-function getTransactionById(
-    transactionId
-) {
-
-    return getTransactions()
-        .find(
-            transaction =>
-                transaction.id ===
-                transactionId
-        ) || null;
-
-}
-
-
-
-/* =========================================================
-   DELETE TRANSACTION
-========================================================= */
-
-function deleteTransaction(
-    transactionId
-) {
-
-    const transactions =
-        getTransactions();
-
-
-    const updated =
-        transactions.filter(
-            transaction =>
-                transaction.id !==
-                transactionId
-        );
-
-
-    if (
-        updated.length ===
-        transactions.length
-    ) {
-
-        return false;
-
-    }
-
-
-    return saveTransactions(
-        updated
-    );
-
-}
-
-
-
-/* =========================================================
-   TRANSACTION EVENT
-========================================================= */
-
-function dispatchTransactionsUpdated() {
-
-    try {
 
         window.dispatchEvent(
             new CustomEvent(
@@ -1081,875 +824,136 @@ function dispatchTransactionsUpdated() {
             )
         );
 
-    }
-
-    catch (error) {
-
-        console.error(
-            "Transaction event error:",
-            error
+        window.dispatchEvent(
+            new Event(
+                "storage"
+            )
         );
-
-    }
-
-}
-
-
-
-/* =========================================================
-   ACCOUNTS
-========================================================= */
-
-function getAccounts() {
-
-    let accounts =
-        getData(
-            STORAGE_KEYS.accounts,
-            []
-        );
-
-
-    if (
-        !Array.isArray(accounts)
-    ) {
-
-        accounts = [];
-
-    }
-
-
-    /*
-       Accounts नसतील तर defaults तयार करा.
-    */
-
-    if (
-        accounts.length === 0
-    ) {
-
-        accounts =
-            DEFAULT_ACCOUNTS.map(
-                account => ({
-
-                    ...account,
-
-                    createdAt:
-                        new Date().toISOString()
-
-                })
-            );
-
-
-        saveData(
-            STORAGE_KEYS.accounts,
-            accounts
-        );
-
-    }
-
-
-    return accounts;
-
-}
-
-
-
-/* =========================================================
-   SAVE ACCOUNTS
-========================================================= */
-
-function saveAccounts(
-    accounts
-) {
-
-    if (
-        !Array.isArray(
-            accounts
-        )
-    ) {
-
-        return false;
-
-    }
-
-
-    const saved =
-        saveData(
-            STORAGE_KEYS.accounts,
-            accounts
-        );
-
-
-    if (saved) {
-
-        try {
-
-            window.dispatchEvent(
-                new CustomEvent(
-                    "rdkhAccountsUpdated"
-                )
-            );
-
-        }
-
-        catch (error) {
-
-            console.error(
-                "Account event error:",
-                error
-            );
-
-        }
-
     }
 
 
     return saved;
-
 }
 
 
-
 /* =========================================================
-   INITIALIZE DEFAULT ACCOUNTS
+   14. ADD TRANSACTION
 ========================================================= */
 
-function initializeAccounts() {
+function addTransaction(transaction) {
 
-    let accounts =
-        getAccounts();
+    const normalized =
+        normalizeTransaction(transaction);
 
-
-    DEFAULT_ACCOUNTS.forEach(
-        defaultAccount => {
-
-            const exists =
-                accounts.some(
-                    account =>
-                        account.id ===
-                        defaultAccount.id
-                );
-
-
-            if (!exists) {
-
-                accounts.push({
-
-                    ...defaultAccount,
-
-                    createdAt:
-                        new Date().toISOString()
-
-                });
-
-            }
-
-        }
-    );
-
-
-    saveData(
-        STORAGE_KEYS.accounts,
-        accounts
-    );
-
-
-    return accounts;
-
-}
-
-
-
-/* =========================================================
-   GET ACCOUNT BALANCE
-========================================================= */
-
-function getAccountBalance(
-    accountId
-) {
-
-    const account =
-        getAccounts().find(
-            item =>
-                item.id ===
-                accountId
-        );
-
-
-    if (!account) {
-
-        return 0;
-
-    }
-
-
-    let balance =
-        Number(
-            account.openingBalance
-        ) || 0;
-
-
-    getTransactions()
-        .forEach(
-            transaction => {
-
-                if (
-                    transaction.accountId !==
-                    accountId
-                ) {
-
-                    return;
-
-                }
-
-
-                const amount =
-                    Number(
-                        transaction.amount
-                    ) || 0;
-
-
-                if (
-                    transaction.type ===
-                    "income"
-                ) {
-
-                    balance +=
-                        amount;
-
-                }
-
-                else if (
-                    transaction.type ===
-                    "expense"
-                ) {
-
-                    balance -=
-                        amount;
-
-                }
-
-            }
-        );
-
-
-    return balance;
-
-}
-
-
-
-/* =========================================================
-   GET ALL ACCOUNT BALANCES
-========================================================= */
-
-function getAllAccountBalances() {
-
-    return getAccounts()
-        .map(
-            account => ({
-
-                ...account,
-
-                balance:
-                    getAccountBalance(
-                        account.id
-                    )
-
-            })
-        );
-
-}
-
-
-
-/* =========================================================
-   TOTAL ACCOUNT BALANCE
-========================================================= */
-
-function getTotalAccountBalance() {
-
-    return getAccounts()
-        .reduce(
-            (
-                total,
-                account
-            ) =>
-
-                total +
-                getAccountBalance(
-                    account.id
-                ),
-
-            0
-        );
-
-}
-
-
-
-/* =========================================================
-   BUDGET
-========================================================= */
-
-function getBudgets() {
-
-    const data =
-        getData(
-            STORAGE_KEYS.budgets,
-            {}
-        );
-
-
-    if (
-        data &&
-        typeof data === "object" &&
-        !Array.isArray(data)
-    ) {
-
-        return data;
-
-    }
-
-
-    /*
-       Legacy array compatibility
-    */
-
-    if (
-        Array.isArray(data)
-    ) {
-
-        const converted = {};
-
-
-        data.forEach(
-            item => {
-
-                if (
-                    item &&
-                    item.month
-                ) {
-
-                    converted[
-                        item.month
-                    ] =
-                        item;
-
-                }
-
-            }
-        );
-
-
-        return converted;
-
-    }
-
-
-    return {};
-
-}
-
-
-
-/* =========================================================
-   SAVE BUDGETS
-========================================================= */
-
-function saveBudgets(
-    budgets
-) {
-
-    if (
-        !budgets ||
-        typeof budgets !== "object"
-    ) {
-
+    if (!normalized) {
         return false;
-
     }
 
 
-    const saved =
-        saveData(
-            STORAGE_KEYS.budgets,
-            budgets
+    const transactions =
+        getTransactions();
+
+
+    transactions.push(
+        normalized
+    );
+
+
+    return saveTransactions(
+        transactions
+    );
+}
+
+
+/* =========================================================
+   15. UPDATE TRANSACTION
+========================================================= */
+
+function updateTransaction(id, updatedData) {
+
+    const transactions =
+        getTransactions();
+
+
+    const index =
+        transactions.findIndex(
+            transaction =>
+                String(transaction.id) ===
+                String(id)
         );
 
 
-    if (saved) {
-
-        try {
-
-            window.dispatchEvent(
-                new CustomEvent(
-                    "rdkhBudgetUpdated"
-                )
-            );
-
-        }
-
-        catch (error) {
-
-            console.error(
-                "Budget event error:",
-                error
-            );
-
-        }
-
+    if (index === -1) {
+        return false;
     }
 
 
-    return saved;
+    const merged = {
 
-}
+        ...transactions[index],
 
+        ...updatedData,
 
-
-/* =========================================================
-   GET CURRENT MONTH BUDGET
-========================================================= */
-
-function getCurrentMonthBudget() {
-
-    const month =
-        getCurrentMonth();
-
-
-    return getBudgetForMonth(
-        month
-    );
-
-}
-
-
-
-/* =========================================================
-   GET BUDGET FOR MONTH
-========================================================= */
-
-function getBudgetForMonth(
-    month
-) {
-
-    const budgets =
-        getBudgets();
-
-
-    const source =
-        budgets[month];
-
-
-    if (!source) {
-
-        return {
-
-            month:
-                month,
-
-            plannedMoney:
-                0,
-
-            total:
-                0,
-
-            incomePlan:
-                0,
-
-            expenseBudget:
-                0,
-
-            savingTarget:
-                0,
-
-            alertPercent:
-                80,
-
-            categories:
-                {},
-
-            createdAt:
-                null,
-
-            updatedAt:
-                null
-
-        };
-
-    }
-
-
-    return normalizeBudget(
-        source,
-        month
-    );
-
-}
-
-
-
-/* =========================================================
-   NORMALIZE BUDGET
-========================================================= */
-
-function normalizeBudget(
-    budget,
-    month
-) {
-
-    const source =
-        budget || {};
-
-
-    let categories =
-        source.categories ||
-        {};
-
-
-    /*
-       Array format compatibility
-    */
-
-    if (
-        Array.isArray(
-            categories
-        )
-    ) {
-
-        const converted = {};
-
-
-        categories.forEach(
-            item => {
-
-                if (
-                    item &&
-                    item.id
-                ) {
-
-                    converted[
-                        item.id
-                    ] =
-                        Number(
-                            item.amount ||
-                            item.planned ||
-                            item.budget ||
-                            0
-                        );
-
-                }
-
-            }
-        );
-
-
-        categories =
-            converted;
-
-    }
-
-
-    if (
-        !categories ||
-        typeof categories !== "object"
-    ) {
-
-        categories = {};
-
-    }
-
-
-    const plannedMoney =
-        Number(
-            source.plannedMoney ??
-            source.total ??
-            source.incomePlan ??
-            0
-        ) || 0;
-
-
-    return {
-
-        month:
-            source.month ||
-            month,
-
-        plannedMoney:
-            plannedMoney,
-
-        total:
-            Number(
-                source.total ??
-                plannedMoney
-            ) || 0,
-
-        incomePlan:
-            Number(
-                source.incomePlan ??
-                plannedMoney
-            ) || 0,
-
-        expenseBudget:
-            Number(
-                source.expenseBudget ??
-                plannedMoney
-            ) || 0,
-
-        savingTarget:
-            Number(
-                source.savingTarget ||
-                0
-            ) || 0,
-
-        alertPercent:
-            Number(
-                source.alertPercent ??
-                80
-            ) || 80,
-
-        categories:
-            categories,
-
-        createdAt:
-            source.createdAt ||
-            null,
-
-        updatedAt:
-            source.updatedAt ||
-            null
+        id: transactions[index].id
 
     };
 
-}
+
+    const normalized =
+        normalizeTransaction(
+            merged
+        );
 
 
-
-/* =========================================================
-   DATE HELPERS
-========================================================= */
-
-function getTodayString() {
-
-    const today =
-        new Date();
+    if (!normalized) {
+        return false;
+    }
 
 
-    return (
+    transactions[index] =
+        normalized;
 
-        today.getFullYear() +
-        "-" +
-        String(
-            today.getMonth() + 1
-        ).padStart(
-            2,
-            "0"
-        ) +
-        "-" +
-        String(
-            today.getDate()
-        ).padStart(
-            2,
-            "0"
-        )
 
+    return saveTransactions(
+        transactions
     );
-
 }
-
-
-
-function getCurrentMonth() {
-
-    return getTodayString()
-        .substring(
-            0,
-            7
-        );
-
-}
-
 
 
 /* =========================================================
-   NORMALIZE DATE
+   16. DELETE TRANSACTION
 ========================================================= */
 
-function normalizeDate(
-    date
-) {
+function deleteTransaction(id) {
 
-    if (!date) {
-
-        return "";
-
-    }
+    const transactions =
+        getTransactions();
 
 
-    const value =
-        String(
-            date
-        ).trim();
-
-
-    if (
-        /^\d{4}-\d{2}-\d{2}$/
-            .test(value)
-    ) {
-
-        return value;
-
-    }
-
-
-    /*
-       DD-MM-YYYY
-    */
-
-    let match =
-        value.match(
-            /^(\d{2})-(\d{2})-(\d{4})$/
-        );
-
-
-    if (match) {
-
-        return (
-
-            match[3] +
-            "-" +
-            match[2] +
-            "-" +
-            match[1]
-
-        );
-
-    }
-
-
-    const parsed =
-        new Date(
-            value
+    const filtered =
+        transactions.filter(
+            transaction =>
+                String(transaction.id) !==
+                String(id)
         );
 
 
     if (
-        isNaN(
-            parsed.getTime()
-        )
+        filtered.length ===
+        transactions.length
     ) {
-
-        return "";
-
+        return false;
     }
 
 
-    return (
-
-        parsed.getFullYear() +
-        "-" +
-        String(
-            parsed.getMonth() + 1
-        ).padStart(
-            2,
-            "0"
-        ) +
-        "-" +
-        String(
-            parsed.getDate()
-        ).padStart(
-            2,
-            "0"
-        )
-
+    return saveTransactions(
+        filtered
     );
-
 }
 
 
-
 /* =========================================================
-   DISPLAY DATE
-========================================================= */
-
-function formatDisplayDate(
-    dateString
-) {
-
-    const date =
-        normalizeDate(
-            dateString
-        );
-
-
-    if (!date) {
-
-        return "";
-
-    }
-
-
-    const parts =
-        date.split("-");
-
-
-    if (
-        parts.length !== 3
-    ) {
-
-        return date;
-
-    }
-
-
-    return (
-
-        parts[2] +
-        "-" +
-        parts[1] +
-        "-" +
-        parts[0]
-
-    );
-
-}
-
-
-
-/* =========================================================
-   CURRENCY
-========================================================= */
-
-function formatMoney(
-    amount
-) {
-
-    const value =
-        Number(
-            amount
-        ) || 0;
-
-
-    return (
-
-        "₹" +
-
-        value.toLocaleString(
-            "en-IN",
-            {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2
-            }
-        )
-
-    );
-
-}
-
-
-
-/* =========================================================
-   TOTAL INCOME
+   17. INCOME TOTALS
 ========================================================= */
 
 function getTotalIncome() {
@@ -1957,76 +961,16 @@ function getTotalIncome() {
     return getTransactions()
         .filter(
             transaction =>
-                transaction.type ===
-                "income"
+                transaction.type === "income"
         )
         .reduce(
-            (
-                total,
-                transaction
-            ) =>
-
+            (total, transaction) =>
                 total +
-                (
-                    Number(
-                        transaction.amount
-                    ) || 0
-                ),
-
+                Number(transaction.amount || 0),
             0
         );
-
 }
 
-
-
-/* =========================================================
-   TOTAL EXPENSE
-========================================================= */
-
-function getTotalExpense() {
-
-    return getTransactions()
-        .filter(
-            transaction =>
-                transaction.type ===
-                "expense"
-        )
-        .reduce(
-            (
-                total,
-                transaction
-            ) =>
-
-                total +
-                (
-                    Number(
-                        transaction.amount
-                    ) || 0
-                ),
-
-            0
-        );
-
-}
-
-
-
-/* =========================================================
-   TOTAL BALANCE
-========================================================= */
-
-function getTotalBalance() {
-
-    return getTotalAccountBalance();
-
-}
-
-
-
-/* =========================================================
-   TODAY INCOME
-========================================================= */
 
 function getTodayIncome() {
 
@@ -2037,38 +981,55 @@ function getTodayIncome() {
     return getTransactions()
         .filter(
             transaction =>
-
-                transaction.type ===
-                "income" &&
-
-                normalizeDate(
-                    transaction.date
-                ) ===
-                today
+                transaction.type === "income" &&
+                transaction.date === today
         )
         .reduce(
-            (
-                total,
-                transaction
-            ) =>
-
+            (total, transaction) =>
                 total +
-                (
-                    Number(
-                        transaction.amount
-                    ) || 0
-                ),
-
+                Number(transaction.amount || 0),
             0
         );
-
 }
 
 
+function getMonthIncome(month = getCurrentMonth()) {
+
+    return getTransactions()
+        .filter(
+            transaction =>
+                transaction.type === "income" &&
+                String(transaction.date || "")
+                    .startsWith(month)
+        )
+        .reduce(
+            (total, transaction) =>
+                total +
+                Number(transaction.amount || 0),
+            0
+        );
+}
+
 
 /* =========================================================
-   TODAY EXPENSE
+   18. EXPENSE TOTALS
 ========================================================= */
+
+function getTotalExpense() {
+
+    return getTransactions()
+        .filter(
+            transaction =>
+                transaction.type === "expense"
+        )
+        .reduce(
+            (total, transaction) =>
+                total +
+                Number(transaction.amount || 0),
+            0
+        );
+}
+
 
 function getTodayExpense() {
 
@@ -2079,1016 +1040,595 @@ function getTodayExpense() {
     return getTransactions()
         .filter(
             transaction =>
-
-                transaction.type ===
-                "expense" &&
-
-                normalizeDate(
-                    transaction.date
-                ) ===
-                today
+                transaction.type === "expense" &&
+                transaction.date === today
         )
         .reduce(
-            (
-                total,
-                transaction
-            ) =>
-
+            (total, transaction) =>
                 total +
-                (
-                    Number(
-                        transaction.amount
-                    ) || 0
-                ),
-
+                Number(transaction.amount || 0),
             0
         );
-
 }
 
 
+function getMonthExpense(month = getCurrentMonth()) {
+
+    return getTransactions()
+        .filter(
+            transaction =>
+                transaction.type === "expense" &&
+                String(transaction.date || "")
+                    .startsWith(month)
+        )
+        .reduce(
+            (total, transaction) =>
+                total +
+                Number(transaction.amount || 0),
+            0
+        );
+}
+
 
 /* =========================================================
-   TODAY SAVING
+   19. BALANCE
 ========================================================= */
+
+function getTotalBalance() {
+
+    return (
+        getTotalIncome() -
+        getTotalExpense()
+    );
+}
+
 
 function getTodaySaving() {
 
     return (
-
         getTodayIncome() -
         getTodayExpense()
-
     );
-
 }
 
 
-
 /* =========================================================
-   MONTH INCOME
-========================================================= */
-
-function getMonthIncome(
-    month = getCurrentMonth()
-) {
-
-    return getTransactions()
-        .filter(
-            transaction => {
-
-                const date =
-                    normalizeDate(
-                        transaction.date
-                    );
-
-
-                return (
-
-                    transaction.type ===
-                    "income" &&
-
-                    date.startsWith(
-                        month
-                    )
-
-                );
-
-            }
-        )
-        .reduce(
-            (
-                total,
-                transaction
-            ) =>
-
-                total +
-                (
-                    Number(
-                        transaction.amount
-                    ) || 0
-                ),
-
-            0
-        );
-
-}
-
-
-
-/* =========================================================
-   MONTH EXPENSE
-========================================================= */
-
-function getMonthExpense(
-    month = getCurrentMonth()
-) {
-
-    return getTransactions()
-        .filter(
-            transaction => {
-
-                const date =
-                    normalizeDate(
-                        transaction.date
-                    );
-
-
-                return (
-
-                    transaction.type ===
-                    "expense" &&
-
-                    date.startsWith(
-                        month
-                    )
-
-                );
-
-            }
-        )
-        .reduce(
-            (
-                total,
-                transaction
-            ) =>
-
-                total +
-                (
-                    Number(
-                        transaction.amount
-                    ) || 0
-                ),
-
-            0
-        );
-
-}
-
-
-
-/* =========================================================
-   CATEGORY EXPENSE TOTAL
+   20. CATEGORY EXPENSE TOTAL
 ========================================================= */
 
 function getCategoryExpenseTotal(
     categoryId,
-    month = getCurrentMonth()
+    month = ""
 ) {
 
     return getTransactions()
-        .filter(
-            transaction => {
 
-                if (
-                    transaction.type !==
-                    "expense"
-                ) {
+        .filter(transaction => {
 
-                    return false;
-
-                }
-
-
-                const transactionCategory =
-                    transaction.categoryId ||
-                    transaction.category ||
-                    "";
-
-
-                if (
-                    transactionCategory !==
-                    categoryId
-                ) {
-
-                    return false;
-
-                }
-
-
-                const date =
-                    normalizeDate(
-                        transaction.date
-                    );
-
-
-                return (
-                    date.startsWith(
-                        month
-                    )
-                );
-
+            if (
+                transaction.type !==
+                "expense"
+            ) {
+                return false;
             }
-        )
+
+
+            const transactionCategory =
+                transaction.categoryId ||
+                transaction.category;
+
+
+            if (
+                String(transactionCategory) !==
+                String(categoryId)
+            ) {
+                return false;
+            }
+
+
+            if (month) {
+
+                return String(
+                    transaction.date || ""
+                ).startsWith(month);
+            }
+
+
+            return true;
+
+        })
+
         .reduce(
-            (
-                total,
-                transaction
-            ) =>
-
+            (total, transaction) =>
                 total +
-                (
-                    Number(
-                        transaction.amount
-                    ) || 0
-                ),
-
+                Number(transaction.amount || 0),
             0
         );
-
 }
 
 
-
 /* =========================================================
-   BUDGET REMAINING
+   21. ACCOUNTS
 ========================================================= */
 
-function getBudgetRemaining() {
+function getAccounts() {
 
-    const budget =
-        getCurrentMonthBudget();
-
-
-    const spent =
-        getMonthExpense();
-
-
-    const planned =
-        Number(
-            budget.plannedMoney
-        ) || 0;
+    let accounts =
+        getData(
+            STORAGE_KEYS.accounts,
+            null
+        );
 
 
-    return (
-        planned -
-        spent
-    );
+    if (!Array.isArray(accounts)) {
 
-}
-
-
-
-/* =========================================================
-   BUDGET PERCENTAGE
-========================================================= */
-
-function getBudgetPercentage() {
-
-    const budget =
-        getCurrentMonthBudget();
+        accounts =
+            DEFAULT_ACCOUNTS.map(account => ({
+                ...account
+            }));
 
 
-    const planned =
-        Number(
-            budget.plannedMoney
-        ) || 0;
-
-
-    if (
-        planned <= 0
-    ) {
-
-        return 0;
-
+        saveData(
+            STORAGE_KEYS.accounts,
+            accounts
+        );
     }
 
 
-    const spent =
-        getMonthExpense();
-
-
-    return Math.min(
-        100,
-        (
-            spent /
-            planned
-        ) *
-        100
-    );
-
+    return accounts;
 }
 
 
+function saveAccounts(accounts) {
+
+    if (!Array.isArray(accounts)) {
+        return false;
+    }
+
+
+    const saved =
+        saveData(
+            STORAGE_KEYS.accounts,
+            accounts
+        );
+
+
+    if (saved) {
+
+        window.dispatchEvent(
+            new CustomEvent(
+                "rdkhAccountsUpdated"
+            )
+        );
+    }
+
+
+    return saved;
+}
+
+
+function initializeAccounts() {
+
+    const existing =
+        getData(
+            STORAGE_KEYS.accounts,
+            null
+        );
+
+
+    if (
+        !Array.isArray(existing) ||
+        existing.length === 0
+    ) {
+
+        saveAccounts(
+            DEFAULT_ACCOUNTS.map(
+                account => ({
+                    ...account
+                })
+            )
+        );
+    }
+}
+
 
 /* =========================================================
-   RECENT TRANSACTIONS
+   22. ACCOUNT BALANCE
+========================================================= */
+
+function getAccountBalance(accountId) {
+
+    const accounts =
+        getAccounts();
+
+
+    const account =
+        accounts.find(
+            item =>
+                String(item.id) ===
+                String(accountId)
+        );
+
+
+    if (!account) {
+        return 0;
+    }
+
+
+    const openingBalance =
+        Number(
+            account.openingBalance
+        ) || 0;
+
+
+    const transactions =
+        getTransactions();
+
+
+    let balance =
+        openingBalance;
+
+
+    transactions.forEach(
+        transaction => {
+
+            if (
+                String(transaction.accountId) !==
+                String(accountId)
+            ) {
+                return;
+            }
+
+
+            const amount =
+                Number(
+                    transaction.amount
+                ) || 0;
+
+
+            if (
+                transaction.type ===
+                "income"
+            ) {
+
+                balance += amount;
+            }
+
+
+            if (
+                transaction.type ===
+                "expense"
+            ) {
+
+                balance -= amount;
+            }
+
+        }
+    );
+
+
+    return balance;
+}
+
+
+function getAllAccountBalances() {
+
+    return getAccounts().map(
+        account => ({
+
+            ...account,
+
+            balance:
+                getAccountBalance(
+                    account.id
+                )
+
+        })
+    );
+}
+
+
+/* =========================================================
+   23. RECENT TRANSACTIONS
 ========================================================= */
 
 function getRecentTransactions(
     limit = 5
 ) {
 
-    return [...getTransactions()]
+    return getTransactions()
+
         .sort(
-            (
-                a,
-                b
-            ) => {
+            (a, b) => {
 
                 const dateA =
-                    normalizeDate(
-                        a.date
-                    );
-
-                const dateB =
-                    normalizeDate(
-                        b.date
-                    );
-
-
-                if (
-                    dateA !==
-                    dateB
-                ) {
-
-                    return dateB
-                        .localeCompare(
-                            dateA
-                        );
-
-                }
-
-
-                return (
-
-                    new Date(
-                        b.createdAt ||
-                        0
-                    ) -
-
                     new Date(
                         a.createdAt ||
-                        0
-                    )
+                        a.date
+                    ).getTime();
 
-                );
+                const dateB =
+                    new Date(
+                        b.createdAt ||
+                        b.date
+                    ).getTime();
 
+                return dateB - dateA;
             }
         )
+
         .slice(
             0,
             limit
         );
-
 }
 
 
-
 /* =========================================================
-   DASHBOARD UPDATE
+   24. BUDGET FUNCTIONS
 ========================================================= */
 
-function updateDashboard() {
+function getBudgets() {
 
-    updateMainBalance();
+    let data =
+        getData(
+            STORAGE_KEYS.budgets,
+            null
+        );
 
-    updateTodaySummary();
 
-    updateBudgetDashboard();
+    if (!data) {
 
-    updateAccountDashboard();
+        data =
+            getData(
+                STORAGE_KEYS.oldBudgets,
+                null
+            );
+    }
 
-    updateRecentTransactions();
 
-    updateReminder();
+    if (!data) {
+        return [];
+    }
 
+
+    /* -----------------------------------------
+       Array format
+    ----------------------------------------- */
+
+    if (Array.isArray(data)) {
+
+        return data;
+    }
+
+
+    /* -----------------------------------------
+       Object format
+       { "2026-09": {...} }
+    ----------------------------------------- */
+
+    if (
+        typeof data === "object"
+    ) {
+
+        return Object.keys(data)
+            .map(month => {
+
+                const budget =
+                    data[month];
+
+
+                if (
+                    typeof budget ===
+                    "object"
+                ) {
+
+                    return {
+
+                        ...budget,
+
+                        month:
+                            budget.month ||
+                            month
+
+                    };
+                }
+
+
+                return {
+
+                    month: month,
+
+                    plannedMoney:
+                        Number(budget) || 0
+
+                };
+
+            });
+    }
+
+
+    return [];
 }
 
 
+function getCurrentMonthBudget() {
 
-/* =========================================================
-   MAIN BALANCE
-========================================================= */
+    const currentMonth =
+        getCurrentMonth();
 
-function updateMainBalance() {
 
-    setElementText(
-        "totalBalance",
-        formatMoney(
-            getTotalBalance()
-        )
+    const budgets =
+        getBudgets();
+
+
+    return (
+        budgets.find(
+            budget =>
+                String(
+                    budget.month
+                ) ===
+                currentMonth
+        ) ||
+        null
     );
-
-
-    setElementText(
-        "totalIncome",
-        formatMoney(
-            getTotalIncome()
-        )
-    );
-
-
-    setElementText(
-        "totalExpense",
-        formatMoney(
-            getTotalExpense()
-        )
-    );
-
 }
 
 
+function normalizeBudget(
+    budget,
+    month = getCurrentMonth()
+) {
 
-/* =========================================================
-   TODAY SUMMARY
-========================================================= */
-
-function updateTodaySummary() {
-
-    setElementText(
-        "todayIncome",
-        formatMoney(
-            getTodayIncome()
-        )
-    );
+    budget =
+        budget || {};
 
 
-    setElementText(
-        "todayExpense",
-        formatMoney(
-            getTodayExpense()
-        )
-    );
+    return {
 
+        month:
+            budget.month ||
+            month,
 
-    setElementText(
-        "todaySaving",
-        formatMoney(
-            getTodaySaving()
-        )
-    );
+        plannedMoney:
+            Number(
+                budget.plannedMoney ||
+                budget.incomePlan ||
+                0
+            ),
 
+        incomePlan:
+            Number(
+                budget.incomePlan ||
+                budget.plannedMoney ||
+                0
+            ),
+
+        expenseBudget:
+            Number(
+                budget.expenseBudget ||
+                0
+            ),
+
+        savingTarget:
+            Number(
+                budget.savingTarget ||
+                0
+            ),
+
+        alertPercent:
+            Number(
+                budget.alertPercent ||
+                80
+            ),
+
+        categories:
+            budget.categories &&
+            typeof budget.categories === "object"
+                ? budget.categories
+                : {},
+
+        createdAt:
+            budget.createdAt ||
+            new Date().toISOString(),
+
+        updatedAt:
+            budget.updatedAt ||
+            new Date().toISOString()
+
+    };
 }
 
 
-
-/* =========================================================
-   BUDGET DASHBOARD
-========================================================= */
-
-function updateBudgetDashboard() {
+function getBudgetRemaining(
+    month = getCurrentMonth()
+) {
 
     const budget =
         getCurrentMonthBudget();
 
 
-    const totalBudget =
+    if (!budget) {
+        return 0;
+    }
+
+
+    const expenseBudget =
         Number(
-            budget.plannedMoney
+            budget.expenseBudget
         ) || 0;
 
 
-    const spent =
-        getMonthExpense();
-
-
-    const remaining =
-        totalBudget -
-        spent;
-
-
-    let percentage =
-        0;
-
-
-    if (
-        totalBudget > 0
-    ) {
-
-        percentage =
-            (
-                spent /
-                totalBudget
-            ) *
-            100;
-
-    }
-
-
-    percentage =
-        Math.min(
-            100,
-            Math.max(
-                0,
-                percentage
-            )
+    const actualExpense =
+        getMonthExpense(
+            month
         );
 
 
-    setElementText(
-        "budgetAmount",
-        formatMoney(
-            totalBudget
-        )
+    return (
+        expenseBudget -
+        actualExpense
     );
-
-
-    setElementText(
-        "budgetSpent",
-        formatMoney(
-            spent
-        )
-    );
-
-
-    setElementText(
-        "budgetRemaining",
-        formatMoney(
-            remaining
-        )
-    );
-
-
-    const progress =
-        document.getElementById(
-            "budgetProgress"
-        );
-
-
-    if (progress) {
-
-        progress.style.width =
-            percentage +
-            "%";
-
-    }
-
-
-    setElementText(
-        "budgetPercentage",
-        Math.round(
-            percentage
-        ) +
-        "% वापरले"
-    );
-
-
-    const remainingElement =
-        document.getElementById(
-            "budgetRemaining"
-        );
-
-
-    if (remainingElement) {
-
-        remainingElement.style.color =
-            remaining < 0
-                ? "var(--expense)"
-                : "var(--income)";
-
-    }
-
 }
 
 
-
-/* =========================================================
-   ACCOUNT DASHBOARD
-========================================================= */
-
-function updateAccountDashboard() {
-
-    const container =
-        document.getElementById(
-            "accountSummary"
-        );
-
-
-    if (!container) {
-
-        return;
-
-    }
-
-
-    const accounts =
-        getAccounts();
-
-
-    if (
-        accounts.length === 0
-    ) {
-
-        container.innerHTML = `
-
-            <div class="empty-card">
-
-                <i class="fa-solid fa-building-columns"></i>
-
-                <p>
-                    खाते जोडलेले नाही.
-                </p>
-
-                <button onclick="goToAccounts()">
-                    खाते जोडा
-                </button>
-
-            </div>
-
-        `;
-
-        return;
-
-    }
-
-
-    container.innerHTML =
-        "";
-
-
-    accounts
-        .slice(
-            0,
-            4
-        )
-        .forEach(
-            account => {
-
-                const balance =
-                    getAccountBalance(
-                        account.id
-                    );
-
-
-                const card =
-                    document.createElement(
-                        "div"
-                    );
-
-
-                card.className =
-                    "account-card";
-
-
-                card.innerHTML = `
-
-                    <div class="account-name">
-
-                        ${escapeHTML(
-                            account.name
-                        )}
-
-                    </div>
-
-                    <div class="account-balance">
-
-                        ${formatMoney(
-                            balance
-                        )}
-
-                    </div>
-
-                `;
-
-
-                container.appendChild(
-                    card
-                );
-
-            }
-        );
-
-}
-
-
-
-/* =========================================================
-   RECENT TRANSACTIONS
-========================================================= */
-
-function updateRecentTransactions() {
-
-    const container =
-        document.getElementById(
-            "recentTransactions"
-        );
-
-
-    if (!container) {
-
-        return;
-
-    }
-
-
-    const transactions =
-        getRecentTransactions(
-            5
-        );
-
-
-    if (
-        transactions.length === 0
-    ) {
-
-        container.innerHTML = `
-
-            <div class="empty-card">
-
-                <i class="fa-solid fa-receipt"></i>
-
-                <p>
-                    अजून कोणतेही व्यवहार नाहीत.
-                </p>
-
-            </div>
-
-        `;
-
-        return;
-
-    }
-
-
-    container.innerHTML =
-        "";
-
-
-    transactions.forEach(
-        transaction => {
-
-            const item =
-                document.createElement(
-                    "div"
-                );
-
-
-            item.className =
-                "transaction-item";
-
-
-            const isIncome =
-                transaction.type ===
-                "income";
-
-
-            const icon =
-                isIncome
-                    ? "fa-arrow-down"
-                    : "fa-arrow-up";
-
-
-            const category =
-                transaction.categoryName ||
-                transaction.category ||
-                (
-                    isIncome
-                        ? "जमा"
-                        : "खर्च"
-                );
-
-
-            item.innerHTML = `
-
-                <div class="transaction-icon"
-                     style="
-                        background:
-                        ${
-                            isIncome
-                                ? "#e8f5ed"
-                                : "#fdeaea"
-                        };
-
-                        color:
-                        ${
-                            isIncome
-                                ? "#16803c"
-                                : "#c62828"
-                        };
-                     ">
-
-                    <i class="fa-solid ${icon}"></i>
-
-                </div>
-
-
-                <div class="transaction-details">
-
-                    <strong>
-
-                        ${escapeHTML(
-                            category
-                        )}
-
-                    </strong>
-
-
-                    <span>
-
-                        ${formatDisplayDate(
-                            transaction.date
-                        )}
-
-                        ${
-                            transaction.note
-                                ? " • " +
-                                  escapeHTML(
-                                      transaction.note
-                                  )
-                                : ""
-                        }
-
-                    </span>
-
-                </div>
-
-
-                <div class="transaction-amount"
-                     style="
-                        color:
-                        ${
-                            isIncome
-                                ? "#16803c"
-                                : "#c62828"
-                        };
-                     ">
-
-                    ${
-                        isIncome
-                            ? "+"
-                            : "-"
-                    }
-
-                    ${formatMoney(
-                        transaction.amount
-                    )}
-
-                </div>
-
-            `;
-
-
-            container.appendChild(
-                item
-            );
-
-        }
-    );
-
-}
-
-
-
-/* =========================================================
-   REMINDER
-========================================================= */
-
-function updateReminder() {
-
-    const dot =
-        document.getElementById(
-            "notificationDot"
-        );
-
-
-    if (!dot) {
-
-        return;
-
-    }
-
-
-    const todayExpense =
-        getTodayExpense();
-
-
-    if (
-        todayExpense <= 0
-    ) {
-
-        dot.style.display =
-            "block";
-
-    }
-
-    else {
-
-        dot.style.display =
-            "none";
-
-    }
-
-}
-
-
-
-function openReminder() {
-
-    goToExpense();
-
-}
-
-
-
-/* =========================================================
-   BALANCE VISIBILITY
-========================================================= */
-
-let balanceHidden =
-    false;
-
-
-function toggleBalance() {
-
-    balanceHidden =
-        !balanceHidden;
-
-
-    const ids = [
-
-        "totalBalance",
-
-        "totalIncome",
-
-        "totalExpense",
-
-        "todayIncome",
-
-        "todayExpense",
-
-        "todaySaving"
-
-    ];
-
-
-    ids.forEach(
-        id => {
-
-            const element =
-                document.getElementById(
-                    id
-                );
-
-
-            if (!element) {
-
-                return;
-
-            }
-
-
-            if (
-                balanceHidden
-            ) {
-
-                if (
-                    !element.dataset.original
-                ) {
-
-                    element.dataset.original =
-                        element.textContent;
-
-                }
-
-
-                element.textContent =
-                    "₹••••";
-
-            }
-
-            else {
-
-                element.textContent =
-                    element.dataset.original ||
-                    "₹0.00";
-
-            }
-
-        }
-    );
-
-
-    const eye =
-        document.getElementById(
-            "balanceEye"
-        );
-
-
-    if (eye) {
-
-        eye.className =
-            balanceHidden
-                ? "fa-solid fa-eye-slash"
-                : "fa-solid fa-eye";
-
-    }
-
-}
-
-
-
-/* =========================================================
-   HTML SAFETY
-========================================================= */
-
-function escapeHTML(
-    value
+function getBudgetPercentage(
+    month = getCurrentMonth()
 ) {
 
-    return String(
-        value ?? ""
-    )
+    const budget =
+        getCurrentMonthBudget();
+
+
+    if (!budget) {
+        return 0;
+    }
+
+
+    const expenseBudget =
+        Number(
+            budget.expenseBudget
+        ) || 0;
+
+
+    if (expenseBudget <= 0) {
+        return 0;
+    }
+
+
+    const actualExpense =
+        getMonthExpense(
+            month
+        );
+
+
+    return Math.min(
+        100,
+        Math.round(
+            (
+                actualExpense /
+                expenseBudget
+            ) * 100
+        )
+    );
+}
+
+
+/* =========================================================
+   25. HTML SAFETY
+========================================================= */
+
+function escapeHTML(value) {
+
+    if (
+        value === null ||
+        value === undefined
+    ) {
+        return "";
+    }
+
+
+    return String(value)
         .replace(
             /&/g,
             "&amp;"
@@ -3109,14 +1649,8 @@ function escapeHTML(
             /'/g,
             "&#039;"
         );
-
 }
 
-
-
-/* =========================================================
-   ELEMENT TEXT HELPER
-========================================================= */
 
 function setElementText(
     id,
@@ -3124,103 +1658,622 @@ function setElementText(
 ) {
 
     const element =
-        document.getElementById(
-            id
-        );
+        document.getElementById(id);
 
 
     if (element) {
-
         element.textContent =
             value;
-
     }
-
 }
 
 
+/* =========================================================
+   26. DASHBOARD UPDATE
+========================================================= */
+
+function updateDashboard() {
+
+    updateMainBalance();
+
+    updateTodaySummary();
+
+    updateBudgetDashboard();
+
+    updateAccountDashboard();
+
+    updateRecentTransactions();
+
+    updateReminder();
+}
+
 
 /* =========================================================
-   NAVIGATION
+   27. MAIN BALANCE
+========================================================= */
+
+function updateMainBalance() {
+
+    const balance =
+        getTotalBalance();
+
+
+    const elements = [
+
+        document.getElementById(
+            "mainBalance"
+        ),
+
+        document.getElementById(
+            "totalBalance"
+        ),
+
+        document.getElementById(
+            "dashboardBalance"
+        )
+
+    ];
+
+
+    elements.forEach(
+        element => {
+
+            if (element) {
+
+                element.textContent =
+                    formatMoney(
+                        balance
+                    );
+            }
+
+        }
+    );
+}
+
+
+/* =========================================================
+   28. TODAY SUMMARY
+========================================================= */
+
+function updateTodaySummary() {
+
+    const income =
+        getTodayIncome();
+
+    const expense =
+        getTodayExpense();
+
+    const saving =
+        income - expense;
+
+
+    setElementText(
+        "todayIncome",
+        formatMoney(income)
+    );
+
+
+    setElementText(
+        "todayExpense",
+        formatMoney(expense)
+    );
+
+
+    setElementText(
+        "todaySaving",
+        formatMoney(saving)
+    );
+
+
+    setElementText(
+        "dashboardTodayIncome",
+        formatMoney(income)
+    );
+
+
+    setElementText(
+        "dashboardTodayExpense",
+        formatMoney(expense)
+    );
+
+
+    setElementText(
+        "dashboardTodaySaving",
+        formatMoney(saving)
+    );
+}
+
+
+/* =========================================================
+   29. BUDGET DASHBOARD
+========================================================= */
+
+function updateBudgetDashboard() {
+
+    const budget =
+        getCurrentMonthBudget();
+
+
+    if (!budget) {
+
+        setElementText(
+            "budgetAmount",
+            formatMoney(0)
+        );
+
+        setElementText(
+            "budgetUsed",
+            formatMoney(0)
+        );
+
+        setElementText(
+            "budgetRemaining",
+            formatMoney(0)
+        );
+
+        return;
+    }
+
+
+    const expenseBudget =
+        Number(
+            budget.expenseBudget
+        ) || 0;
+
+
+    const actualExpense =
+        getMonthExpense();
+
+
+    const remaining =
+        expenseBudget -
+        actualExpense;
+
+
+    const percentage =
+        expenseBudget > 0
+            ? Math.round(
+                (
+                    actualExpense /
+                    expenseBudget
+                ) * 100
+            )
+            : 0;
+
+
+    setElementText(
+        "budgetAmount",
+        formatMoney(
+            expenseBudget
+        )
+    );
+
+
+    setElementText(
+        "budgetUsed",
+        formatMoney(
+            actualExpense
+        )
+    );
+
+
+    setElementText(
+        "budgetRemaining",
+        formatMoney(
+            remaining
+        )
+    );
+
+
+    setElementText(
+        "budgetUsedPercent",
+        percentage + "%"
+    );
+
+
+    const progress =
+        document.getElementById(
+            "budgetProgress"
+        );
+
+
+    if (progress) {
+
+        progress.style.width =
+            Math.min(
+                100,
+                percentage
+            ) + "%";
+    }
+}
+
+
+/* =========================================================
+   30. ACCOUNT DASHBOARD
+========================================================= */
+
+function updateAccountDashboard() {
+
+    const accounts =
+        getAllAccountBalances();
+
+
+    const container =
+        document.getElementById(
+            "accountDashboard"
+        );
+
+
+    if (
+        !container ||
+        !accounts.length
+    ) {
+        return;
+    }
+
+
+    container.innerHTML =
+        accounts.map(
+            account => `
+
+                <div class="account-dashboard-item">
+
+                    <div>
+                        <strong>
+                            ${escapeHTML(
+                                account.name
+                            )}
+                        </strong>
+                    </div>
+
+                    <div>
+                        ${formatMoney(
+                            account.balance
+                        )}
+                    </div>
+
+                </div>
+
+            `
+        ).join("");
+}
+
+
+/* =========================================================
+   31. RECENT TRANSACTIONS
+========================================================= */
+
+function updateRecentTransactions() {
+
+    const container =
+        document.getElementById(
+            "recentTransactions"
+        );
+
+
+    if (!container) {
+        return;
+    }
+
+
+    const transactions =
+        getRecentTransactions(5);
+
+
+    if (!transactions.length) {
+
+        container.innerHTML =
+            `
+                <div class="empty-state">
+                    अजून कोणतेही व्यवहार नाहीत.
+                </div>
+            `;
+
+        return;
+    }
+
+
+    container.innerHTML =
+        transactions.map(
+            transaction => {
+
+                const isIncome =
+                    transaction.type ===
+                    "income";
+
+
+                const sign =
+                    isIncome
+                        ? "+"
+                        : "-";
+
+
+                return `
+
+                    <div class="recent-transaction-item">
+
+                        <div>
+
+                            <strong>
+                                ${escapeHTML(
+                                    transaction.categoryName ||
+                                    transaction.category ||
+                                    "व्यवहार"
+                                )}
+                            </strong>
+
+                            <small>
+                                ${formatDisplayDate(
+                                    transaction.date
+                                )}
+                            </small>
+
+                        </div>
+
+                        <div class="${
+                            isIncome
+                                ? "income"
+                                : "expense"
+                        }">
+
+                            ${sign}
+                            ${formatMoney(
+                                transaction.amount
+                            )}
+
+                        </div>
+
+                    </div>
+
+                `;
+
+            }
+        ).join("");
+}
+
+
+/* =========================================================
+   32. REMINDER
+========================================================= */
+
+function updateReminder() {
+
+    const element =
+        document.getElementById(
+            "dashboardReminder"
+        );
+
+
+    if (!element) {
+        return;
+    }
+
+
+    const budget =
+        getCurrentMonthBudget();
+
+
+    if (!budget) {
+
+        element.textContent =
+            "या महिन्यासाठी budget सेट केलेले नाही.";
+
+        return;
+    }
+
+
+    const remaining =
+        getBudgetRemaining();
+
+
+    const percentage =
+        getBudgetPercentage();
+
+
+    if (remaining < 0) {
+
+        element.textContent =
+            "⚠️ या महिन्याचा budget limit पार झाला आहे.";
+
+    }
+
+    else if (
+        percentage >=
+        Number(
+            budget.alertPercent ||
+            80
+        )
+    ) {
+
+        element.textContent =
+            "⚠️ Budget चा मोठा भाग वापरला आहे.";
+
+    }
+
+    else {
+
+        element.textContent =
+            "✅ Budget नियंत्रणात आहे.";
+    }
+}
+
+
+/* =========================================================
+   33. BALANCE VISIBILITY
+========================================================= */
+
+function initializeBalanceVisibility() {
+
+    const toggle =
+        document.getElementById(
+            "toggleBalance"
+        );
+
+
+    if (!toggle) {
+        return;
+    }
+
+
+    const hidden =
+        localStorage.getItem(
+            "rdkh_balance_hidden"
+        ) === "true";
+
+
+    applyBalanceVisibility(
+        hidden
+    );
+
+
+    toggle.addEventListener(
+        "click",
+        function () {
+
+            const current =
+                localStorage.getItem(
+                    "rdkh_balance_hidden"
+                ) === "true";
+
+
+            const next =
+                !current;
+
+
+            localStorage.setItem(
+                "rdkh_balance_hidden",
+                String(next)
+            );
+
+
+            applyBalanceVisibility(
+                next
+            );
+
+        }
+    );
+}
+
+
+function applyBalanceVisibility(
+    hidden
+) {
+
+    const balanceElements =
+        document.querySelectorAll(
+            "[data-balance]"
+        );
+
+
+    balanceElements.forEach(
+        element => {
+
+            if (hidden) {
+
+                element.dataset.originalValue =
+                    element.textContent;
+
+                element.textContent =
+                    "••••••";
+
+            }
+
+            else {
+
+                if (
+                    element.dataset.originalValue
+                ) {
+
+                    element.textContent =
+                        element.dataset.originalValue;
+                }
+            }
+
+        }
+    );
+
+
+    const toggle =
+        document.getElementById(
+            "toggleBalance"
+        );
+
+
+    if (toggle) {
+
+        toggle.innerHTML =
+            hidden
+                ? '<i class="fa-solid fa-eye"></i>'
+                : '<i class="fa-solid fa-eye-slash"></i>';
+    }
+}
+
+
+/* =========================================================
+   34. NAVIGATION
 ========================================================= */
 
 function goHome() {
 
     window.location.href =
         "index.html";
-
 }
-
-
-
-function goToIncome() {
-
-    window.location.href =
-        "income.html";
-
-}
-
-
-
-function goToExpense() {
-
-    window.location.href =
-        "expense.html";
-
-}
-
-
-
-function goToAccounts() {
-
-    window.location.href =
-        "accounts.html";
-
-}
-
 
 
 function goToTransactions() {
 
     window.location.href =
         "transactions.html";
-
 }
 
 
-
-function goToBudget() {
+function goToIncome() {
 
     window.location.href =
-        "monthly-budget.html";
-
+        "income.html";
 }
 
+
+function goToExpense() {
+
+    window.location.href =
+        "expense.html";
+}
 
 
 function goToReports() {
 
     window.location.href =
         "reports.html";
-
 }
 
+
+function goToBudget() {
+
+    window.location.href =
+        "monthly-budget.html";
+}
+
+
+function goToAccounts() {
+
+    window.location.href =
+        "accounts.html";
+}
 
 
 function goToSettings() {
 
     window.location.href =
         "settings.html";
-
 }
 
 
-
 /* =========================================================
-   ADD MENU
+   35. ADD MENU
 ========================================================= */
 
-function showAddMenu() {
+function toggleAddMenu() {
 
     const menu =
         document.getElementById(
@@ -3229,23 +2282,17 @@ function showAddMenu() {
 
 
     if (!menu) {
-
         return;
-
     }
 
 
-    menu.classList.add(
+    menu.classList.toggle(
         "show"
     );
-
 }
 
 
-
-function closeAddMenu(
-    event
-) {
+function closeAddMenu() {
 
     const menu =
         document.getElementById(
@@ -3253,108 +2300,49 @@ function closeAddMenu(
         );
 
 
-    if (!menu) {
-
-        return;
-
-    }
-
-
-    if (!event) {
-
+    if (menu) {
         menu.classList.remove(
             "show"
         );
-
-        return;
-
     }
-
-
-    if (
-        event.target.id ===
-        "addMenu"
-    ) {
-
-        menu.classList.remove(
-            "show"
-        );
-
-    }
-
 }
 
+
+document.addEventListener(
+    "click",
+    function(event) {
+
+        const menu =
+            document.getElementById(
+                "addMenu"
+            );
+
+
+        const button =
+            document.getElementById(
+                "addMenuButton"
+            );
+
+
+        if (
+            menu &&
+            !menu.contains(event.target) &&
+            (!button ||
+                !button.contains(event.target))
+        ) {
+
+            menu.classList.remove(
+                "show"
+            );
+        }
+
+    }
+);
 
 
 /* =========================================================
-   TODAY DATE
+   36. LOGIN FUNCTIONS
 ========================================================= */
-
-function updateTodayDate() {
-
-    const element =
-        document.getElementById(
-            "todayDate"
-        );
-
-
-    if (!element) {
-
-        return;
-
-    }
-
-
-    const today =
-        new Date();
-
-
-    element.textContent =
-        today.toLocaleDateString(
-            "mr-IN",
-            {
-                weekday: "long",
-                day: "2-digit",
-                month: "long",
-                year: "numeric"
-            }
-        );
-
-}
-
-
-
-/* =========================================================
-   LOGIN SESSION
-========================================================= */
-
-function isLoggedIn() {
-
-    const session =
-        getData(
-            STORAGE_KEYS.loginSession,
-            null
-        );
-
-
-    if (!session) {
-
-        return false;
-
-    }
-
-
-    return Boolean(
-
-        session.loggedIn === true ||
-
-        session.isLoggedIn === true
-
-    );
-
-}
-
-
 
 function getLoginSession() {
 
@@ -3362,12 +2350,26 @@ function getLoginSession() {
         STORAGE_KEYS.loginSession,
         null
     );
-
 }
 
 
+function isUserLoggedIn() {
 
-function logoutUser() {
+    const session =
+        getLoginSession();
+
+
+    return !!(
+        session &&
+        (
+            session.loggedIn === true ||
+            session.isLoggedIn === true
+        )
+    );
+}
+
+
+function logout() {
 
     removeData(
         STORAGE_KEYS.loginSession
@@ -3376,53 +2378,52 @@ function logoutUser() {
 
     window.location.href =
         "login.html";
-
 }
 
 
-
 /* =========================================================
-   REQUIRE LOGIN
-========================================================= */
-
-function requireLogin() {
-
-    if (
-        !isLoggedIn()
-    ) {
-
-        window.location.href =
-            "login.html";
-
-        return false;
-
-    }
-
-
-    return true;
-
-}
-
-
-
-/* =========================================================
-   GLOBAL INITIALIZATION
+   37. INITIALIZE ACCOUNTS
 ========================================================= */
 
 document.addEventListener(
     "DOMContentLoaded",
-    function () {
+    function() {
 
         initializeAccounts();
 
-        /*
-           Existing old transaction data
-           असल्यास migration.
-        */
+        initializeBalanceVisibility();
 
-        migrateLegacyTransactions();
 
-        updateTodayDate();
+        /* -----------------------------------------
+           Set date fields to today
+        ----------------------------------------- */
+
+        const today =
+            getTodayString();
+
+
+        const dateFields =
+            document.querySelectorAll(
+                'input[type="date"]'
+            );
+
+
+        dateFields.forEach(
+            field => {
+
+                if (!field.value) {
+
+                    field.value =
+                        today;
+                }
+
+            }
+        );
+
+
+        /* -----------------------------------------
+           Dashboard
+        ----------------------------------------- */
 
         updateDashboard();
 
@@ -3430,28 +2431,26 @@ document.addEventListener(
 );
 
 
-
 /* =========================================================
-   STORAGE SYNC
+   38. STORAGE EVENT
 ========================================================= */
 
 window.addEventListener(
     "storage",
-    function (event) {
+    function(event) {
 
         if (
             !event.key ||
-            Object.values(
-                STORAGE_KEYS
-            ).includes(
-                event.key
-            ) ||
-
-            LEGACY_STORAGE_KEYS
-                .transactions
-                .includes(
-                    event.key
-                )
+            event.key ===
+                STORAGE_KEYS.transactions ||
+            event.key ===
+                STORAGE_KEYS.oldTransactions ||
+            event.key ===
+                STORAGE_KEYS.accounts ||
+            event.key ===
+                STORAGE_KEYS.budgets ||
+            event.key ===
+                STORAGE_KEYS.oldBudgets
         ) {
 
             updateDashboard();
@@ -3462,14 +2461,13 @@ window.addEventListener(
 );
 
 
-
 /* =========================================================
-   SAME PAGE TRANSACTION UPDATE
+   39. CUSTOM TRANSACTION EVENT
 ========================================================= */
 
 window.addEventListener(
     "rdkhTransactionsUpdated",
-    function () {
+    function() {
 
         updateDashboard();
 
@@ -3477,14 +2475,13 @@ window.addEventListener(
 );
 
 
-
 /* =========================================================
-   SAME PAGE ACCOUNT UPDATE
+   40. CUSTOM ACCOUNT EVENT
 ========================================================= */
 
 window.addEventListener(
     "rdkhAccountsUpdated",
-    function () {
+    function() {
 
         updateDashboard();
 
@@ -3492,14 +2489,13 @@ window.addEventListener(
 );
 
 
-
 /* =========================================================
-   SAME PAGE BUDGET UPDATE
+   41. CUSTOM BUDGET EVENT
 ========================================================= */
 
 window.addEventListener(
     "rdkhBudgetUpdated",
-    function () {
+    function() {
 
         updateDashboard();
 
@@ -3507,29 +2503,64 @@ window.addEventListener(
 );
 
 
-
 /* =========================================================
-   GLOBAL ERROR LOG
+   42. SERVICE WORKER
 ========================================================= */
 
-window.addEventListener(
-    "error",
-    function (event) {
+if (
+    "serviceWorker" in navigator
+) {
 
-        console.error(
-            "Application Error:",
-            event.error ||
-            event.message
-        );
+    window.addEventListener(
+        "load",
+        function() {
 
-    }
-);
+            navigator.serviceWorker
+                .register(
+                    "service-worker.js"
+                )
+                .then(
+                    registration => {
 
+                        console.log(
+                            "Service Worker registered:",
+                            registration.scope
+                        );
+
+                    }
+                )
+                .catch(
+                    error => {
+
+                        console.error(
+                            "Service Worker registration failed:",
+                            error
+                        );
+
+                    }
+                );
+
+        }
+    );
+}
 
 
 /* =========================================================
-   GLOBAL FUNCTIONS
+   43. GLOBAL API
+   Other JS files can use these functions
 ========================================================= */
+
+window.STORAGE_KEYS =
+    STORAGE_KEYS;
+
+window.getData =
+    getData;
+
+window.saveData =
+    saveData;
+
+window.removeData =
+    removeData;
 
 window.getTransactions =
     getTransactions;
@@ -3537,11 +2568,41 @@ window.getTransactions =
 window.saveTransactions =
     saveTransactions;
 
-window.getTransactionById =
-    getTransactionById;
+window.addTransaction =
+    addTransaction;
+
+window.updateTransaction =
+    updateTransaction;
 
 window.deleteTransaction =
     deleteTransaction;
+
+window.getTotalIncome =
+    getTotalIncome;
+
+window.getTodayIncome =
+    getTodayIncome;
+
+window.getMonthIncome =
+    getMonthIncome;
+
+window.getTotalExpense =
+    getTotalExpense;
+
+window.getTodayExpense =
+    getTodayExpense;
+
+window.getMonthExpense =
+    getMonthExpense;
+
+window.getTotalBalance =
+    getTotalBalance;
+
+window.getTodaySaving =
+    getTodaySaving;
+
+window.getCategoryExpenseTotal =
+    getCategoryExpenseTotal;
 
 window.getAccounts =
     getAccounts;
@@ -3558,47 +2619,17 @@ window.getAccountBalance =
 window.getAllAccountBalances =
     getAllAccountBalances;
 
-window.getTotalAccountBalance =
-    getTotalAccountBalance;
-
-window.getTotalIncome =
-    getTotalIncome;
-
-window.getTotalExpense =
-    getTotalExpense;
-
-window.getTotalBalance =
-    getTotalBalance;
-
-window.getTodayIncome =
-    getTodayIncome;
-
-window.getTodayExpense =
-    getTodayExpense;
-
-window.getTodaySaving =
-    getTodaySaving;
-
-window.getMonthIncome =
-    getMonthIncome;
-
-window.getMonthExpense =
-    getMonthExpense;
-
-window.getCategoryExpenseTotal =
-    getCategoryExpenseTotal;
+window.getRecentTransactions =
+    getRecentTransactions;
 
 window.getBudgets =
     getBudgets;
 
-window.saveBudgets =
-    saveBudgets;
-
 window.getCurrentMonthBudget =
     getCurrentMonthBudget;
 
-window.getBudgetForMonth =
-    getBudgetForMonth;
+window.normalizeBudget =
+    normalizeBudget;
 
 window.getBudgetRemaining =
     getBudgetRemaining;
@@ -3606,11 +2637,11 @@ window.getBudgetRemaining =
 window.getBudgetPercentage =
     getBudgetPercentage;
 
-window.getRecentTransactions =
-    getRecentTransactions;
+window.getTodayString =
+    getTodayString;
 
-window.formatMoney =
-    formatMoney;
+window.getCurrentMonth =
+    getCurrentMonth;
 
 window.normalizeDate =
     normalizeDate;
@@ -3618,78 +2649,58 @@ window.normalizeDate =
 window.formatDisplayDate =
     formatDisplayDate;
 
+window.formatMoney =
+    formatMoney;
+
 window.escapeHTML =
     escapeHTML;
 
-window.getTodayString =
-    getTodayString;
+window.setElementText =
+    setElementText;
 
-window.getCurrentMonth =
-    getCurrentMonth;
+window.goHome =
+    goHome;
+
+window.goToTransactions =
+    goToTransactions;
+
+window.goToIncome =
+    goToIncome;
+
+window.goToExpense =
+    goToExpense;
+
+window.goToReports =
+    goToReports;
+
+window.goToBudget =
+    goToBudget;
+
+window.goToAccounts =
+    goToAccounts;
+
+window.goToSettings =
+    goToSettings;
+
+window.toggleAddMenu =
+    toggleAddMenu;
+
+window.closeAddMenu =
+    closeAddMenu;
+
+window.getLoginSession =
+    getLoginSession;
+
+window.isUserLoggedIn =
+    isUserLoggedIn;
+
+window.logout =
+    logout;
 
 window.updateDashboard =
     updateDashboard;
 
 
-
 /* =========================================================
-   CONSOLE INFORMATION
+   END OF app.js
 ========================================================= */
-
-console.log(
-    "रोजचा जमा खर्च अहवाल - Central app.js loaded successfully."
-);
-
-console.log(
-    "Central Transaction Storage:",
-    STORAGE_KEYS.transactions
-);
-
-console.log(
-    "Central Budget Storage:",
-    STORAGE_KEYS.budgets
-);
-
-
-
-/* =========================================================
-   PWA SERVICE WORKER
-========================================================= */
-
-if (
-    "serviceWorker" in navigator
-) {
-
-    window.addEventListener(
-        "load",
-        function () {
-
-            navigator.serviceWorker
-                .register(
-                    "service-worker.js"
-                )
-                .then(
-                    registration => {
-
-                        console.log(
-                            "PWA Service Worker Registered",
-                            registration
-                        );
-
-                    }
-                )
-                .catch(
-                    error => {
-
-                        console.error(
-                            "Service Worker Error:",
-                            error
-                        );
-
-                    }
-                );
-
-        }
-    );
-
-}
