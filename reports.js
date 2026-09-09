@@ -4,8 +4,10 @@
    REPORT MANAGEMENT
 
    CENTRAL SYSTEM VERSION
+   FIXED STORAGE COMPATIBILITY
 
    CONNECTED WITH:
+   - app.js
    - transactions.js
    - income.js
    - expense.js
@@ -26,6 +28,7 @@
    ✅ CSV Export
    ✅ Print Report
    ✅ Central Transaction Storage
+   ✅ Old + V2 Storage Compatibility
    ========================================================= */
 
 
@@ -33,14 +36,29 @@
    STORAGE KEYS
 ========================================================= */
 
-const REPORT_TRANSACTIONS_KEY =
+const REPORT_TRANSACTIONS_V2_KEY =
     "rdkh_transactions_v2";
 
-const REPORT_LEGACY_TRANSACTION_KEY =
+const REPORT_TRANSACTIONS_KEY =
     "rdkh_transactions";
+
+const REPORT_LEGACY_TRANSACTIONS_KEY =
+    "transactions";
+
+const REPORT_INCOME_KEY =
+    "income_transactions";
+
+const REPORT_EXPENSE_KEY =
+    "expense_transactions";
+
+const REPORT_OLD_EXPENSE_KEY =
+    "expenses";
 
 const REPORT_BUDGET_KEY =
     "monthly_budgets";
+
+const REPORT_OLD_BUDGET_KEY =
+    "rdkh_monthly_budgets";
 
 
 /* =========================================================
@@ -84,13 +102,14 @@ function initializeReports() {
 
 
 /* =========================================================
-   GET TRANSACTIONS
+   GET CENTRAL TRANSACTIONS
 ========================================================= */
 
 function getReportTransactions() {
 
     /*
-     * CENTRAL SYSTEM
+     * 1. First priority:
+     * app.js central function
      */
 
     if (
@@ -100,27 +119,37 @@ function getReportTransactions() {
 
         try {
 
-            const transactions =
+            const data =
                 window.getTransactions();
 
+
             if (
-                Array.isArray(
-                    transactions
-                )
+                Array.isArray(data)
             ) {
 
-                return transactions
-                    .map(
-                        normalizeReportTransaction
-                    )
-                    .filter(Boolean);
+                const normalized =
+                    data
+                        .map(
+                            normalizeReportTransaction
+                        )
+                        .filter(Boolean);
+
+
+                if (
+                    normalized.length ||
+                    data.length === 0
+                ) {
+
+                    return normalized;
+
+                }
 
             }
 
         } catch (error) {
 
             console.warn(
-                "Central transactions read error:",
+                "Central transaction read error:",
                 error
             );
 
@@ -130,90 +159,187 @@ function getReportTransactions() {
 
 
     /*
-     * Fallback V2
+     * 2. V2 storage
      */
 
-    try {
-
-        const raw =
-            localStorage.getItem(
-                REPORT_TRANSACTIONS_KEY
-            );
-
-
-        if (raw) {
-
-            const data =
-                JSON.parse(raw);
-
-
-            if (
-                Array.isArray(data)
-            ) {
-
-                return data
-                    .map(
-                        normalizeReportTransaction
-                    )
-                    .filter(Boolean);
-
-            }
-
-        }
-
-    } catch (error) {
-
-        console.warn(
-            "V2 transaction read error:",
-            error
+    const v2 =
+        readTransactionStorage(
+            REPORT_TRANSACTIONS_V2_KEY
         );
+
+
+    if (
+        v2.length
+    ) {
+
+        return v2;
 
     }
 
 
     /*
-     * Legacy
+     * 3. Old rdkh storage
      */
+
+    const old =
+        readTransactionStorage(
+            REPORT_TRANSACTIONS_KEY
+        );
+
+
+    if (
+        old.length
+    ) {
+
+        return old;
+
+    }
+
+
+    /*
+     * 4. Generic transactions
+     */
+
+    const generic =
+        readTransactionStorage(
+            REPORT_LEGACY_TRANSACTIONS_KEY
+        );
+
+
+    if (
+        generic.length
+    ) {
+
+        return generic;
+
+    }
+
+
+    /*
+     * 5. Separate income/expense
+     */
+
+    const income =
+        readTransactionStorage(
+            REPORT_INCOME_KEY
+        )
+            .map(
+                transaction => {
+
+                    return {
+                        ...transaction,
+                        type:
+                            "income"
+                    };
+
+                }
+            );
+
+
+    const expense =
+        readTransactionStorage(
+            REPORT_EXPENSE_KEY
+        )
+            .map(
+                transaction => {
+
+                    return {
+                        ...transaction,
+                        type:
+                            "expense"
+                    };
+
+                }
+            );
+
+
+    const oldExpense =
+        readTransactionStorage(
+            REPORT_OLD_EXPENSE_KEY
+        )
+            .map(
+                transaction => {
+
+                    return {
+                        ...transaction,
+                        type:
+                            "expense"
+                    };
+
+                }
+            );
+
+
+    return [
+
+        ...income,
+
+        ...expense,
+
+        ...oldExpense
+
+    ]
+        .map(
+            normalizeReportTransaction
+        )
+        .filter(Boolean);
+
+}
+
+
+/* =========================================================
+   READ TRANSACTION STORAGE
+========================================================= */
+
+function readTransactionStorage(
+    key
+) {
 
     try {
 
         const raw =
             localStorage.getItem(
-                REPORT_LEGACY_TRANSACTION_KEY
+                key
             );
 
 
-        if (raw) {
+        if (!raw) {
 
-            const data =
-                JSON.parse(raw);
-
-
-            if (
-                Array.isArray(data)
-            ) {
-
-                return data
-                    .map(
-                        normalizeReportTransaction
-                    )
-                    .filter(Boolean);
-
-            }
+            return [];
 
         }
+
+
+        const data =
+            JSON.parse(raw);
+
+
+        if (
+            !Array.isArray(data)
+        ) {
+
+            return [];
+
+        }
+
+
+        return data
+            .map(
+                normalizeReportTransaction
+            )
+            .filter(Boolean);
 
     } catch (error) {
 
         console.warn(
-            "Legacy transaction read error:",
+            "Transaction storage read error:",
+            key,
             error
         );
 
+        return [];
+
     }
-
-
-    return [];
 
 }
 
@@ -237,10 +363,15 @@ function normalizeReportTransaction(
     }
 
 
+    /* -----------------------------------------------------
+       TYPE
+    ----------------------------------------------------- */
+
     let type =
         String(
             transaction.type ||
             transaction.transactionType ||
+            transaction.entryType ||
             ""
         )
             .toLowerCase()
@@ -248,40 +379,72 @@ function normalizeReportTransaction(
 
 
     if (
-        type === "जमा" ||
+
+        type === "income" ||
+
         type === "credit" ||
-        type === "income"
+
+        type === "jma" ||
+
+        type === "जमा"
+
     ) {
 
-        type = "income";
+        type =
+            "income";
 
-    } else if (
-        type === "खर्च" ||
+    }
+
+    else if (
+
+        type === "expense" ||
+
         type === "debit" ||
-        type === "expense"
+
+        type === "kharch" ||
+
+        type === "खर्च"
+
     ) {
 
-        type = "expense";
+        type =
+            "expense";
 
-    } else {
+    }
+
+    else {
 
         /*
          * Legacy detection
          */
 
         if (
-            transaction.expenseAmount ||
-            transaction.expenseCategory
+
+            transaction.expenseAmount !==
+            undefined ||
+
+            transaction.expenseCategory !==
+            undefined
+
         ) {
 
-            type = "expense";
+            type =
+                "expense";
 
-        } else if (
-            transaction.incomeAmount ||
-            transaction.incomeCategory
+        }
+
+        else if (
+
+            transaction.incomeAmount !==
+            undefined ||
+
+            transaction.incomeCategory !==
+            undefined
+
         ) {
 
-            type = "income";
+            type =
+                "income";
 
         }
 
@@ -289,8 +452,11 @@ function normalizeReportTransaction(
 
 
     if (
+
         type !== "income" &&
+
         type !== "expense"
+
     ) {
 
         return null;
@@ -298,17 +464,65 @@ function normalizeReportTransaction(
     }
 
 
+    /* -----------------------------------------------------
+       AMOUNT
+    ----------------------------------------------------- */
+
+    let rawAmount =
+        transaction.amount;
+
+
+    if (
+        rawAmount ===
+        undefined ||
+        rawAmount ===
+        null ||
+        rawAmount === ""
+    ) {
+
+        rawAmount =
+            type === "income"
+                ? transaction.incomeAmount
+                : transaction.expenseAmount;
+
+    }
+
+
+    /*
+     * Some old data may contain
+     * amount as formatted string.
+     */
+
+    if (
+        typeof rawAmount ===
+        "string"
+    ) {
+
+        rawAmount =
+            rawAmount
+                .replace(
+                    /₹/g,
+                    ""
+                )
+                .replace(
+                    /,/g,
+                    ""
+                )
+                .trim();
+
+    }
+
+
     const amount =
         Number(
-            transaction.amount ||
-            transaction.incomeAmount ||
-            transaction.expenseAmount ||
-            0
+            rawAmount
         );
 
 
     if (
-        !Number.isFinite(amount) ||
+        !Number.isFinite(
+            amount
+        ) ||
         amount <= 0
     ) {
 
@@ -317,14 +531,30 @@ function normalizeReportTransaction(
     }
 
 
+    /* -----------------------------------------------------
+       DATE
+    ----------------------------------------------------- */
+
     const date =
         normalizeReportDate(
             transaction.date ||
             transaction.transactionDate ||
             transaction.incomeDate ||
-            transaction.expenseDate
+            transaction.expenseDate ||
+            transaction.createdAt
         );
 
+
+    if (!date) {
+
+        return null;
+
+    }
+
+
+    /* -----------------------------------------------------
+       CATEGORY
+    ----------------------------------------------------- */
 
     const categoryId =
         transaction.categoryId ||
@@ -343,12 +573,52 @@ function normalizeReportTransaction(
         );
 
 
+    /* -----------------------------------------------------
+       DESCRIPTION
+    ----------------------------------------------------- */
+
+    const description =
+        transaction.description ||
+        transaction.details ||
+        transaction.title ||
+        transaction.note ||
+        "";
+
+
+    /* -----------------------------------------------------
+       ACCOUNT
+    ----------------------------------------------------- */
+
+    const accountId =
+        transaction.accountId ||
+        transaction.account ||
+        transaction.accountID ||
+        "";
+
+
+    /* -----------------------------------------------------
+       PAYMENT MODE
+    ----------------------------------------------------- */
+
+    const paymentMode =
+        transaction.paymentMode ||
+        transaction.mode ||
+        "";
+
+
     return {
 
         id:
             transaction.id ||
             transaction.transactionId ||
-            "",
+            (
+                "TXN-" +
+                date +
+                "-" +
+                Math.random()
+                    .toString(36)
+                    .slice(2, 8)
+            ),
 
         type:
             type,
@@ -369,18 +639,13 @@ function normalizeReportTransaction(
             categoryName,
 
         description:
-            transaction.description ||
-            transaction.note ||
-            transaction.details ||
-            "",
+            description,
 
         accountId:
-            transaction.accountId ||
-            "",
+            accountId,
 
         paymentMode:
-            transaction.paymentMode ||
-            "",
+            paymentMode,
 
         note:
             transaction.note ||
@@ -411,8 +676,15 @@ function normalizeReportDate(
 
 
     const text =
-        String(value);
+        String(
+            value
+        )
+            .trim();
 
+
+    /*
+     * YYYY-MM-DD
+     */
 
     if (
         /^\d{4}-\d{2}-\d{2}$/
@@ -424,8 +696,60 @@ function normalizeReportDate(
     }
 
 
+    /*
+     * DD-MM-YYYY
+     */
+
+    let match =
+        text.match(
+            /^(\d{2})-(\d{2})-(\d{4})$/
+        );
+
+
+    if (match) {
+
+        return (
+            match[3] +
+            "-" +
+            match[2] +
+            "-" +
+            match[1]
+        );
+
+    }
+
+
+    /*
+     * DD/MM/YYYY
+     */
+
+    match =
+        text.match(
+            /^(\d{2})\/(\d{2})\/(\d{4})$/
+        );
+
+
+    if (match) {
+
+        return (
+            match[3] +
+            "-" +
+            match[2] +
+            "-" +
+            match[1]
+        );
+
+    }
+
+
+    /*
+     * ISO / Date
+     */
+
     const date =
-        new Date(value);
+        new Date(
+            text
+        );
 
 
     if (
@@ -434,20 +758,30 @@ function normalizeReportDate(
         )
     ) {
 
-        return date
-            .toISOString()
-            .slice(
-                0,
-                10
-            );
+        return (
+            date.getFullYear() +
+            "-" +
+            String(
+                date.getMonth() + 1
+            )
+                .padStart(
+                    2,
+                    "0"
+                ) +
+            "-" +
+            String(
+                date.getDate()
+            )
+                .padStart(
+                    2,
+                    "0"
+                )
+        );
 
     }
 
 
-    return text.slice(
-        0,
-        10
-    );
+    return "";
 
 }
 
@@ -482,14 +816,42 @@ function setDefaultReportDate() {
     ) {
 
         dateInput.value =
-            new Date()
-                .toISOString()
-                .slice(
-                    0,
-                    10
-                );
+            getTodayReportDate();
 
     }
+
+}
+
+
+/* =========================================================
+   TODAY
+========================================================= */
+
+function getTodayReportDate() {
+
+    const now =
+        new Date();
+
+
+    return (
+        now.getFullYear() +
+        "-" +
+        String(
+            now.getMonth() + 1
+        )
+            .padStart(
+                2,
+                "0"
+            ) +
+        "-" +
+        String(
+            now.getDate()
+        )
+            .padStart(
+                2,
+                "0"
+            )
+    );
 
 }
 
@@ -518,13 +880,21 @@ function setupReportEvents() {
 
             element.addEventListener(
                 "change",
-                renderReport
+                function () {
+
+                    renderReport();
+
+                }
             );
 
 
             element.addEventListener(
                 "input",
-                renderReport
+                function () {
+
+                    renderReport();
+
+                }
             );
 
         }
@@ -548,6 +918,22 @@ function setupReportEvents() {
 
 
     /*
+     * Account update
+     */
+
+    window.addEventListener(
+        "rdkhAccountsUpdated",
+        function () {
+
+            populateReportAccountFilter();
+
+            renderReport();
+
+        }
+    );
+
+
+    /*
      * Budget update
      */
 
@@ -555,7 +941,9 @@ function setupReportEvents() {
         "rdkhBudgetUpdated",
         function () {
 
-            renderReport();
+            renderBudgetReport(
+                getCurrentReportMonth()
+            );
 
         }
     );
@@ -569,15 +957,31 @@ function setupReportEvents() {
         "storage",
         function (event) {
 
+            const keys = [
+
+                REPORT_TRANSACTIONS_V2_KEY,
+
+                REPORT_TRANSACTIONS_KEY,
+
+                REPORT_LEGACY_TRANSACTIONS_KEY,
+
+                REPORT_INCOME_KEY,
+
+                REPORT_EXPENSE_KEY,
+
+                REPORT_OLD_EXPENSE_KEY,
+
+                REPORT_BUDGET_KEY,
+
+                REPORT_OLD_BUDGET_KEY
+
+            ];
+
+
             if (
-                event.key ===
-                REPORT_TRANSACTIONS_KEY ||
-
-                event.key ===
-                REPORT_LEGACY_TRANSACTION_KEY ||
-
-                event.key ===
-                REPORT_BUDGET_KEY
+                keys.includes(
+                    event.key
+                )
             ) {
 
                 loadReportTransactions();
@@ -678,7 +1082,10 @@ function getReportFilter() {
 
         search:
             searchElement
-                ? searchElement.value
+                ? String(
+                    searchElement.value ||
+                    ""
+                )
                     .trim()
                     .toLowerCase()
                 : "",
@@ -711,14 +1118,18 @@ function filterReportTransactions(
         transaction => {
 
             /*
-             * Type
+             * TYPE
              */
 
             if (
+
                 filter.type &&
+
                 filter.type !== "all" &&
+
                 transaction.type !==
                 filter.type
+
             ) {
 
                 return false;
@@ -727,17 +1138,20 @@ function filterReportTransactions(
 
 
             /*
-             * Category
+             * CATEGORY
              */
 
             if (
+
                 filter.category &&
+
                 String(
                     transaction.categoryId
                 ) !==
                 String(
                     filter.category
                 )
+
             ) {
 
                 return false;
@@ -746,17 +1160,20 @@ function filterReportTransactions(
 
 
             /*
-             * Account
+             * ACCOUNT
              */
 
             if (
+
                 filter.account &&
+
                 String(
                     transaction.accountId
                 ) !==
                 String(
                     filter.account
                 )
+
             ) {
 
                 return false;
@@ -765,7 +1182,7 @@ function filterReportTransactions(
 
 
             /*
-             * Period
+             * DAILY
              */
 
             if (
@@ -775,12 +1192,7 @@ function filterReportTransactions(
 
                 const targetDate =
                     filter.date ||
-                    new Date()
-                        .toISOString()
-                        .slice(
-                            0,
-                            10
-                        );
+                    getTodayReportDate();
 
 
                 if (
@@ -794,6 +1206,10 @@ function filterReportTransactions(
 
             }
 
+
+            /*
+             * MONTHLY
+             */
 
             else if (
                 filter.period ===
@@ -820,6 +1236,10 @@ function filterReportTransactions(
 
             }
 
+
+            /*
+             * YEARLY
+             */
 
             else if (
                 filter.period ===
@@ -851,7 +1271,7 @@ function filterReportTransactions(
 
 
             /*
-             * Search
+             * SEARCH
              */
 
             if (
@@ -861,6 +1281,8 @@ function filterReportTransactions(
                 const searchableText = [
 
                     transaction.id,
+
+                    transaction.type,
 
                     transaction.categoryName,
 
@@ -957,9 +1379,11 @@ function renderSummary(
     transactions
 ) {
 
-    let income = 0;
+    let income =
+        0;
 
-    let expense = 0;
+    let expense =
+        0;
 
 
     transactions.forEach(
@@ -981,7 +1405,7 @@ function renderSummary(
             }
 
 
-            if (
+            else if (
                 transaction.type ===
                 "expense"
             ) {
@@ -995,7 +1419,8 @@ function renderSummary(
 
 
     const balance =
-        income - expense;
+        income -
+        expense;
 
 
     setReportText(
@@ -1075,10 +1500,13 @@ function renderTransactionReport(
     }
 
 
-    container.innerHTML = "";
+    container.innerHTML =
+        "";
 
 
-    if (!transactions.length) {
+    if (
+        !transactions.length
+    ) {
 
         container.innerHTML = `
 
@@ -1101,42 +1529,44 @@ function renderTransactionReport(
 
 
     const sorted =
-        [...transactions].sort(
-            (a, b) => {
+        [...transactions]
+            .sort(
+                (a, b) => {
 
-                const dateCompare =
-                    String(
-                        b.date
+                    const dateCompare =
+                        String(
+                            b.date
+                        )
+                            .localeCompare(
+                                String(
+                                    a.date
+                                )
+                            );
+
+
+                    if (
+                        dateCompare !==
+                        0
+                    ) {
+
+                        return dateCompare;
+
+                    }
+
+
+                    return String(
+                        b.createdAt ||
+                        ""
                     )
                         .localeCompare(
                             String(
-                                a.date
+                                a.createdAt ||
+                                ""
                             )
                         );
 
-
-                if (
-                    dateCompare !== 0
-                ) {
-
-                    return dateCompare;
-
                 }
-
-
-                return String(
-                    b.createdAt ||
-                    ""
-                )
-                    .localeCompare(
-                        String(
-                            a.createdAt ||
-                            ""
-                        )
-                    );
-
-            }
-        );
+            );
 
 
     sorted.forEach(
@@ -1209,7 +1639,9 @@ function renderTransactionReport(
                     }
 
                     <small>
+
                         ${label}
+
                         ${
                             transaction.paymentMode
                                 ? " • " +
@@ -1218,6 +1650,7 @@ function renderTransactionReport(
                                   )
                                 : ""
                         }
+
                     </small>
 
                 </div>
@@ -1274,7 +1707,8 @@ function renderCategoryReport(
     }
 
 
-    container.innerHTML = "";
+    container.innerHTML =
+        "";
 
 
     const expenses =
@@ -1285,7 +1719,9 @@ function renderCategoryReport(
         );
 
 
-    if (!expenses.length) {
+    if (
+        !expenses.length
+    ) {
 
         container.innerHTML = `
 
@@ -1394,7 +1830,8 @@ function renderCategoryReport(
                     ? (
                         item.amount /
                         totalExpense
-                    ) * 100
+                    ) *
+                    100
                     : 0;
 
 
@@ -1507,12 +1944,12 @@ function renderBudgetReport(
         getCurrentReportMonth();
 
 
-    let budget = null;
+    let budget =
+        null;
 
 
     /*
-     * Preferred:
-     * monthly-budget.js
+     * Preferred central budget function
      */
 
     if (
@@ -1529,7 +1966,10 @@ function renderBudgetReport(
 
         } catch (error) {
 
-            console.warn(error);
+            console.warn(
+                "Central budget read error:",
+                error
+            );
 
         }
 
@@ -1537,10 +1977,12 @@ function renderBudgetReport(
 
 
     /*
-     * Fallback localStorage
+     * Fallback
      */
 
-    if (!budget) {
+    if (
+        !budget
+    ) {
 
         budget =
             getBudgetFromStorage(
@@ -1550,7 +1992,9 @@ function renderBudgetReport(
     }
 
 
-    if (!budget) {
+    if (
+        !budget
+    ) {
 
         container.innerHTML = `
 
@@ -1589,94 +2033,91 @@ function renderBudgetReport(
 
     Object.keys(
         categories
-    ).forEach(
-        categoryId => {
+    )
+        .forEach(
+            categoryId => {
 
-            const plannedAmount =
-                Number(
-                    categories[
-                        categoryId
-                    ]
-                ) || 0;
-
-
-            const actual =
-                getReportCategoryActual(
-                    categoryId,
-                    selectedMonth
-                );
+                const plannedAmount =
+                    Number(
+                        categories[
+                            categoryId
+                        ]
+                    ) || 0;
 
 
-            const remaining =
-                plannedAmount -
-                actual;
-
-
-            const usedPercent =
-                plannedAmount > 0
-                    ? (
-                        actual /
-                        plannedAmount
-                    ) * 100
-                    : 0;
-
-
-            tracking.push({
-
-                id:
-                    categoryId,
-
-                name:
-                    getReportCategoryName(
+                const actual =
+                    getReportCategoryActual(
                         categoryId,
-                        "expense"
-                    ),
-
-                planned:
-                    plannedAmount,
-
-                actual:
-                    actual,
-
-                remaining:
-                    remaining,
-
-                usedPercent:
-                    usedPercent
-
-            });
-
-        }
-    );
+                        selectedMonth
+                    );
 
 
-    /*
-     * Include actual expense categories
-     * which have no budget.
-     */
+                tracking.push({
 
-    const actualCategories =
-        getActualCategoryIds(
-            selectedMonth
+                    id:
+                        categoryId,
+
+                    name:
+                        getReportCategoryName(
+                            categoryId,
+                            "expense"
+                        ),
+
+                    planned:
+                        plannedAmount,
+
+                    actual:
+                        actual,
+
+                    remaining:
+                        plannedAmount -
+                        actual,
+
+                    usedPercent:
+                        plannedAmount > 0
+                            ? (
+                                actual /
+                                plannedAmount
+                            ) *
+                            100
+                            : 0
+
+                });
+
+            }
         );
 
 
-    actualCategories.forEach(
-        categoryId => {
+    /*
+     * Actual categories without budget
+     */
 
-            const exists =
-                tracking.some(
-                    item =>
-                        String(
-                            item.id
-                        ) ===
-                        String(
-                            categoryId
-                        )
-                );
+    getActualCategoryIds(
+        selectedMonth
+    )
+        .forEach(
+            categoryId => {
+
+                const exists =
+                    tracking.some(
+                        item =>
+                            String(
+                                item.id
+                            ) ===
+                            String(
+                                categoryId
+                            )
+                    );
 
 
-            if (!exists) {
+                if (
+                    exists
+                ) {
+
+                    return;
+
+                }
+
 
                 const actual =
                     getReportCategoryActual(
@@ -1711,15 +2152,16 @@ function renderBudgetReport(
                 });
 
             }
-
-        }
-    );
+        );
 
 
-    container.innerHTML = "";
+    container.innerHTML =
+        "";
 
 
-    if (!tracking.length) {
+    if (
+        !tracking.length
+    ) {
 
         container.innerHTML = `
 
@@ -1749,12 +2191,6 @@ function renderBudgetReport(
         .forEach(
             item => {
 
-                const row =
-                    document.createElement(
-                        "div"
-                    );
-
-
                 const percentage =
                     item.planned > 0
                         ? Math.min(
@@ -1765,6 +2201,12 @@ function renderBudgetReport(
                             100
                         )
                         : 0;
+
+
+                const row =
+                    document.createElement(
+                        "div"
+                    );
 
 
                 row.className =
@@ -1802,16 +2244,19 @@ function renderBudgetReport(
                         </span>
 
                         <span>
+
                             ${
                                 item.remaining >= 0
                                     ? "बाकी"
                                     : "ओव्हर"
                             }:
+
                             ${formatReportMoney(
                                 Math.abs(
                                     item.remaining
                                 )
                             )}
+
                         </span>
 
                     </div>
@@ -1833,6 +2278,7 @@ function renderBudgetReport(
 
 
                     <small>
+
                         ${
                             item.planned > 0
                                 ? Math.round(
@@ -1841,6 +2287,7 @@ function renderBudgetReport(
                                   "% वापरले"
                                 : "Budget set केलेले नाही"
                         }
+
                     </small>
 
                 `;
@@ -1855,7 +2302,7 @@ function renderBudgetReport(
 
 
     /*
-     * Overall budget summary
+     * Overall summary
      */
 
     const actualTotal =
@@ -1912,75 +2359,108 @@ function getBudgetFromStorage(
     month
 ) {
 
-    try {
+    const keys = [
 
-        const raw =
-            localStorage.getItem(
-                REPORT_BUDGET_KEY
+        REPORT_BUDGET_KEY,
+
+        REPORT_OLD_BUDGET_KEY
+
+    ];
+
+
+    for (
+        const key of keys
+    ) {
+
+        try {
+
+            const raw =
+                localStorage.getItem(
+                    key
+                );
+
+
+            if (!raw) {
+
+                continue;
+
+            }
+
+
+            const budgets =
+                JSON.parse(
+                    raw
+                );
+
+
+            if (
+                !budgets ||
+                typeof budgets !==
+                "object"
+            ) {
+
+                continue;
+
+            }
+
+
+            const data =
+                budgets[
+                    month
+                ];
+
+
+            if (
+                !data
+            ) {
+
+                continue;
+
+            }
+
+
+            return {
+
+                total:
+                    Number(
+                        data.total ??
+                        data.plannedMoney ??
+                        0
+                    ) || 0,
+
+                plannedMoney:
+                    Number(
+                        data.plannedMoney ??
+                        data.total ??
+                        0
+                    ) || 0,
+
+                categories:
+                    data.categories ||
+                    {},
+
+                alertPercent:
+                    Number(
+                        data.alertPercent ??
+                        80
+                    ) || 80
+
+            };
+
+        } catch (error) {
+
+            console.warn(
+                "Budget read error:",
+                key,
+                error
             );
 
-
-        if (!raw) {
-
-            return null;
-
         }
-
-
-        const budgets =
-            JSON.parse(raw);
-
-
-        const data =
-            budgets[
-                month
-            ];
-
-
-        if (!data) {
-
-            return null;
-
-        }
-
-
-        return {
-
-            total:
-                Number(
-                    data.total ??
-                    data.plannedMoney ??
-                    0
-                ) || 0,
-
-            plannedMoney:
-                Number(
-                    data.plannedMoney ??
-                    data.total ??
-                    0
-                ) || 0,
-
-            categories:
-                data.categories || {},
-
-            alertPercent:
-                Number(
-                    data.alertPercent ||
-                    80
-                )
-
-        };
-
-    } catch (error) {
-
-        console.warn(
-            "Budget read error:",
-            error
-        );
-
-        return null;
 
     }
+
+
+    return null;
 
 }
 
@@ -1994,31 +2474,57 @@ function getReportCategoryActual(
     month
 ) {
 
+    /*
+     * Central helper
+     */
+
     if (
         typeof window.getCategoryExpenseTotal ===
         "function"
     ) {
 
-        return Number(
-            window.getCategoryExpenseTotal(
-                categoryId,
-                month
-            )
-        ) || 0;
+        try {
+
+            return Number(
+                window.getCategoryExpenseTotal(
+                    categoryId,
+                    month
+                )
+            ) || 0;
+
+        } catch (error) {
+
+            console.warn(
+                "Category actual error:",
+                error
+            );
+
+        }
 
     }
 
+
+    /*
+     * Local fallback
+     */
 
     return reportTransactions
         .filter(
             transaction => {
 
+                const transactionCategory =
+                    transaction.categoryId ||
+                    transaction.category ||
+                    "";
+
+
                 return (
+
                     transaction.type ===
                     "expense" &&
 
                     String(
-                        transaction.categoryId
+                        transactionCategory
                     ) ===
                     String(
                         categoryId
@@ -2030,6 +2536,7 @@ function getReportCategoryActual(
                         .startsWith(
                             month
                         )
+
                 );
 
             }
@@ -2061,16 +2568,23 @@ function getReportMonthExpenseTotal(
 
     return reportTransactions
         .filter(
-            transaction =>
-                transaction.type ===
-                "expense" &&
+            transaction => {
 
-                String(
-                    transaction.date
-                )
-                    .startsWith(
-                        month
+                return (
+
+                    transaction.type ===
+                    "expense" &&
+
+                    String(
+                        transaction.date
                     )
+                        .startsWith(
+                            month
+                        )
+
+                );
+
+            }
         )
         .reduce(
             (
@@ -2103,26 +2617,38 @@ function getActualCategoryIds(
 
     reportTransactions
         .filter(
-            transaction =>
-                transaction.type ===
-                "expense" &&
+            transaction => {
 
-                String(
-                    transaction.date
-                )
-                    .startsWith(
-                        month
+                return (
+
+                    transaction.type ===
+                    "expense" &&
+
+                    String(
+                        transaction.date
                     )
+                        .startsWith(
+                            month
+                        )
+
+                );
+
+            }
         )
         .forEach(
             transaction => {
 
+                const id =
+                    transaction.categoryId ||
+                    transaction.category;
+
+
                 if (
-                    transaction.categoryId
+                    id
                 ) {
 
                     ids.add(
-                        transaction.categoryId
+                        id
                     );
 
                 }
@@ -2172,7 +2698,9 @@ function getReportCategoryName(
             );
 
 
-        if (category) {
+        if (
+            category
+        ) {
 
             return category.name;
 
@@ -2259,10 +2787,6 @@ function populateReportCategoryFilter() {
         select.value;
 
 
-    /*
-     * Keep first option
-     */
-
     select.innerHTML =
         '<option value="">सर्व Categories</option>';
 
@@ -2270,6 +2794,31 @@ function populateReportCategoryFilter() {
     const categoryMap =
         new Map();
 
+
+    /*
+     * Known expense categories
+     */
+
+    const categories =
+        window.EXPENSE_CATEGORIES ||
+        [];
+
+
+    categories.forEach(
+        category => {
+
+            categoryMap.set(
+                category.id,
+                category.name
+            );
+
+        }
+    );
+
+
+    /*
+     * Categories from transactions
+     */
 
     reportTransactions
         .filter(
@@ -2281,11 +2830,14 @@ function populateReportCategoryFilter() {
             transaction => {
 
                 const id =
-                    transaction.categoryId;
+                    transaction.categoryId ||
+                    transaction.category;
 
 
                 if (!id) {
+
                     return;
+
                 }
 
 
@@ -2308,27 +2860,6 @@ function populateReportCategoryFilter() {
 
             }
         );
-
-
-    /*
-     * Add known categories
-     */
-
-    const categories =
-        window.EXPENSE_CATEGORIES ||
-        [];
-
-
-    categories.forEach(
-        category => {
-
-            categoryMap.set(
-                category.id,
-                category.name
-            );
-
-        }
-    );
 
 
     Array.from(
@@ -2371,7 +2902,9 @@ function populateReportCategoryFilter() {
         );
 
 
-    if (current) {
+    if (
+        current
+    ) {
 
         select.value =
             current;
@@ -2418,39 +2951,63 @@ function populateReportAccountFilter() {
     }
 
 
-    const accounts =
-        window.getAccounts();
+    try {
+
+        const accounts =
+            window.getAccounts();
 
 
-    accounts.forEach(
-        account => {
+        if (
+            !Array.isArray(
+                accounts
+            )
+        ) {
 
-            const option =
-                document.createElement(
-                    "option"
-                );
-
-
-            option.value =
-                account.id;
-
-
-            option.textContent =
-                account.name;
-
-
-            select.appendChild(
-                option
-            );
+            return;
 
         }
-    );
 
 
-    if (current) {
+        accounts.forEach(
+            account => {
 
-        select.value =
-            current;
+                const option =
+                    document.createElement(
+                        "option"
+                    );
+
+
+                option.value =
+                    account.id;
+
+
+                option.textContent =
+                    account.name;
+
+
+                select.appendChild(
+                    option
+                );
+
+            }
+        );
+
+
+        if (
+            current
+        ) {
+
+            select.value =
+                current;
+
+        }
+
+    } catch (error) {
+
+        console.warn(
+            "Account filter error:",
+            error
+        );
 
     }
 
@@ -2487,7 +3044,9 @@ function clearReportFilters() {
                 );
 
 
-            if (element) {
+            if (
+                element
+            ) {
 
                 element.value =
                     "";
@@ -2504,7 +3063,9 @@ function clearReportFilters() {
         );
 
 
-    if (period) {
+    if (
+        period
+    ) {
 
         period.value =
             "monthly";
@@ -2518,7 +3079,9 @@ function clearReportFilters() {
         );
 
 
-    if (month) {
+    if (
+        month
+    ) {
 
         month.value =
             getCurrentReportMonth();
@@ -2532,7 +3095,9 @@ function clearReportFilters() {
         );
 
 
-    if (year) {
+    if (
+        year
+    ) {
 
         year.value =
             String(
@@ -2577,7 +3142,9 @@ function exportReportCSV() {
         filteredReportTransactions;
 
 
-    if (!transactions.length) {
+    if (
+        !transactions.length
+    ) {
 
         alert(
             "Export करण्यासाठी कोणतेही व्यवहार उपलब्ध नाहीत."
@@ -2592,13 +3159,21 @@ function exportReportCSV() {
 
 
     rows.push([
+
         "तारीख",
+
         "प्रकार",
+
         "Category",
+
         "Description",
+
         "Account",
+
         "Payment Mode",
+
         "रक्कम"
+
     ]);
 
 
@@ -2630,7 +3205,10 @@ function exportReportCSV() {
 
                 Number(
                     transaction.amount
-                ).toFixed(2)
+                )
+                    .toFixed(
+                        2
+                    )
 
             ]);
 
@@ -2639,26 +3217,25 @@ function exportReportCSV() {
 
 
     const csv =
-        rows.map(
-            row =>
-                row.map(
-                    value =>
-                        `"${String(
-                            value ?? ""
+        rows
+            .map(
+                row =>
+                    row
+                        .map(
+                            value =>
+                                `"${String(
+                                    value ??
+                                    ""
+                                )
+                                    .replace(
+                                        /"/g,
+                                        '""'
+                                    )}"`
                         )
-                            .replace(
-                                /"/g,
-                                '""'
-                            )}"`
-                )
-                    .join(",")
-        )
+                        .join(",")
+            )
             .join("\n");
 
-
-    /*
-     * UTF-8 BOM
-     */
 
     const blob =
         new Blob(
@@ -2691,12 +3268,7 @@ function exportReportCSV() {
 
     link.download =
         "rdkh-report-" +
-        new Date()
-            .toISOString()
-            .slice(
-                0,
-                10
-            ) +
+        getTodayReportDate() +
         ".csv";
 
 
@@ -2723,7 +3295,7 @@ window.exportReportCSV =
 
 
 /* =========================================================
-   PRINT REPORT
+   PRINT
 ========================================================= */
 
 function printReport() {
@@ -2745,7 +3317,9 @@ function getReportAccountName(
     accountId
 ) {
 
-    if (!accountId) {
+    if (
+        !accountId
+    ) {
 
         return "";
 
@@ -2768,6 +3342,17 @@ function getReportAccountName(
             window.getAccounts();
 
 
+        if (
+            !Array.isArray(
+                accounts
+            )
+        ) {
+
+            return accountId;
+
+        }
+
+
         const account =
             accounts.find(
                 item =>
@@ -2780,7 +3365,9 @@ function getReportAccountName(
             );
 
 
-        if (account) {
+        if (
+            account
+        ) {
 
             return account.name;
 
@@ -2788,7 +3375,10 @@ function getReportAccountName(
 
     } catch (error) {
 
-        console.warn(error);
+        console.warn(
+            "Account name error:",
+            error
+        );
 
     }
 
@@ -2804,12 +3394,21 @@ function getReportAccountName(
 
 function getCurrentReportMonth() {
 
-    return new Date()
-        .toISOString()
-        .slice(
-            0,
-            7
-        );
+    const now =
+        new Date();
+
+
+    return (
+        now.getFullYear() +
+        "-" +
+        String(
+            now.getMonth() + 1
+        )
+            .padStart(
+                2,
+                "0"
+            )
+    );
 
 }
 
@@ -2823,7 +3422,9 @@ function formatReportMoney(
 ) {
 
     const value =
-        Number(amount) || 0;
+        Number(
+            amount
+        ) || 0;
 
 
     return (
@@ -2851,7 +3452,9 @@ function formatReportDate(
     date
 ) {
 
-    if (!date) {
+    if (
+        !date
+    ) {
 
         return "--";
 
@@ -2859,11 +3462,15 @@ function formatReportDate(
 
 
     const parts =
-        String(date).split("-");
+        String(
+            date
+        )
+            .split("-");
 
 
     if (
-        parts.length === 3
+        parts.length ===
+        3
     ) {
 
         return (
@@ -2900,7 +3507,9 @@ function setReportText(
                 );
 
 
-            if (element) {
+            if (
+                element
+            ) {
 
                 element.textContent =
                     value;
@@ -2922,7 +3531,8 @@ function escapeReportHTML(
 ) {
 
     return String(
-        value ?? ""
+        value ??
+        ""
     )
         .replace(
             /&/g,
@@ -2966,3 +3576,9 @@ window.exportReportCSV =
 
 window.printReport =
     printReport;
+
+window.getReportCategoryActual =
+    getReportCategoryActual;
+
+window.getReportMonthExpenseTotal =
+    getReportMonthExpenseTotal;
