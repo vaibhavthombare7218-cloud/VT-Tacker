@@ -1,22 +1,7 @@
 /* =========================================================
    रोजचा जमा खर्च अहवाल
-   PERSONAL FINANCE TRACKER
-   MAIN STYLE.CSS
-   Compatible with:
-   - index.html
-   - app.js
-   - income.js
-   - expense.js
-   - accounts.js
-   - transactions.js
-   - monthly-budget.js
-   - settings.js
-   - login.js
-========================================================= */
-
-
-/* =========================================================
-   ROOT
+   NEW FOUNDATION
+   MAIN STYLE
 ========================================================= */
 
 :root {
@@ -27,26 +12,18 @@
 
     --income: #16803c;
     --expense: #c62828;
-    --saving: #1565c0;
-    --budget: #7b1fa2;
 
-    --warning: #f39c12;
-    --danger: #d32f2f;
-
-    --bg: #f6f6f8;
-    --white: #ffffff;
+    --background: #f5f5f5;
+    --surface: #ffffff;
+    --border: #e2e2e2;
 
     --text: #222222;
     --muted: #777777;
 
-    --border: #e7e7e7;
-
     --shadow:
-        0 4px 15px rgba(0, 0, 0, 0.08);
+        0 2px 10px rgba(0, 0, 0, 0.08);
 
-    --shadow-hover:
-        0 7px 20px rgba(0, 0, 0, 0.11);
-
+    --radius: 12px;
 }
 
 
@@ -55,131 +32,29 @@
 ========================================================= */
 
 * {
-
     box-sizing: border-box;
-
     margin: 0;
-
     padding: 0;
-
 }
-
 
 html {
-
     scroll-behavior: smooth;
-
 }
-
 
 body {
 
     font-family:
+        system-ui,
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
         "Noto Sans Devanagari",
-        "Noto Sans",
-        Arial,
         sans-serif;
 
-    background: var(--bg);
-
+    background: var(--background);
     color: var(--text);
 
     min-height: 100vh;
-
-    padding-bottom: 85px;
-
-    line-height: 1.4;
-
-}
-
-
-button,
-input,
-select,
-textarea {
-
-    font-family: inherit;
-
-}
-
-
-button {
-
-    border: none;
-
-    cursor: pointer;
-
-}
-
-
-input,
-select,
-textarea {
-
-    outline: none;
-
-}
-
-
-img {
-
-    max-width: 100%;
-
-    display: block;
-
-}
-
-
-a {
-
-    color: inherit;
-
-    text-decoration: none;
-
-}
-
-
-/* =========================================================
-   COMMON CONTAINER
-========================================================= */
-
-.container {
-
-    width: 100%;
-
-    max-width: 900px;
-
-    margin: 0 auto;
-
-    padding: 15px;
-
-}
-
-
-.page-container {
-
-    width: 100%;
-
-    max-width: 1100px;
-
-    margin: 0 auto;
-
-    padding:
-        18px 16px 100px;
-
-}
-
-
-.form-container {
-
-    width: 100%;
-
-    max-width: 650px;
-
-    margin: 0 auto;
-
-    padding: 18px;
-
 }
 
 
@@ -189,380 +64,285 @@ a {
 
 .app-header {
 
+    height: 64px;
+
     background: var(--primary);
-
-    color: white;
-
-    min-height: 70px;
-
-    padding: 12px 16px;
+    color: #ffffff;
 
     display: flex;
-
     align-items: center;
 
-    justify-content: space-between;
+    padding: 0 16px;
 
     position: sticky;
-
     top: 0;
 
     z-index: 1000;
 
     box-shadow:
-        0 3px 10px rgba(0, 0, 0, 0.18);
-
+        0 2px 8px rgba(0, 0, 0, 0.18);
 }
 
 
-.header-brand {
+.header-left {
 
     display: flex;
-
     align-items: center;
 
     gap: 12px;
-
-    min-width: 0;
-
 }
 
 
-.app-logo {
+.menu-btn {
 
-    width: 45px;
+    width: 42px;
+    height: 42px;
 
-    height: 45px;
+    border: none;
+    border-radius: 8px;
 
-    min-width: 45px;
+    background: transparent;
+    color: #ffffff;
 
-    border-radius: 12px;
+    font-size: 25px;
 
-    background:
-        rgba(255, 255, 255, 0.15);
-
-    display: flex;
-
-    align-items: center;
-
-    justify-content: center;
-
-    font-size: 22px;
-
+    cursor: pointer;
 }
 
 
-.header-brand > div {
-
-    min-width: 0;
-
+.menu-btn:hover {
+    background: rgba(255, 255, 255, 0.12);
 }
 
 
-.header-brand h1 {
+.app-title {
 
     font-size: 18px;
+    font-weight: 700;
 
-    line-height: 1.3;
-
-    white-space: nowrap;
-
-    overflow: hidden;
-
-    text-overflow: ellipsis;
-
+    line-height: 1.2;
 }
 
 
-.header-brand p {
+.app-subtitle {
 
     font-size: 11px;
 
-    opacity: 0.8;
+    opacity: 0.78;
 
     margin-top: 2px;
-
-}
-
-
-.notification-btn {
-
-    width: 42px;
-
-    height: 42px;
-
-    min-width: 42px;
-
-    border-radius: 50%;
-
-    color: white;
-
-    background:
-        rgba(255, 255, 255, 0.12);
-
-    font-size: 18px;
-
-    position: relative;
-
-    display: flex;
-
-    align-items: center;
-
-    justify-content: center;
-
-}
-
-
-.notification-btn:active {
-
-    transform: scale(0.95);
-
-}
-
-
-#notificationDot {
-
-    position: absolute;
-
-    top: 7px;
-
-    right: 8px;
-
-    width: 8px;
-
-    height: 8px;
-
-    background: #ff5252;
-
-    border-radius: 50%;
-
-    display: none;
-
 }
 
 
 /* =========================================================
-   DATE CARD
+   SIDE MENU
 ========================================================= */
 
-.date-card {
+.side-menu {
 
-    background: var(--white);
+    position: fixed;
 
-    border-radius: 16px;
+    top: 0;
+    left: -290px;
 
-    padding: 16px;
+    width: 280px;
+    height: 100vh;
 
-    margin-bottom: 15px;
+    background: var(--surface);
+
+    z-index: 2000;
+
+    box-shadow:
+        4px 0 15px rgba(0, 0, 0, 0.15);
+
+    transition:
+        left 0.25s ease;
+
+    overflow-y: auto;
+}
+
+
+.side-menu.open {
+    left: 0;
+}
+
+
+.side-menu-header {
+
+    height: 64px;
+
+    background: var(--primary);
+
+    color: #ffffff;
 
     display: flex;
 
     align-items: center;
-
     justify-content: space-between;
 
-    box-shadow: var(--shadow);
-
+    padding: 0 18px;
 }
 
 
-.small-label {
+.side-menu-title {
 
-    color: var(--muted);
-
-    font-size: 12px;
-
+    font-size: 19px;
+    font-weight: 700;
 }
 
 
-.date-card h2 {
+.close-menu {
 
-    font-size: 18px;
+    border: none;
 
-    margin-top: 3px;
+    background: transparent;
+    color: #ffffff;
 
+    font-size: 30px;
+
+    cursor: pointer;
 }
 
 
-.date-icon {
+.side-nav {
 
-    width: 45px;
+    padding: 10px;
+}
 
-    height: 45px;
 
-    min-width: 45px;
+.nav-item {
 
-    border-radius: 12px;
-
-    background: #f4e9eb;
-
-    color: var(--primary);
+    width: 100%;
 
     display: flex;
-
     align-items: center;
 
-    justify-content: center;
+    gap: 13px;
 
-    font-size: 20px;
-
-}
-
-
-/* =========================================================
-   BALANCE CARD
-========================================================= */
-
-.balance-card {
-
-    background:
-        linear-gradient(
-            135deg,
-            var(--primary),
-            var(--primary-light)
-        );
-
-    color: white;
-
-    border-radius: 20px;
-
-    padding: 20px;
-
-    box-shadow: var(--shadow);
-
-}
-
-
-.balance-header {
-
-    display: flex;
-
-    justify-content: space-between;
-
-    align-items: center;
-
-    font-size: 14px;
-
-}
-
-
-.eye-btn {
+    border: none;
+    border-radius: 9px;
 
     background: transparent;
 
-    color: white;
+    padding: 13px 14px;
 
-    font-size: 17px;
-
-    padding: 5px;
-
-}
-
-
-.balance-value {
-
-    font-size: 32px;
-
-    font-weight: 700;
-
-    margin:
-        10px 0 18px;
-
-    word-break: break-word;
-
-}
-
-
-.balance-row {
-
-    display: grid;
-
-    grid-template-columns:
-        repeat(2, 1fr);
-
-    gap: 10px;
-
-}
-
-
-.balance-row div {
-
-    background:
-        rgba(255, 255, 255, 0.12);
-
-    border-radius: 12px;
-
-    padding: 10px;
-
-}
-
-
-.balance-row span {
-
-    display: block;
-
-    font-size: 11px;
-
-    opacity: 0.85;
-
-}
-
-
-.balance-row strong {
-
-    display: block;
-
-    margin-top: 4px;
+    margin-bottom: 4px;
 
     font-size: 15px;
 
-    word-break: break-word;
+    color: var(--text);
 
+    text-align: left;
+
+    cursor: pointer;
+}
+
+
+.nav-item:hover {
+
+    background:
+        rgba(91, 11, 24, 0.08);
+}
+
+
+.nav-item.active {
+
+    background: var(--primary);
+    color: #ffffff;
+    font-weight: 600;
+}
+
+
+.menu-overlay {
+
+    position: fixed;
+
+    inset: 0;
+
+    background:
+        rgba(0, 0, 0, 0.45);
+
+    z-index: 1500;
+
+    display: none;
+}
+
+
+.menu-overlay.show {
+    display: block;
 }
 
 
 /* =========================================================
-   SECTION
+   MAIN
+========================================================= */
+
+.main-container {
+
+    width: 100%;
+
+    max-width: 1100px;
+
+    margin: 0 auto;
+
+    padding: 20px 16px 50px;
+}
+
+
+/* =========================================================
+   PAGE
+========================================================= */
+
+.page {
+    display: none;
+}
+
+.page.active-page {
+    display: block;
+}
+
+
+.page-heading {
+
+    margin-bottom: 20px;
+}
+
+
+.page-heading h1 {
+
+    color: var(--primary);
+
+    font-size: 25px;
+
+    margin-bottom: 4px;
+}
+
+
+.page-heading p {
+
+    color: var(--muted);
+
+    font-size: 13px;
+}
+
+
+/* =========================================================
+   SECTION TITLE
 ========================================================= */
 
 .section-title {
 
     font-size: 17px;
 
-    margin:
-        20px 0 10px;
-
-}
-
-
-.section-heading {
-
-    display: flex;
-
-    align-items: center;
-
-    justify-content: space-between;
-
-    gap: 10px;
-
-}
-
-
-.section-heading .section-title {
-
-    margin-bottom: 10px;
-
-}
-
-
-.section-heading button {
-
-    background: transparent;
+    font-weight: 700;
 
     color: var(--primary);
 
-    font-size: 12px;
+    margin:
 
+        25px
+        0
+        12px;
 }
 
 
@@ -575,290 +355,187 @@ a {
     display: grid;
 
     grid-template-columns:
-        repeat(2, 1fr);
+        repeat(3, 1fr);
 
     gap: 12px;
-
 }
 
 
 .summary-card {
 
-    background: var(--white);
+    background: var(--surface);
 
-    border-radius: 16px;
+    border-radius: var(--radius);
 
-    padding: 14px;
-
-    display: flex;
-
-    align-items: center;
-
-    gap: 10px;
+    padding: 17px;
 
     box-shadow: var(--shadow);
 
-    transition:
-        transform 0.2s ease,
-        box-shadow 0.2s ease;
+    border: 1px solid var(--border);
 
-}
-
-
-.summary-card:hover {
-
-    transform: translateY(-2px);
-
-    box-shadow: var(--shadow-hover);
-
+    min-height: 125px;
 }
 
 
 .summary-icon {
 
-    width: 40px;
+    font-size: 23px;
 
-    height: 40px;
-
-    min-width: 40px;
-
-    border-radius: 11px;
-
-    display: flex;
-
-    align-items: center;
-
-    justify-content: center;
-
-    font-size: 17px;
-
+    margin-bottom: 8px;
 }
 
 
-.summary-card span {
-
-    display: block;
+.summary-label {
 
     color: var(--muted);
 
-    font-size: 11px;
+    font-size: 13px;
 
+    margin-bottom: 5px;
 }
 
 
-.summary-card strong {
+.summary-value {
 
-    display: block;
+    font-size: 22px;
 
-    margin-top: 4px;
-
-    font-size: 16px;
-
-    word-break: break-word;
-
+    font-weight: 800;
 }
 
 
-.income-card .summary-icon {
+.income-card {
 
-    background: #e8f5ed;
+    border-left:
+        4px solid var(--income);
+}
 
+
+.income-card .summary-value {
     color: var(--income);
-
 }
 
 
-.expense-card .summary-icon {
+.expense-card {
 
-    background: #fdeaea;
+    border-left:
+        4px solid var(--expense);
+}
 
+
+.expense-card .summary-value {
     color: var(--expense);
-
 }
 
 
-.saving-card .summary-icon {
+.balance-card {
 
-    background: #e8f0fc;
-
-    color: var(--saving);
-
+    border-left:
+        4px solid var(--primary);
 }
 
 
-.budget-card .summary-icon {
-
-    background: #f3e8f8;
-
-    color: var(--budget);
-
+.balance-card .summary-value {
+    color: var(--primary);
 }
 
 
 /* =========================================================
-   MONTHLY BUDGET - INDEX CARD
+   BUDGET OVERVIEW
 ========================================================= */
 
-.budget-card {
+.budget-overview-card {
 
-    background: var(--white);
+    background: var(--surface);
 
-    border-radius: 18px;
+    border: 1px solid var(--border);
 
-    padding: 17px;
+    border-radius: var(--radius);
 
-    margin-top: 20px;
+    padding: 18px;
 
     box-shadow: var(--shadow);
-
 }
 
 
-.card-heading {
-
-    display: flex;
-
-    justify-content: space-between;
-
-    align-items: center;
-
-    gap: 10px;
-
-}
-
-
-.card-heading h3 {
-
-    font-size: 18px;
-
-    margin-top: 2px;
-
-}
-
-
-.card-heading > i {
-
-    font-size: 24px;
-
-    color: var(--budget);
-
-}
-
-
-.budget-numbers {
+.budget-row {
 
     display: grid;
 
     grid-template-columns:
         repeat(3, 1fr);
 
-    gap: 8px;
+    gap: 15px;
 
-    margin:
-        18px 0;
-
+    margin-bottom: 18px;
 }
 
 
-.budget-numbers div {
+.budget-row > div {
 
-    background: #f8f8f8;
+    display: flex;
 
-    padding: 10px;
+    flex-direction: column;
 
-    border-radius: 10px;
-
+    gap: 5px;
 }
 
 
-.budget-numbers span {
+.small-label {
 
-    display: block;
+    font-size: 12px;
 
     color: var(--muted);
-
-    font-size: 11px;
-
 }
 
 
-.budget-numbers strong {
+.budget-row strong {
 
-    display: block;
+    font-size: 18px;
 
-    margin-top: 4px;
-
-    font-size: 14px;
-
-    word-break: break-word;
-
+    color: var(--primary);
 }
 
 
 .progress-container {
+    width: 100%;
+}
+
+
+.progress-track {
 
     width: 100%;
 
-    height: 9px;
+    height: 11px;
 
     background: #eeeeee;
 
     border-radius: 20px;
 
     overflow: hidden;
-
 }
 
 
 .progress-bar {
 
-    width: 0%;
-
     height: 100%;
 
-    background: var(--budget);
+    background: var(--primary);
 
     border-radius: 20px;
 
     transition: width 0.3s ease;
-
 }
 
 
-.budget-footer {
+.progress-text {
 
-    display: flex;
+    text-align: right;
 
-    justify-content: space-between;
-
-    align-items: center;
-
-    gap: 10px;
-
-    margin-top: 10px;
-
-    font-size: 11px;
+    font-size: 12px;
 
     color: var(--muted);
 
-}
-
-
-.budget-footer button {
-
-    background: transparent;
-
-    color: var(--primary);
-
-    font-weight: 600;
-
-}
-
-
-.budget-negative {
-
-    color: var(--expense) !important;
-
+    margin-top: 6px;
 }
 
 
@@ -871,766 +548,448 @@ a {
     display: grid;
 
     grid-template-columns:
-        repeat(3, 1fr);
+        repeat(4, 1fr);
 
     gap: 10px;
-
 }
 
 
 .quick-btn {
 
-    min-height: 85px;
+    border: 1px solid var(--border);
 
-    border-radius: 16px;
+    background: var(--surface);
 
-    background: var(--white);
+    border-radius: var(--radius);
 
-    box-shadow: var(--shadow);
+    padding: 16px 10px;
 
     display: flex;
 
-    flex-direction: column;
-
     align-items: center;
-
     justify-content: center;
 
     gap: 8px;
 
-    font-size: 13px;
+    color: var(--primary);
+
+    font-size: 14px;
 
     font-weight: 600;
 
-    transition:
-        transform 0.15s ease,
-        box-shadow 0.15s ease;
+    cursor: pointer;
 
+    box-shadow: var(--shadow);
 }
 
 
 .quick-btn:hover {
 
-    transform: translateY(-2px);
-
-    box-shadow: var(--shadow-hover);
-
-}
-
-
-.quick-btn:active {
-
-    transform: scale(0.97);
-
-}
-
-
-.quick-btn i {
-
-    font-size: 23px;
-
-}
-
-
-.income-btn {
-
-    color: var(--income);
-
-}
-
-
-.expense-btn {
-
-    color: var(--expense);
-
-}
-
-
-.budget-btn {
-
-    color: var(--budget);
-
+    background:
+        rgba(91, 11, 24, 0.06);
 }
 
 
 /* =========================================================
-   ACCOUNT SUMMARY - INDEX
+   CATEGORY COMPARISON
 ========================================================= */
 
-.account-grid {
+.comparison-list {
+
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 10px;
+}
+
+
+.comparison-card {
+
+    background: var(--surface);
+
+    border: 1px solid var(--border);
+
+    border-radius: var(--radius);
+
+    padding: 15px;
+
+    box-shadow: var(--shadow);
+}
+
+
+.comparison-header {
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: space-between;
+
+    gap: 10px;
+
+    margin-bottom: 10px;
+}
+
+
+.category-name {
+
+    font-weight: 700;
+
+    font-size: 14px;
+}
+
+
+.category-status {
+
+    font-size: 12px;
+
+    font-weight: 700;
+}
+
+
+.comparison-numbers {
 
     display: grid;
 
     grid-template-columns:
-        repeat(2, 1fr);
+        repeat(3, 1fr);
 
     gap: 10px;
 
+    margin-bottom: 10px;
 }
 
 
-.account-card {
+.comparison-number {
 
-    background: var(--white);
+    display: flex;
 
-    padding: 14px;
+    flex-direction: column;
 
-    border-radius: 15px;
-
-    box-shadow: var(--shadow);
-
+    gap: 3px;
 }
 
 
-.account-card .account-name {
+.comparison-number span {
 
-    font-size: 13px;
+    font-size: 11px;
 
     color: var(--muted);
-
 }
 
 
-.account-card .account-balance {
+.comparison-number strong {
 
-    font-size: 18px;
-
-    font-weight: 700;
-
-    margin-top: 5px;
-
+    font-size: 14px;
 }
 
 
-.empty-card {
+.category-progress {
 
-    background: var(--white);
+    width: 100%;
 
-    border-radius: 16px;
+    height: 8px;
+
+    background: #eeeeee;
+
+    border-radius: 20px;
+
+    overflow: hidden;
+}
+
+
+.category-progress-bar {
+
+    height: 100%;
+
+    background: var(--primary);
+
+    border-radius: 20px;
+}
+
+
+/* =========================================================
+   EMPTY STATE
+========================================================= */
+
+.empty-state {
+
+    background: var(--surface);
+
+    border: 1px dashed var(--border);
+
+    border-radius: var(--radius);
 
     padding: 25px;
 
     text-align: center;
 
-    box-shadow: var(--shadow);
-
-    grid-column: 1 / -1;
-
-}
-
-
-.empty-card i {
-
-    font-size: 30px;
-
-    color: #aaaaaa;
-
-    margin-bottom: 10px;
-
-}
-
-
-.empty-card p {
-
     color: var(--muted);
 
-    font-size: 13px;
-
-    margin-bottom: 12px;
-
-}
-
-
-.empty-card button {
-
-    background: var(--primary);
-
-    color: white;
-
-    padding: 9px 15px;
-
-    border-radius: 8px;
-
+    font-size: 14px;
 }
 
 
 /* =========================================================
-   RECENT TRANSACTIONS - INDEX
+   COMING SOON / MODULE CARD
 ========================================================= */
 
-.transactions-list {
+.coming-card {
 
-    display: flex;
+    background: var(--surface);
 
-    flex-direction: column;
+    border: 1px solid var(--border);
 
-    gap: 8px;
-
-}
-
-
-.transaction-item {
-
-    background: var(--white);
-
-    border-radius: 14px;
-
-    padding: 12px;
-
-    display: flex;
-
-    align-items: center;
-
-    gap: 10px;
+    border-radius: var(--radius);
 
     box-shadow: var(--shadow);
 
+    padding: 35px 20px;
+
+    text-align: center;
 }
 
 
-.transaction-icon {
+.coming-icon {
 
-    width: 40px;
+    font-size: 45px;
 
-    height: 40px;
-
-    min-width: 40px;
-
-    border-radius: 10px;
-
-    display: flex;
-
-    align-items: center;
-
-    justify-content: center;
-
+    margin-bottom: 12px;
 }
 
 
-.transaction-details {
+.coming-card h2 {
 
-    flex: 1;
+    color: var(--primary);
 
-    min-width: 0;
+    font-size: 20px;
 
+    margin-bottom: 8px;
 }
 
 
-.transaction-details strong {
-
-    display: block;
-
-    font-size: 13px;
-
-    white-space: nowrap;
-
-    overflow: hidden;
-
-    text-overflow: ellipsis;
-
-}
-
-
-.transaction-details span {
-
-    display: block;
-
-    font-size: 10px;
+.coming-card p {
 
     color: var(--muted);
 
-    margin-top: 3px;
+    font-size: 14px;
 
+    line-height: 1.6;
+
+    max-width: 550px;
+
+    margin: auto;
 }
 
 
-.transaction-amount {
+/* =========================================================
+   ACCOUNTS
+========================================================= */
+
+.accounts-list {
+
+    display: grid;
+
+    grid-template-columns:
+        repeat(3, 1fr);
+
+    gap: 12px;
+
+    margin-bottom: 15px;
+}
+
+
+.account-card {
+
+    background: var(--surface);
+
+    border: 1px solid var(--border);
+
+    border-radius: var(--radius);
+
+    padding: 18px;
+
+    box-shadow: var(--shadow);
+}
+
+
+.account-icon {
+
+    font-size: 25px;
+
+    margin-bottom: 10px;
+}
+
+
+.account-name {
+
+    font-weight: 700;
+
+    margin-bottom: 7px;
+}
+
+
+.account-balance-label {
+
+    font-size: 11px;
+
+    color: var(--muted);
+
+    margin-bottom: 3px;
+}
+
+
+.account-balance {
+
+    font-size: 19px;
+
+    font-weight: 800;
+
+    color: var(--primary);
+}
+
+
+/* =========================================================
+   BUTTONS
+========================================================= */
+
+.primary-btn {
+
+    border: none;
+
+    background: var(--primary);
+
+    color: #ffffff;
+
+    border-radius: 9px;
+
+    padding: 12px 18px;
 
     font-size: 14px;
 
     font-weight: 700;
 
-    white-space: nowrap;
-
+    cursor: pointer;
 }
 
 
-/* =========================================================
-   REMINDER
-========================================================= */
-
-.reminder-card {
-
-    margin-top: 20px;
-
-    background: #fff7e6;
-
-    border: 1px solid #f4dca7;
-
-    border-radius: 16px;
-
-    padding: 14px;
-
-    display: flex;
-
-    align-items: center;
-
-    gap: 10px;
-
+.primary-btn:hover {
+    background: var(--primary-dark);
 }
 
 
-.reminder-icon {
+.secondary-btn {
 
-    width: 42px;
+    border: 1px solid var(--border);
 
-    height: 42px;
+    background: #ffffff;
 
-    min-width: 42px;
+    color: var(--text);
 
-    border-radius: 12px;
+    border-radius: 9px;
 
-    background: #ffe5a8;
+    padding: 11px 17px;
 
-    color: #a66a00;
-
-    display: flex;
-
-    align-items: center;
-
-    justify-content: center;
-
-}
-
-
-.reminder-content {
-
-    flex: 1;
-
-    min-width: 0;
-
-}
-
-
-.reminder-content strong {
-
-    display: block;
-
-    font-size: 13px;
-
-}
-
-
-.reminder-content p {
-
-    color: #777;
-
-    font-size: 11px;
-
-    margin-top: 3px;
-
-}
-
-
-.reminder-card button {
-
-    background: var(--primary);
-
-    color: white;
-
-    border-radius: 8px;
-
-    padding: 8px 12px;
-
-    font-size: 11px;
-
-}
-
-
-/* =========================================================
-   BOTTOM NAVIGATION
-========================================================= */
-
-.bottom-nav {
-
-    position: fixed;
-
-    bottom: 0;
-
-    left: 0;
-
-    right: 0;
-
-    height: 70px;
-
-    background:
-        rgba(255, 255, 255, 0.97);
-
-    border-top:
-        1px solid var(--border);
-
-    display: grid;
-
-    grid-template-columns:
-        repeat(5, 1fr);
-
-    align-items: center;
-
-    z-index: 3000;
-
-    box-shadow:
-        0 -4px 15px
-        rgba(0, 0, 0, 0.06);
-
-    backdrop-filter: blur(10px);
-
-}
-
-
-.nav-item {
-
-    background: transparent;
-
-    color: #777777;
-
-    display: flex;
-
-    flex-direction: column;
-
-    align-items: center;
-
-    justify-content: center;
-
-    gap: 4px;
-
-    font-size: 10px;
-
-    transition: 0.2s ease;
-
-}
-
-
-.nav-item i {
-
-    font-size: 18px;
-
-}
-
-
-.nav-item span {
-
-    font-size: 10px;
+    font-size: 14px;
 
     font-weight: 600;
 
-}
-
-
-.nav-item.active {
-
-    color: var(--primary);
-
-}
-
-
-.nav-item.active i {
-
-    transform:
-        translateY(-1px);
-
-}
-
-
-.nav-add {
-
-    width: 52px;
-
-    height: 52px;
-
-    border-radius: 50%;
-
-    background: var(--primary);
-
-    color: white;
-
-    margin: auto;
-
-    font-size: 22px;
-
-    box-shadow:
-        0 5px 15px
-        rgba(91, 11, 24, 0.35);
-
+    cursor: pointer;
 }
 
 
 /* =========================================================
-   ADD MENU
+   MODAL
 ========================================================= */
 
-.add-menu-overlay {
+.modal-overlay {
 
     position: fixed;
 
     inset: 0;
 
     background:
-        rgba(0, 0, 0, 0.45);
+        rgba(0, 0, 0, 0.5);
 
     display: none;
 
-    align-items: flex-end;
-
-    justify-content: center;
-
-    z-index: 5000;
-
-}
-
-
-.add-menu-overlay.show {
-
-    display: flex;
-
-}
-
-
-.add-menu {
-
-    background: white;
-
-    width: 100%;
-
-    max-width: 500px;
-
-    border-radius:
-        22px 22px 0 0;
-
-    padding: 20px;
-
-    animation:
-        slideUp 0.25s ease;
-
-}
-
-
-@keyframes slideUp {
-
-    from {
-
-        transform:
-            translateY(100%);
-
-    }
-
-    to {
-
-        transform:
-            translateY(0);
-
-    }
-
-}
-
-
-.add-menu-header {
-
-    display: flex;
-
-    justify-content: space-between;
-
     align-items: center;
-
-    margin-bottom: 15px;
-
-}
-
-
-.add-menu-header h3 {
-
-    font-size: 18px;
-
-}
-
-
-.add-menu-header button {
-
-    background: #f3f3f3;
-
-    width: 35px;
-
-    height: 35px;
-
-    border-radius: 50%;
-
-}
-
-
-.add-menu > button {
-
-    width: 100%;
+    justify-content: center;
 
     padding: 15px;
 
-    border-radius: 12px;
-
-    margin-top: 8px;
-
-    font-size: 15px;
-
-    font-weight: 600;
-
+    z-index: 3000;
 }
 
 
-.menu-income {
-
-    background: #eaf6ee;
-
-    color: var(--income);
-
-}
-
-
-.menu-expense {
-
-    background: #fdeaea;
-
-    color: var(--expense);
-
-}
-
-
-/* =========================================================
-   COMMON PAGE INTRO
-========================================================= */
-
-.page-intro {
-
-    background: white;
-
-    border-radius: 18px;
-
-    padding: 16px;
-
+.modal-overlay.show {
     display: flex;
-
-    align-items: center;
-
-    gap: 12px;
-
-    box-shadow: var(--shadow);
-
-    margin-bottom: 15px;
-
 }
 
 
-.page-intro h2 {
+.modal {
 
-    font-size: 19px;
+    width: 100%;
 
-}
+    max-width: 450px;
 
-
-.page-intro p {
-
-    color: var(--muted);
-
-    font-size: 12px;
-
-    margin-top: 3px;
-
-}
-
-
-.page-intro-icon {
-
-    width: 50px;
-
-    height: 50px;
-
-    min-width: 50px;
+    background: var(--surface);
 
     border-radius: 14px;
 
+    box-shadow:
+        0 10px 35px rgba(0, 0, 0, 0.25);
+
+    overflow: hidden;
+}
+
+
+.modal-header {
+
+    background: var(--primary);
+
+    color: #ffffff;
+
+    padding: 15px 18px;
+
     display: flex;
 
     align-items: center;
 
-    justify-content: center;
-
-    font-size: 22px;
-
+    justify-content: space-between;
 }
 
 
-.income-intro {
+.modal-header h2 {
 
-    background: #e8f5ed;
-
-    color: var(--income);
-
+    font-size: 18px;
 }
 
 
-.expense-intro {
+.modal-close {
 
-    background: #fdeaea;
+    border: none;
 
-    color: var(--expense);
+    background: transparent;
 
+    color: #ffffff;
+
+    font-size: 28px;
+
+    cursor: pointer;
 }
 
 
-.account-intro {
+#accountForm {
 
-    background: #f1e9fb;
-
-    color: #6a3d9a;
-
-}
-
-
-.transaction-intro {
-
-    background: #f2eafa;
-
-    color: var(--primary);
-
-}
-
-
-.budget-intro {
-
-    background: #f1e9fb;
-
-    color: var(--primary);
-
-}
-
-
-/* =========================================================
-   COMMON FORM CARD
-========================================================= */
-
-.form-card {
-
-    background: white;
-
-    border-radius: 18px;
-
-    padding: 18px;
-
-    box-shadow: var(--shadow);
-
+    padding: 20px;
 }
 
 
 .form-group {
 
-    margin-bottom: 17px;
-
+    margin-bottom: 16px;
 }
 
 
@@ -1642,3106 +1001,32 @@ a {
 
     font-weight: 600;
 
-    margin-bottom: 7px;
-
-}
-
-
-.form-group label i {
-
-    color: var(--primary);
-
-    margin-right: 5px;
-
-}
-
-
-.form-group label span {
-
-    color: var(--expense);
-
-}
-
-
-.form-group input,
-.form-group select,
-.form-group textarea {
-
-    width: 100%;
-
-    border:
-        1px solid var(--border);
-
-    border-radius: 10px;
-
-    padding: 12px;
-
-    font-family: inherit;
-
-    font-size: 14px;
-
-    background: white;
-
-    color: var(--text);
-
-    outline: none;
-
-    transition:
-        border-color 0.2s ease,
-        box-shadow 0.2s ease;
-
-}
-
-
-.form-group textarea {
-
-    min-height: 90px;
-
-    resize: vertical;
-
-}
-
-
-.form-group input:focus,
-.form-group select:focus,
-.form-group textarea:focus {
-
-    border-color: var(--primary);
-
-    box-shadow:
-        0 0 0 3px
-        rgba(91, 11, 24, 0.08);
-
-}
-
-
-.form-group small {
-
-    display: block;
-
-    color: var(--muted);
-
-    font-size: 10px;
-
-    margin-top: 5px;
-
-}
-
-
-/* =========================================================
-   AMOUNT INPUT
-========================================================= */
-
-.amount-input {
-
-    display: flex;
-
-    align-items: center;
-
-    border:
-        1px solid var(--border);
-
-    border-radius: 10px;
-
-    overflow: hidden;
-
-}
-
-
-.amount-input:focus-within {
-
-    border-color: var(--primary);
-
-}
-
-
-.amount-input span {
-
-    padding-left: 13px;
-
-    font-weight: 700;
-
-    color: var(--income);
-
-}
-
-
-.amount-input input {
-
-    border: none;
-
-    border-radius: 0;
-
-    box-shadow: none !important;
-
-}
-
-
-/* =========================================================
-   INCOME PAGE
-========================================================= */
-
-.income-summary {
-
-    display: grid;
-
-    grid-template-columns:
-        repeat(3, 1fr);
-
-    gap: 8px;
-
-    margin-bottom: 15px;
-
-}
-
-
-.income-summary > div {
-
-    background: white;
-
-    border-radius: 14px;
-
-    padding: 12px;
-
-    box-shadow: var(--shadow);
-
-}
-
-
-.income-summary span {
-
-    display: block;
-
-    color: var(--muted);
-
-    font-size: 10px;
-
-}
-
-
-.income-summary strong {
-
-    display: block;
-
-    color: var(--income);
-
-    font-size: 14px;
-
-    margin-top: 5px;
-
-}
-
-
-.save-income-btn {
-
-    width: 100%;
-
-    background: var(--income);
-
-    color: white;
-
-    padding: 14px;
-
-    border-radius: 11px;
-
-    font-size: 15px;
-
-    font-weight: 700;
-
-    margin-top: 5px;
-
-}
-
-
-.reset-btn {
-
-    width: 100%;
-
-    background: #f3f3f3;
-
-    color: #555;
-
-    padding: 12px;
-
-    border-radius: 11px;
-
-    font-size: 13px;
-
-    margin-top: 8px;
-
-}
-
-
-.last-saved {
-
-    background: #eaf7ee;
-
-    border:
-        1px solid #b9e2c6;
-
-    border-radius: 14px;
-
-    margin-top: 15px;
-
-    padding: 13px;
-
-    display: flex;
-
-    align-items: center;
-
-    gap: 10px;
-
-    color: var(--income);
-
-}
-
-
-.last-saved > i {
-
-    font-size: 25px;
-
-}
-
-
-.last-saved strong {
-
-    display: block;
-
-    font-size: 13px;
-
-}
-
-
-.last-saved p {
-
-    color: #666;
-
-    font-size: 11px;
-
-    margin-top: 3px;
-
-}
-
-
-.income-add {
-
-    background: var(--income);
-
-}
-
-
-/* =========================================================
-   EXPENSE PAGE
-========================================================= */
-
-.expense-summary {
-
-    display: grid;
-
-    grid-template-columns:
-        repeat(3, 1fr);
-
-    gap: 8px;
-
-    margin-bottom: 15px;
-
-}
-
-
-.expense-summary > div {
-
-    background: white;
-
-    border-radius: 14px;
-
-    padding: 12px;
-
-    box-shadow: var(--shadow);
-
-}
-
-
-.expense-summary span {
-
-    display: block;
-
-    color: var(--muted);
-
-    font-size: 10px;
-
-}
-
-
-.expense-summary strong {
-
-    display: block;
-
-    color: var(--expense);
-
-    font-size: 14px;
-
-    margin-top: 5px;
-
-}
-
-
-.expense-rupee {
-
-    color: var(--expense) !important;
-
-}
-
-
-.save-expense-btn {
-
-    width: 100%;
-
-    background: var(--expense);
-
-    color: white;
-
-    padding: 14px;
-
-    border-radius: 11px;
-
-    font-size: 15px;
-
-    font-weight: 700;
-
-    margin-top: 5px;
-
-}
-
-
-.expense-last-saved {
-
-    background: #fff0f0;
-
-    border-color: #efb8b8;
-
-    color: var(--expense);
-
-}
-
-
-.expense-add {
-
-    background: var(--expense);
-
-}
-
-
-/* =========================================================
-   EXPENSE CATEGORY
-========================================================= */
-
-.expense-category-card {
-
-    cursor: pointer;
-
-    transition:
-        transform 0.15s ease,
-        box-shadow 0.15s ease;
-
-}
-
-
-.expense-category-card:hover {
-
-    transform:
-        translateY(-2px);
-
-    box-shadow:
-        0 5px 15px
-        rgba(0, 0, 0, 0.12);
-
-}
-
-
-.expense-category-card:active {
-
-    transform:
-        scale(0.98);
-
-}
-
-
-.expense-category-count {
-
-    margin-top: 3px;
-
-    font-size: 11px;
-
-    color: #777;
-
-}
-
-
-/* =========================================================
-   ACCOUNTS PAGE
-========================================================= */
-
-.account-total-card {
-
-    background: white;
-
-    border-radius: 18px;
-
-    padding: 18px;
-
-    text-align: center;
-
-    box-shadow: var(--shadow);
-
-    margin-bottom: 15px;
-
-}
-
-
-.account-total-card span {
-
-    display: block;
-
-    color: var(--muted);
-
-    font-size: 12px;
-
-}
-
-
-.account-total-card strong {
-
-    display: block;
-
-    color: var(--primary);
-
-    font-size: 27px;
-
-    margin-top: 7px;
-
-    word-break: break-word;
-
-}
-
-
-.add-account-btn {
-
-    width: 100%;
-
-    background: var(--primary);
-
-    color: white;
-
-    padding: 14px;
-
-    border-radius: 12px;
-
-    font-size: 14px;
-
-    font-weight: 700;
-
-    margin-bottom: 15px;
-
-}
-
-
-.add-account-btn i {
-
-    margin-right: 7px;
-
-}
-
-
-.account-form-card {
-
-    margin-bottom: 18px;
-
-}
-
-
-.form-section-title {
-
-    display: flex;
-
-    justify-content: space-between;
-
-    align-items: center;
-
-    margin-bottom: 18px;
-
-}
-
-
-.form-section-title h3 {
-
-    font-size: 16px;
-
-}
-
-
-.close-form-btn {
-
-    background: #f5f5f5;
-
-    width: 34px;
-
-    height: 34px;
-
-    border-radius: 50%;
-
-    color: #555;
-
-}
-
-
-.save-account-btn {
-
-    width: 100%;
-
-    background: var(--primary);
-
-    color: white;
-
-    padding: 14px;
-
-    border-radius: 11px;
-
-    font-size: 14px;
-
-    font-weight: 700;
-
-}
-
-
-.accounts-section {
-
-    margin-top: 18px;
-
-}
-
-
-.accounts-list {
-
-    display: flex;
-
-    flex-direction: column;
-
-    gap: 12px;
-
-}
-
-
-.account-card-top {
-
-    display: flex;
-
-    align-items: center;
-
-    gap: 11px;
-
-}
-
-
-.account-icon {
-
-    width: 45px;
-
-    height: 45px;
-
-    min-width: 45px;
-
-    border-radius: 13px;
-
-    background: #f4edf8;
-
-    color: var(--primary);
-
-    display: flex;
-
-    align-items: center;
-
-    justify-content: center;
-
-    font-size: 19px;
-
-}
-
-
-.account-info {
-
-    flex: 1;
-
-    min-width: 0;
-
-}
-
-
-.account-info h3 {
-
-    font-size: 14px;
-
-    margin-bottom: 3px;
-
-}
-
-
-.account-info span {
-
-    font-size: 10px;
-
-    color: var(--muted);
-
-}
-
-
-.account-actions {
-
-    display: flex;
-
-    gap: 5px;
-
-}
-
-
-.account-actions button {
-
-    width: 32px;
-
-    height: 32px;
-
-    border-radius: 8px;
-
-    background: #f5f5f5;
-
-    color: #555;
-
-}
-
-
-.account-actions button:hover {
-
-    background: #eeeeee;
-
-}
-
-
-.account-balance {
-
-    margin-top: 14px;
-
-    padding-top: 12px;
-
-    border-top:
-        1px solid #eeeeee;
-
-}
-
-
-.account-balance span {
-
-    display: block;
-
-    color: var(--muted);
-
-    font-size: 10px;
-
-}
-
-
-.account-balance strong {
-
-    display: block;
-
-    font-size: 21px;
-
-    margin-top: 3px;
-
-}
-
-
-.account-balance strong.positive {
-
-    color: var(--income);
-
-}
-
-
-.account-balance strong.negative {
-
-    color: var(--expense);
-
-}
-
-
-.account-card-bottom {
-
-    display: flex;
-
-    justify-content: space-between;
-
-    gap: 10px;
-
-    margin-top: 10px;
-
-    font-size: 9px;
-
-    color: var(--muted);
-
-}
-
-
-.account-card-bottom span:last-child {
-
-    text-align: right;
-
-}
-
-
-.empty-accounts {
-
-    background: white;
-
-    border-radius: 17px;
-
-    padding: 35px 20px;
-
-    text-align: center;
-
-    box-shadow: var(--shadow);
-
-}
-
-
-.empty-accounts i {
-
-    font-size: 35px;
-
-    color: #bbbbbb;
-
-    margin-bottom: 12px;
-
-}
-
-
-.empty-accounts h3 {
-
-    font-size: 14px;
-
-}
-
-
-.empty-accounts p {
-
-    color: var(--muted);
-
-    font-size: 11px;
-
-    margin-top: 5px;
-
-}
-
-
-.account-add {
-
-    background: var(--primary);
-
-}
-
-
-/* =========================================================
-   TRANSACTIONS PAGE
-========================================================= */
-
-.transaction-summary {
-
-    display: grid;
-
-    grid-template-columns:
-        repeat(3, 1fr);
-
-    gap: 8px;
-
-    margin-bottom: 15px;
-
-}
-
-
-.transaction-summary-card {
-
-    background: white;
-
-    border-radius: 14px;
-
-    padding: 12px;
-
-    box-shadow: var(--shadow);
-
-}
-
-
-.transaction-summary-card span {
-
-    display: block;
-
-    font-size: 10px;
-
-    color: var(--muted);
-
-}
-
-
-.transaction-summary-card strong {
-
-    display: block;
-
-    font-size: 14px;
-
-    margin-top: 5px;
-
-}
-
-
-.income-summary strong {
-
-    color: var(--income);
-
-}
-
-
-.expense-summary-card strong {
-
-    color: var(--expense);
-
-}
-
-
-.balance-summary strong {
-
-    color: var(--primary);
-
-}
-
-
-.transaction-filter-card {
-
-    background: white;
-
-    border-radius: 17px;
-
-    padding: 15px;
-
-    box-shadow: var(--shadow);
-
-    margin-bottom: 18px;
-
-}
-
-
-.transaction-filter-actions {
-
-    display: flex;
-
-    gap: 8px;
-
-    margin-top: 5px;
-
-}
-
-
-.apply-filter-btn,
-.clear-filter-btn {
-
-    flex: 1;
-
-    padding: 12px;
-
-    border-radius: 10px;
-
-    font-size: 12px;
-
-    font-weight: 700;
-
-}
-
-
-.apply-filter-btn {
-
-    background: var(--primary);
-
-    color: white;
-
-}
-
-
-.clear-filter-btn {
-
-    background: #f2f2f2;
-
-    color: #555;
-
-}
-
-
-.transaction-result-header {
-
-    display: flex;
-
-    justify-content: space-between;
-
-    align-items: center;
-
-    margin-bottom: 10px;
-
-}
-
-
-.transaction-result-header h3 {
-
-    font-size: 15px;
-
-}
-
-
-.transaction-result-header h3 i {
-
-    color: var(--primary);
-
-    margin-right: 5px;
-
-}
-
-
-.transaction-result-header span {
-
-    color: var(--muted);
-
-    font-size: 10px;
-
-}
-
-
-.transaction-card {
-
-    background: white;
-
-    border-radius: 15px;
-
-    padding: 13px;
-
-    box-shadow: var(--shadow);
-
-}
-
-
-.transaction-card-top {
-
-    display: flex;
-
-    align-items: center;
-
-    gap: 10px;
-
-}
-
-
-.transaction-type-icon {
-
-    width: 42px;
-
-    height: 42px;
-
-    min-width: 42px;
-
-    border-radius: 12px;
-
-    display: flex;
-
-    align-items: center;
-
-    justify-content: center;
-
-}
-
-
-.transaction-type-icon.income {
-
-    background: #e8f7ed;
-
-    color: var(--income);
-
-}
-
-
-.transaction-type-icon.expense {
-
-    background: #fdeaea;
-
-    color: var(--expense);
-
-}
-
-
-.transaction-info {
-
-    flex: 1;
-
-    min-width: 0;
-
-}
-
-
-.transaction-info h4 {
-
-    font-size: 13px;
-
-    margin-bottom: 3px;
-
-}
-
-
-.transaction-info p {
-
-    font-size: 10px;
-
-    color: var(--muted);
-
-    margin: 2px 0;
-
-}
-
-
-.transaction-amount {
-
-    text-align: right;
-
-}
-
-
-.transaction-amount strong {
-
-    display: block;
-
-    font-size: 14px;
-
-}
-
-
-.transaction-amount strong.income {
-
-    color: var(--income);
-
-}
-
-
-.transaction-amount strong.expense {
-
-    color: var(--expense);
-
-}
-
-
-.transaction-date {
-
-    font-size: 9px;
-
-    color: var(--muted);
-
-    margin-top: 4px;
-
-}
-
-
-.transaction-card-bottom {
-
-    border-top:
-        1px solid #eeeeee;
-
-    margin-top: 10px;
-
-    padding-top: 8px;
-
-    display: flex;
-
-    justify-content: space-between;
-
-    gap: 10px;
-
-    font-size: 9px;
-
-    color: var(--muted);
-
-}
-
-
-.transaction-actions {
-
-    display: flex;
-
-    gap: 5px;
-
-}
-
-
-.transaction-actions button {
-
-    width: 30px;
-
-    height: 30px;
-
-    border-radius: 8px;
-
-    background: #f4f4f4;
-
-}
-
-
-.transaction-actions .delete-btn {
-
-    color: var(--expense);
-
-}
-
-
-.quick-add-menu {
-
-    position: fixed;
-
-    right: 18px;
-
-    bottom: 75px;
-
-    z-index: 1001;
-
-}
-
-
-.quick-add-menu button {
-
-    display: block;
-
-    width: 145px;
-
-    background: white;
-
-    padding: 12px;
-
-    margin-top: 7px;
-
-    border-radius: 10px;
-
-    box-shadow: var(--shadow);
-
-    text-align: left;
-
-    font-size: 12px;
-
-}
-
-
-.quick-add-menu button i {
-
-    margin-right: 7px;
-
-}
-
-
-/* =========================================================
-   TRANSACTION GENERIC DESIGN
-========================================================= */
-
-.content-card {
-
-    background: white;
-
-    border:
-        1px solid #eeeeee;
-
-    border-radius: 18px;
-
-    padding: 20px;
-
-    margin-bottom: 22px;
-
-    box-shadow:
-        0 4px 16px
-        rgba(0, 0, 0, 0.05);
-
-}
-
-
-.section-title h2 {
-
-    margin: 0;
-
-    font-size: 19px;
-
-    color: #222;
-
-}
-
-
-.section-title p {
-
-    margin: 5px 0 0;
-
-    color: #777;
-
-    font-size: 13px;
-
-}
-
-
-.form-grid {
-
-    display: grid;
-
-    grid-template-columns:
-        repeat(4, 1fr);
-
-    gap: 13px;
-
-}
-
-
-.form-grid .form-group {
-
-    margin-bottom: 0;
-
-}
-
-
-.filter-actions {
-
-    display: flex;
-
-    gap: 10px;
-
-    margin-top: 16px;
-
-}
-
-
-.btn {
-
-    border: none;
-
-    border-radius: 10px;
-
-    min-height: 42px;
-
-    padding: 9px 16px;
-
-    font-size: 14px;
-
-    font-weight: 600;
-
-    cursor: pointer;
-
-    display: inline-flex;
-
-    align-items: center;
-
-    justify-content: center;
-
-    gap: 7px;
-
-    transition:
-        transform 0.15s ease,
-        opacity 0.15s ease;
-
-}
-
-
-.btn:active {
-
-    transform: scale(0.97);
-
-}
-
-
-.btn-primary {
-
-    background: var(--primary);
-
-    color: white;
-
-}
-
-
-.btn-secondary {
-
-    background: #f1f1f1;
-
-    color: #444;
-
-}
-
-
-.btn-danger {
-
-    background: var(--expense);
-
-    color: white;
-
-}
-
-
-.transaction-list-header {
-
-    display: flex;
-
-    align-items: center;
-
-    gap: 10px;
-
-    margin:
-        4px 0 14px;
-
-}
-
-
-.transaction-list-header > div {
-
-    flex: 1;
-
-}
-
-
-.transaction-list-header h2 {
-
-    margin: 0;
-
-    font-size: 19px;
-
-}
-
-
-.transaction-list-header span {
-
-    display: block;
-
-    margin-top: 3px;
-
-    color: var(--muted);
-
-    font-size: 12px;
-
-}
-
-
-/* =========================================================
-   EMPTY STATES
-========================================================= */
-
-.empty-transactions,
-.empty-state {
-
-    background: white;
-
-    border:
-        1px dashed #d8d8d8;
-
-    border-radius: 18px;
-
-    padding: 38px 20px;
-
-    text-align: center;
-
-    color: #666;
-
-}
-
-
-.empty-transactions i {
-
-    font-size: 35px;
-
-    color: #bbbbbb;
-
-    margin-bottom: 12px;
-
-}
-
-
-.empty-transactions h3 {
-
-    font-size: 14px;
-
-}
-
-
-.empty-transactions p {
-
-    color: var(--muted);
-
-    font-size: 11px;
-
-    margin-top: 5px;
-
-}
-
-
-.empty-icon {
-
-    width: 62px;
-
-    height: 62px;
-
-    margin:
-        0 auto 14px;
-
-    border-radius: 18px;
-
-    display: flex;
-
-    align-items: center;
-
-    justify-content: center;
-
-    background: #f4e8ec;
-
-    color: var(--primary);
-
-    font-size: 25px;
-
-}
-
-
-.empty-state h3 {
-
-    color: #333;
-
-    font-size: 17px;
-
-}
-
-
-.empty-state p {
-
-    margin:
-        7px 0 18px;
-
-    font-size: 13px;
-
-    color: #777;
-
-}
-
-
-.empty-actions {
-
-    display: flex;
-
-    justify-content: center;
-
-    gap: 10px;
-
-    flex-wrap: wrap;
-
-}
-
-
-/* =========================================================
-   MONTHLY BUDGET PAGE
-========================================================= */
-
-.budget-month-card {
-
-    background: white;
-
-    border-radius: 17px;
-
-    padding: 15px;
-
-    box-shadow: var(--shadow);
-
-    margin-bottom: 12px;
-
-}
-
-
-.load-budget-btn {
-
-    width: 100%;
-
-    background: #f3edf7;
-
-    color: var(--primary);
-
-    padding: 11px;
-
-    border-radius: 10px;
-
-    font-weight: 700;
-
-    font-size: 12px;
-
-}
-
-
-.budget-planned-card {
-
-    background: white;
-
-    border-radius: 17px;
-
-    padding: 15px;
-
-    box-shadow: var(--shadow);
-
-    display: flex;
-
-    align-items: center;
-
-    gap: 12px;
-
-    margin-bottom: 12px;
-
-}
-
-
-.budget-card-icon {
-
-    width: 45px;
-
-    height: 45px;
-
-    min-width: 45px;
-
-    border-radius: 13px;
-
-    background: #f3edf7;
-
-    color: var(--primary);
-
-    display: flex;
-
-    align-items: center;
-
-    justify-content: center;
-
-    font-size: 19px;
-
-}
-
-
-.budget-planned-content {
-
-    flex: 1;
-
-    min-width: 0;
-
-}
-
-
-.budget-planned-content > span {
-
-    display: block;
-
-    font-size: 11px;
-
-    color: var(--muted);
-
-    margin-bottom: 5px;
-
-}
-
-
-.planned-money-input {
-
-    display: flex;
-
-    align-items: center;
-
-    gap: 5px;
-
-}
-
-
-.planned-money-input span {
-
-    font-weight: 700;
-
-    color: var(--primary);
-
-}
-
-
-.planned-money-input input {
-
-    border: none;
-
-    outline: none;
-
-    width: 100%;
-
-    font-size: 20px;
-
-    font-weight: 700;
-
-}
-
-
-.budget-summary {
-
-    display: grid;
-
-    grid-template-columns:
-        repeat(2, 1fr);
-
-    gap: 9px;
-
-    margin-bottom: 12px;
-
-}
-
-
-.budget-summary-card {
-
-    background: white;
-
-    border-radius: 15px;
-
-    padding: 13px;
-
-    box-shadow: var(--shadow);
-
-}
-
-
-.budget-summary-card span {
-
-    display: block;
-
-    font-size: 10px;
-
-    color: var(--muted);
-
-}
-
-
-.budget-summary-card strong {
-
-    display: block;
-
-    font-size: 17px;
-
-    margin-top: 5px;
-
-    color: var(--primary);
-
-    word-break: break-word;
-
-}
-
-
-.budget-summary-card .expense-text {
-
-    color: var(--expense);
-
-}
-
-
-.budget-summary-card .remaining-text {
-
-    color: var(--income);
-
-}
-
-
-.budget-alert-card {
-
-    background: white;
-
-    border-radius: 17px;
-
-    padding: 15px;
-
-    box-shadow: var(--shadow);
-
-    margin-bottom: 15px;
-
-}
-
-
-.budget-alert-title h3 {
-
-    font-size: 14px;
-
-}
-
-
-.budget-alert-title h3 i {
-
-    color: #d99a00;
-
-    margin-right: 5px;
-
-}
-
-
-.budget-alert-title p {
-
-    color: var(--muted);
-
-    font-size: 10px;
-
-    margin-top: 4px;
-
-}
-
-
-.alert-setting-row {
-
-    display: flex;
-
-    justify-content: space-between;
-
-    align-items: center;
-
-    gap: 15px;
-
-    margin-top: 13px;
-
-}
-
-
-.alert-setting-row label {
-
-    font-size: 12px;
-
-    font-weight: 600;
-
-}
-
-
-.alert-setting-row select {
-
-    width: 100px;
-
-}
-
-
-.budget-category-section {
-
-    margin-top: 5px;
-
-}
-
-
-.section-subtitle {
-
-    color: var(--muted);
-
-    font-size: 10px;
-
-    margin-top: 3px;
-
-}
-
-
-.add-category-btn {
-
-    background: var(--primary);
-
-    color: white;
-
-    padding: 9px 11px;
-
-    border-radius: 9px;
-
-    font-size: 10px;
-
-    font-weight: 700;
-
-}
-
-
-.budget-categories-list {
-
-    display: flex;
-
-    flex-direction: column;
-
-    gap: 10px;
-
-    margin-top: 12px;
-
-}
-
-
-.budget-category-card {
-
-    background: white;
-
-    border-radius: 16px;
-
-    padding: 13px;
-
-    box-shadow: var(--shadow);
-
-}
-
-
-.budget-category-top {
-
-    display: flex;
-
-    align-items: center;
-
-    gap: 10px;
-
-}
-
-
-.budget-category-icon {
-
-    width: 40px;
-
-    height: 40px;
-
-    min-width: 40px;
-
-    border-radius: 11px;
-
-    background: #f4edf8;
-
-    color: var(--primary);
-
-    display: flex;
-
-    align-items: center;
-
-    justify-content: center;
-
-}
-
-
-.budget-category-info {
-
-    flex: 1;
-
-    min-width: 0;
-
-}
-
-
-.budget-category-info h4 {
-
-    font-size: 12px;
-
-    margin-bottom: 3px;
-
-}
-
-
-.budget-category-info p {
-
-    font-size: 9px;
-
-    color: var(--muted);
-
-}
-
-
-.budget-category-amount {
-
-    text-align: right;
-
-}
-
-
-.budget-category-amount strong {
-
-    display: block;
-
-    font-size: 13px;
-
-    color: var(--primary);
-
-}
-
-
-.budget-category-amount span {
-
-    display: block;
-
-    font-size: 8px;
-
-    color: var(--muted);
-
-    margin-top: 2px;
-
-}
-
-
-.budget-progress {
-
-    height: 7px;
-
-    background: #eeeeee;
-
-    border-radius: 10px;
-
-    overflow: hidden;
-
-    margin-top: 11px;
-
-}
-
-
-.budget-progress-bar {
-
-    height: 100%;
-
-    width: 0%;
-
-    border-radius: 10px;
-
-    background: var(--primary);
-
-    transition:
-        width 0.3s ease;
-
-}
-
-
-.budget-category-bottom {
-
-    display: flex;
-
-    justify-content: space-between;
-
-    gap: 8px;
-
-    margin-top: 7px;
-
-    font-size: 9px;
-
-    color: var(--muted);
-
-}
-
-
-.budget-category-bottom .over-budget {
-
-    color: var(--expense);
-
-    font-weight: 700;
-
-}
-
-
-.budget-category-bottom .safe-budget {
-
-    color: var(--income);
-
-    font-weight: 700;
-
-}
-
-
-.category-form-card {
-
-    background: white;
-
-    border-radius: 17px;
-
-    padding: 15px;
-
-    box-shadow: var(--shadow);
-
-    margin-top: 12px;
-
-}
-
-
-.save-category-btn {
-
-    width: 100%;
-
-    background: var(--primary);
-
-    color: white;
-
-    padding: 12px;
-
-    border-radius: 10px;
-
-    font-size: 12px;
-
-    font-weight: 700;
-
-}
-
-
-.save-budget-btn {
-
-    width: 100%;
-
-    background: var(--primary);
-
-    color: white;
-
-    padding: 14px;
-
-    border-radius: 12px;
-
-    margin-top: 18px;
-
-    font-size: 13px;
-
-    font-weight: 700;
-
-}
-
-
-.budget-status-message {
-
-    padding: 13px;
-
-    border-radius: 11px;
-
-    margin-top: 10px;
-
-    text-align: center;
-
-    font-size: 11px;
-
-    font-weight: 600;
-
-}
-
-
-.budget-status-message.success {
-
-    background: #e8f7ed;
-
-    color: #16813d;
-
-}
-
-
-.budget-status-message.warning {
-
-    background: #fff5dc;
-
-    color: #9b6a00;
-
-}
-
-
-.budget-status-message.danger {
-
-    background: #fdeaea;
-
-    color: #c62828;
-
-}
-
-
-/* =========================================================
-   BUDGET CLICKABLE
-========================================================= */
-
-.budget-tracking-card,
-.budget-category-input {
-
-    cursor: pointer;
-
-    transition:
-        transform 0.15s ease,
-        box-shadow 0.15s ease;
-
-}
-
-
-.budget-tracking-card:hover,
-.budget-category-input:hover {
-
-    transform:
-        translateY(-2px);
-
-    box-shadow:
-        0 4px 12px
-        rgba(0, 0, 0, 0.12);
-
-}
-
-
-.budget-tracking-card:active,
-.budget-category-input:active {
-
-    transform:
-        scale(0.98);
-
-}
-
-
-.budget-click-hint {
-
-    margin-top: 9px;
-
-    font-size: 11px;
-
-    color: #777;
-
-    text-align: right;
-
-}
-
-
-.budget-category-label {
-
-    display: flex;
-
-    justify-content: space-between;
-
-    align-items: center;
-
-    gap: 8px;
-
-    margin-bottom: 8px;
-
-    font-weight: bold;
-
-    font-size: 13px;
-
-}
-
-
-.budget-category-label small {
-
-    color: #777;
-
-    font-weight: normal;
-
-    white-space: nowrap;
-
-}
-
-
-.budget-normal {
-
-    border-left:
-        5px solid var(--primary);
-
-}
-
-
-.budget-warning {
-
-    border-left:
-        5px solid var(--warning);
-
-}
-
-
-.budget-over {
-
-    border-left:
-        5px solid var(--danger);
-
-}
-
-
-.budget-warning .budget-progress-bar {
-
-    background: var(--warning);
-
-}
-
-
-.budget-over .budget-progress-bar {
-
-    background: var(--danger);
-
-}
-
-
-.negative-budget {
-
-    color: var(--danger) !important;
-
-}
-
-
-/* =========================================================
-   SETTINGS PAGE
-========================================================= */
-
-.settings-page {
-
-    max-width: 900px;
-
-    margin: 0 auto;
-
-    padding: 20px;
-
-}
-
-
-.settings-card {
-
-    background: white;
-
-    border-radius: 16px;
-
-    padding: 18px;
-
-    margin-bottom: 16px;
-
-    box-shadow:
-        0 3px 12px
-        rgba(0, 0, 0, 0.08);
-
-}
-
-
-.settings-card-title {
-
-    display: flex;
-
-    align-items: center;
-
-    gap: 14px;
-
-}
-
-
-.settings-icon {
-
-    width: 52px;
-
-    height: 52px;
-
-    min-width: 52px;
-
-    border-radius: 14px;
-
-    display: flex;
-
-    align-items: center;
-
-    justify-content: center;
-
-    background: #f6e9ec;
-
-    color: var(--primary);
-
-    font-size: 22px;
-
-}
-
-
-.settings-card-title h3 {
-
-    color: #333;
-
-}
-
-
-.settings-card-title p {
-
-    margin-top: 5px;
-
-    color: #777;
-
-    font-size: 13px;
-
-}
-
-
-.settings-section-title {
-
-    display: flex;
-
-    align-items: center;
-
-    gap: 9px;
-
-    margin:
-        0 0 14px;
-
-    color: var(--primary);
-
-}
-
-
-.settings-description {
-
-    color: #666;
-
-    font-size: 14px;
-
-    line-height: 1.5;
-
-}
-
-
-.settings-summary-grid {
-
-    display: grid;
-
-    grid-template-columns:
-        repeat(3, 1fr);
-
-    gap: 10px;
-
-}
-
-
-.settings-summary-item {
-
-    background: #faf7f8;
-
-    border-radius: 12px;
-
-    padding: 14px;
-
-    text-align: center;
-
-}
-
-
-.settings-summary-item i {
-
-    display: block;
-
-    color: var(--primary);
-
-    margin-bottom: 7px;
-
-}
-
-
-.settings-summary-item span {
-
-    display: block;
-
-    font-size: 12px;
-
-    color: #777;
-
-}
-
-
-.settings-summary-item strong {
-
-    display: block;
-
-    font-size: 20px;
-
-    margin-top: 5px;
-
-    color: #333;
-
-}
-
-
-.settings-action {
-
-    width: 100%;
-
-    min-height: 48px;
-
-    border-radius: 10px;
-
-    margin-top: 10px;
-
-    padding: 12px 15px;
-
-    display: flex;
-
-    align-items: center;
-
-    justify-content: center;
-
-    gap: 10px;
-
-    cursor: pointer;
-
-    font-size: 15px;
-
-    font-weight: 600;
-
-    text-decoration: none;
-
-}
-
-
-.settings-action.primary {
-
-    background: var(--primary);
-
-    color: white;
-
-}
-
-
-.settings-action.secondary {
-
-    background: #f1e5e8;
-
-    color: var(--primary);
-
-}
-
-
-.settings-action.danger {
-
-    background: #fdeaea;
-
-    color: var(--expense);
-
-}
-
-
-.settings-hint {
-
-    display: block;
-
-    margin-top: 10px;
-
-    color: #888;
-
-    font-size: 11px;
-
-}
-
-
-.settings-danger-note {
-
-    display: block;
-
-    margin-top: 10px;
-
-    color: var(--expense);
-
-    font-size: 11px;
-
-}
-
-
-.setting-row {
-
-    display: flex;
-
-    align-items: center;
-
-    justify-content: space-between;
-
-    gap: 15px;
-
-}
-
-
-.setting-row strong {
-
-    display: block;
-
-}
-
-
-.setting-row span {
-
-    display: block;
-
-    margin-top: 4px;
-
-    color: #777;
-
-    font-size: 12px;
-
-}
-
-
-.switch {
-
-    position: relative;
-
-    width: 52px;
-
-    height: 28px;
-
-    flex-shrink: 0;
-
-}
-
-
-.switch input {
-
-    opacity: 0;
-
-    width: 0;
-
-    height: 0;
-
-}
-
-
-.slider {
-
-    position: absolute;
-
-    inset: 0;
-
-    cursor: pointer;
-
-    background: #cccccc;
-
-    border-radius: 30px;
-
-    transition: 0.3s;
-
-}
-
-
-.slider::before {
-
-    content: "";
-
-    position: absolute;
-
-    width: 22px;
-
-    height: 22px;
-
-    left: 3px;
-
-    top: 3px;
-
-    background: white;
-
-    border-radius: 50%;
-
-    transition: 0.3s;
-
-}
-
-
-.switch input:checked + .slider {
-
-    background: var(--primary);
-
-}
-
-
-.switch input:checked + .slider::before {
-
-    transform:
-        translateX(24px);
-
-}
-
-
-.settings-status {
-
-    margin-top: 14px;
-
-    padding: 10px;
-
-    border-radius: 8px;
-
-    background: #f5f5f5;
-
-    color: #777;
-
-    font-size: 13px;
-
-}
-
-
-.settings-status.active {
-
-    background: #eaf6ee;
-
-    color: var(--income);
-
-}
-
-
-.settings-menu-grid {
-
-    display: grid;
-
-    grid-template-columns:
-        repeat(3, 1fr);
-
-    gap: 10px;
-
-}
-
-
-.settings-menu-grid button {
-
-    border: none;
-
-    background: #faf7f8;
-
-    border-radius: 10px;
-
-    padding: 13px 8px;
-
-    cursor: pointer;
-
-    color: var(--primary);
-
-    font-weight: 600;
-
-}
-
-
-.settings-menu-grid i {
-
-    display: block;
-
     margin-bottom: 6px;
-
 }
 
 
-.settings-footer {
+.form-group input {
 
-    text-align: center;
-
-    padding: 25px 10px;
-
-    color: #777;
-
-    font-size: 13px;
-
-}
-
-
-.settings-footer i {
-
-    color: var(--primary);
-
-    margin-right: 5px;
-
-}
-
-
-.settings-footer span {
-
-    display: block;
-
-    margin-top: 5px;
-
-    font-size: 11px;
-
-}
-
-
-/* =========================================================
-   CATEGORY TRANSACTION MODAL
-========================================================= */
-
-.category-modal {
-
-    position: fixed;
-
-    inset: 0;
-
-    display: none;
-
-    align-items: center;
-
-    justify-content: center;
+    width: 100%;
 
     padding: 12px;
 
-    background:
-        rgba(0, 0, 0, 0.60);
+    border: 1px solid var(--border);
 
-    z-index: 99999;
+    border-radius: 8px;
 
+    font-size: 15px;
+
+    outline: none;
 }
 
 
-.category-modal.show {
+.form-group input:focus {
 
-    display: flex;
-
-}
-
-
-.category-modal-content {
-
-    width: 100%;
-
-    max-width: 1000px;
-
-    max-height: 92vh;
-
-    overflow-y: auto;
-
-    background: white;
-
-    border-radius: 15px;
+    border-color: var(--primary);
 
     box-shadow:
-        0 10px 40px
-        rgba(0, 0, 0, 0.30);
-
-}
-
-
-.category-modal-header {
-
-    position: sticky;
-
-    top: 0;
-
-    z-index: 5;
-
-    display: flex;
-
-    align-items: center;
-
-    justify-content: space-between;
-
-    gap: 10px;
-
-    padding: 16px;
-
-    color: white;
-
-    background: var(--primary);
-
-}
-
-
-.category-modal-header > div {
-
-    min-width: 0;
-
-}
-
-
-.category-modal-header h2 {
-
-    margin: 0;
-
-    font-size: 19px;
-
-}
-
-
-.category-modal-month {
-
-    margin-top: 4px;
-
-    font-size: 13px;
-
-    opacity: 0.85;
-
-}
-
-
-.modal-close-btn {
-
-    width: 38px;
-
-    height: 38px;
-
-    min-width: 38px;
-
-    border: 0;
-
-    border-radius: 50%;
-
-    background: white;
-
-    color: var(--primary);
-
-    font-size: 18px;
-
-    font-weight: bold;
-
-}
-
-
-.category-transaction-summary {
-
-    display: grid;
-
-    grid-template-columns:
-        repeat(2, 1fr);
-
-    gap: 12px;
-
-    padding: 15px;
-
-}
-
-
-.transaction-summary-card {
-
-    padding: 15px;
-
-    text-align: center;
-
-    background: #f7f7f7;
-
-    border-radius: 10px;
-
-}
-
-
-.transaction-summary-card small {
-
-    display: block;
-
-    color: #666;
-
-    margin-bottom: 5px;
-
-}
-
-
-.transaction-summary-card strong {
-
-    font-size: 21px;
-
-    color: var(--primary);
-
-}
-
-
-.category-transaction-table-wrapper {
-
-    width: 100%;
-
-    overflow-x: auto;
-
-    padding:
-        0 15px 15px;
-
-}
-
-
-.category-transaction-table {
-
-    width: 100%;
-
-    min-width: 850px;
-
-    border-collapse: collapse;
-
-}
-
-
-.category-transaction-table th {
-
-    padding: 11px;
-
-    text-align: left;
-
-    white-space: nowrap;
-
-    background: #f1f1f1;
-
-    font-size: 13px;
-
-}
-
-
-.category-transaction-table td {
-
-    padding: 11px;
-
-    border-bottom:
-        1px solid #eeeeee;
-
-    font-size: 13px;
-
-    vertical-align: middle;
-
-}
-
-
-.category-transaction-table tbody tr:hover {
-
-    background: #fafafa;
-
-}
-
-
-.transaction-description {
-
-    min-width: 200px;
-
-    font-weight: 600;
-
-    color: #333;
-
-}
-
-
-.category-transaction-table
-.transaction-amount {
-
-    font-weight: bold;
-
-    color: var(--primary);
-
-    white-space: nowrap;
-
-}
-
-
-.no-category-transactions {
-
-    text-align: center;
-
-    padding: 30px !important;
-
-    color: #777;
-
-}
-
-
-.modal-delete-btn,
-.expense-delete-btn {
-
-    border: 0;
-
-    padding: 7px 10px;
-
-    border-radius: 7px;
-
-    background: #ffebee;
-
-    color: var(--expense);
-
-    cursor: pointer;
-
-}
-
-
-/* =========================================================
-   DELETE MODAL
-========================================================= */
-
-.modal-overlay {
-
-    position: fixed;
-
-    inset: 0;
-
-    z-index: 999999;
-
-    background:
-        rgba(0, 0, 0, 0.55);
-
-    display: flex;
-
-    align-items: center;
-
-    justify-content: center;
-
-    padding: 18px;
-
-}
-
-
-.modal-card {
-
-    width: 100%;
-
-    max-width: 390px;
-
-    background: white;
-
-    border-radius: 20px;
-
-    padding: 25px 20px;
-
-    text-align: center;
-
-    box-shadow:
-        0 18px 50px
-        rgba(0, 0, 0, 0.22);
-
-    animation:
-        modalIn 0.18s ease-out;
-
-}
-
-
-@keyframes modalIn {
-
-    from {
-
-        opacity: 0;
-
-        transform:
-            scale(0.94)
-            translateY(8px);
-
-    }
-
-    to {
-
-        opacity: 1;
-
-        transform:
-            scale(1)
-            translateY(0);
-
-    }
-
-}
-
-
-.modal-icon {
-
-    width: 58px;
-
-    height: 58px;
-
-    margin:
-        0 auto 14px;
-
-    border-radius: 16px;
-
-    display: flex;
-
-    align-items: center;
-
-    justify-content: center;
-
-    background: #fff0f0;
-
-    color: var(--expense);
-
-    font-size: 23px;
-
-}
-
-
-.modal-card h3 {
-
-    color: #222;
-
-    font-size: 18px;
-
-}
-
-
-.modal-card p {
-
-    margin:
-        8px 0 20px;
-
-    color: #777;
-
-    font-size: 13px;
-
-    line-height: 1.5;
-
+        0 0 0 2px rgba(91, 11, 24, 0.1);
 }
 
 
@@ -4749,392 +1034,95 @@ a {
 
     display: flex;
 
-    justify-content: center;
+    justify-content: flex-end;
 
     gap: 10px;
 
+    margin-top: 20px;
 }
 
 
 /* =========================================================
-   LOGIN PAGE
+   MOBILE
 ========================================================= */
 
-.login-page {
+@media (max-width: 700px) {
 
-    min-height: 100vh;
+    .app-title {
+        font-size: 16px;
+    }
 
-    margin: 0;
+    .main-container {
+        padding:
+            16px
+            12px
+            40px;
+    }
 
-    padding: 20px;
+    .summary-grid {
 
-    display: flex;
+        grid-template-columns:
+            repeat(2, 1fr);
+    }
 
-    align-items: center;
+    .summary-card:last-child {
 
-    justify-content: center;
+        grid-column:
+            1 / -1;
+    }
 
-    background:
-        linear-gradient(
-            135deg,
-            #5b0b18,
-            #8b1428
-        );
+    .budget-row {
 
+        grid-template-columns:
+            1fr;
+    }
+
+    .quick-actions {
+
+        grid-template-columns:
+            repeat(2, 1fr);
+    }
+
+    .accounts-list {
+
+        grid-template-columns:
+            1fr;
+    }
+
+    .comparison-numbers {
+
+        grid-template-columns:
+            repeat(3, 1fr);
+    }
 }
 
 
-.login-container {
+@media (max-width: 420px) {
 
-    width: 100%;
+    .summary-grid {
 
-    max-width: 420px;
+        grid-template-columns:
+            1fr;
+    }
 
-    text-align: center;
+    .summary-card:last-child {
 
-}
+        grid-column:
+            auto;
+    }
 
+    .comparison-header {
 
-.login-logo {
+        align-items: flex-start;
 
-    display: flex;
+        flex-direction: column;
+    }
 
-    justify-content: center;
+    .comparison-numbers {
 
-    margin-bottom: 14px;
-
-}
-
-
-.login-logo-icon {
-
-    width: 82px;
-
-    height: 82px;
-
-    border-radius: 24px;
-
-    background:
-        rgba(255, 255, 255, 0.16);
-
-    display: flex;
-
-    align-items: center;
-
-    justify-content: center;
-
-    color: white;
-
-    font-size: 38px;
-
-    box-shadow:
-        0 12px 30px
-        rgba(0, 0, 0, 0.20);
-
-}
-
-
-.login-container h1 {
-
-    color: white;
-
-    font-size: 25px;
-
-    font-weight: 700;
-
-}
-
-
-.login-subtitle {
-
-    color:
-        rgba(255, 255, 255, 0.75);
-
-    margin:
-        6px 0 22px;
-
-    font-size: 14px;
-
-}
-
-
-.login-card {
-
-    background: white;
-
-    border-radius: 24px;
-
-    padding: 28px 24px;
-
-    box-shadow:
-        0 20px 50px
-        rgba(0, 0, 0, 0.25);
-
-    text-align: left;
-
-}
-
-
-.login-card h2 {
-
-    margin:
-        0 0 24px;
-
-    color: var(--primary);
-
-    text-align: center;
-
-    font-size: 22px;
-
-}
-
-
-.login-card h2 i {
-
-    margin-right: 7px;
-
-}
-
-
-.login-input-group {
-
-    margin-bottom: 18px;
-
-}
-
-
-.login-input-group label {
-
-    display: block;
-
-    margin-bottom: 7px;
-
-    color: #333;
-
-    font-size: 14px;
-
-    font-weight: 600;
-
-}
-
-
-.login-input {
-
-    display: flex;
-
-    align-items: center;
-
-    background: #f7f7f8;
-
-    border:
-        1px solid #e3e3e3;
-
-    border-radius: 12px;
-
-    min-height: 50px;
-
-    padding:
-        0 13px;
-
-}
-
-
-.login-input:focus-within {
-
-    border-color: var(--primary);
-
-    box-shadow:
-        0 0 0 3px
-        rgba(91, 11, 24, 0.08);
-
-}
-
-
-.login-input > i {
-
-    color: var(--primary);
-
-    width: 25px;
-
-}
-
-
-.login-input input {
-
-    flex: 1;
-
-    border: none;
-
-    outline: none;
-
-    background: transparent;
-
-    font-size: 16px;
-
-    min-width: 0;
-
-    color: #222;
-
-}
-
-
-.login-input input::placeholder {
-
-    color: #999;
-
-}
-
-
-.password-toggle {
-
-    border: none;
-
-    background: transparent;
-
-    color: #777;
-
-    cursor: pointer;
-
-    font-size: 16px;
-
-    padding: 6px;
-
-}
-
-
-.remember-login {
-
-    display: flex;
-
-    align-items: center;
-
-    gap: 8px;
-
-    font-size: 14px;
-
-    color: #555;
-
-    margin:
-        4px 0 18px;
-
-}
-
-
-.remember-login input {
-
-    width: 17px;
-
-    height: 17px;
-
-    accent-color: var(--primary);
-
-}
-
-
-.login-error {
-
-    display: none;
-
-    background: #fff0f0;
-
-    color: var(--expense);
-
-    border-radius: 10px;
-
-    padding: 10px 12px;
-
-    margin-bottom: 15px;
-
-    font-size: 13px;
-
-}
-
-
-.login-error.show {
-
-    display: block;
-
-}
-
-
-.login-error i {
-
-    margin-right: 5px;
-
-}
-
-
-.login-button {
-
-    width: 100%;
-
-    min-height: 52px;
-
-    border: none;
-
-    border-radius: 13px;
-
-    background: var(--primary);
-
-    color: white;
-
-    font-size: 17px;
-
-    font-weight: 700;
-
-    cursor: pointer;
-
-}
-
-
-.login-button:hover {
-
-    background: #720d20;
-
-}
-
-
-.login-button:active {
-
-    transform: scale(0.98);
-
-}
-
-
-.login-button i {
-
-    margin-right: 7px;
-
-}
-
-
-.login-footer {
-
-    color:
-        rgba(255, 255, 255, 0.65);
-
-    font-size: 12px;
-
-    margin-top: 18px;
-
-}
-
-
-/* =========================================================
-   GENERAL HIDDEN
-========================================================= */
-
-.hidden {
-
-    display: none !important;
-
-}
-
-
-[hidden] {
-
-    display: none !important;
-
+        grid-template-columns:
+            1fr;
+    }
 }
 
 
@@ -5143,954 +1131,17 @@ a {
 ========================================================= */
 
 ::-webkit-scrollbar {
-
-    width: 6px;
-
-    height: 6px;
-
+    width: 7px;
 }
 
 
 ::-webkit-scrollbar-track {
-
-    background: #f1f1f1;
-
+    background: #eeeeee;
 }
 
 
 ::-webkit-scrollbar-thumb {
-
-    background: #cccccc;
+    background: var(--primary);
 
     border-radius: 10px;
-
-}
-
-
-::-webkit-scrollbar-thumb:hover {
-
-    background: #aaaaaa;
-
-}
-
-
-/* =========================================================
-   TABLET
-========================================================= */
-
-@media (max-width: 850px) {
-
-    .form-grid {
-
-        grid-template-columns:
-            repeat(2, 1fr);
-
-    }
-
-}
-
-
-/* =========================================================
-   MOBILE
-========================================================= */
-
-@media (max-width: 600px) {
-
-    body {
-
-        padding-bottom: 75px;
-
-    }
-
-
-    .container {
-
-        padding:
-            12px;
-
-    }
-
-
-    .page-container {
-
-        padding:
-            14px 12px 92px;
-
-    }
-
-
-    .form-container {
-
-        padding:
-            14px 12px;
-
-    }
-
-
-    .header-brand h1 {
-
-        font-size: 16px;
-
-    }
-
-
-    .header-brand p {
-
-        font-size: 10px;
-
-    }
-
-
-    .app-logo {
-
-        width: 42px;
-
-        height: 42px;
-
-        min-width: 42px;
-
-    }
-
-
-    .notification-btn {
-
-        width: 40px;
-
-        height: 40px;
-
-        min-width: 40px;
-
-    }
-
-
-    .balance-card {
-
-        padding: 17px;
-
-    }
-
-
-    .balance-value {
-
-        font-size: 28px;
-
-    }
-
-
-    .summary-grid {
-
-        grid-template-columns:
-            1fr;
-
-        gap: 10px;
-
-    }
-
-
-    .summary-card {
-
-        padding: 12px;
-
-    }
-
-
-    .summary-card strong {
-
-        font-size: 15px;
-
-    }
-
-
-    .quick-actions {
-
-        grid-template-columns:
-            repeat(3, 1fr);
-
-        gap: 7px;
-
-    }
-
-
-    .quick-btn {
-
-        min-height: 75px;
-
-        font-size: 11px;
-
-    }
-
-
-    .quick-btn i {
-
-        font-size: 20px;
-
-    }
-
-
-    .budget-numbers {
-
-        gap: 5px;
-
-    }
-
-
-    .budget-numbers div {
-
-        padding: 8px;
-
-    }
-
-
-    .budget-numbers strong {
-
-        font-size: 12px;
-
-    }
-
-
-    .account-grid {
-
-        grid-template-columns:
-            1fr;
-
-    }
-
-
-    .reminder-card {
-
-        align-items: flex-start;
-
-    }
-
-
-    .reminder-card button {
-
-        white-space: nowrap;
-
-    }
-
-
-    .page-intro {
-
-        padding: 14px;
-
-    }
-
-
-    .page-intro h2 {
-
-        font-size: 17px;
-
-    }
-
-
-    .page-intro-icon {
-
-        width: 45px;
-
-        height: 45px;
-
-        min-width: 45px;
-
-    }
-
-
-    .income-summary,
-    .expense-summary {
-
-        grid-template-columns:
-            1fr;
-
-    }
-
-
-    .transaction-summary {
-
-        grid-template-columns:
-            1fr;
-
-    }
-
-
-    .content-card {
-
-        padding: 15px;
-
-        border-radius: 15px;
-
-    }
-
-
-    .form-grid {
-
-        grid-template-columns:
-            1fr;
-
-        gap: 0;
-
-    }
-
-
-    .form-grid .form-group {
-
-        margin-bottom: 13px;
-
-    }
-
-
-    .filter-actions {
-
-        display: grid;
-
-        grid-template-columns:
-            1fr 1fr;
-
-    }
-
-
-    .transaction-filter-actions {
-
-        display: grid;
-
-        grid-template-columns:
-            1fr 1fr;
-
-    }
-
-
-    .transaction-list-header {
-
-        flex-wrap: wrap;
-
-        gap: 7px;
-
-    }
-
-
-    .transaction-list-header > div {
-
-        width: 100%;
-
-        flex-basis: 100%;
-
-        margin-bottom: 4px;
-
-    }
-
-
-    .transaction-list-header .btn {
-
-        flex: 1;
-
-    }
-
-
-    .transaction-card,
-    .transaction-item {
-
-        padding: 12px;
-
-        gap: 9px;
-
-    }
-
-
-    .transaction-icon,
-    .transaction-type-icon {
-
-        width: 40px;
-
-        height: 40px;
-
-        min-width: 40px;
-
-    }
-
-
-    .transaction-details h3 {
-
-        font-size: 14px;
-
-    }
-
-
-    .transaction-amount {
-
-        font-size: 14px;
-
-    }
-
-
-    .empty-state {
-
-        padding:
-            32px 15px;
-
-    }
-
-
-    .empty-actions {
-
-        display: grid;
-
-        grid-template-columns:
-            1fr;
-
-        max-width: 250px;
-
-        margin: auto;
-
-    }
-
-
-    .budget-summary {
-
-        grid-template-columns:
-            1fr 1fr;
-
-    }
-
-
-    .budget-planned-card {
-
-        padding: 13px;
-
-    }
-
-
-    .budget-category-top {
-
-        align-items: flex-start;
-
-    }
-
-
-    .budget-category-amount strong {
-
-        font-size: 12px;
-
-    }
-
-
-    .settings-page {
-
-        padding: 12px;
-
-    }
-
-
-    .settings-summary-grid {
-
-        grid-template-columns:
-            repeat(3, 1fr);
-
-    }
-
-
-    .settings-summary-item {
-
-        padding:
-            10px 5px;
-
-    }
-
-
-    .settings-menu-grid {
-
-        grid-template-columns:
-            repeat(2, 1fr);
-
-    }
-
-
-    .category-modal {
-
-        padding: 0;
-
-    }
-
-
-    .category-modal-content {
-
-        width: 100%;
-
-        height: 100vh;
-
-        max-height: 100vh;
-
-        border-radius: 0;
-
-    }
-
-
-    .category-modal-header h2 {
-
-        font-size: 17px;
-
-    }
-
-
-    .category-transaction-summary {
-
-        grid-template-columns:
-            1fr 1fr;
-
-        padding: 10px;
-
-    }
-
-
-    .transaction-summary-card {
-
-        padding:
-            12px 8px;
-
-    }
-
-
-    .transaction-summary-card strong {
-
-        font-size: 17px;
-
-    }
-
-
-    .bottom-nav {
-
-        height: 62px;
-
-    }
-
-
-    .nav-item i {
-
-        font-size: 17px;
-
-    }
-
-
-    .nav-item span {
-
-        font-size: 9px;
-
-    }
-
-
-    .login-page {
-
-        padding: 15px;
-
-    }
-
-
-    .login-logo-icon {
-
-        width: 72px;
-
-        height: 72px;
-
-        font-size: 32px;
-
-    }
-
-
-    .login-container h1 {
-
-        font-size: 22px;
-
-    }
-
-
-    .login-card {
-
-        padding:
-            24px 18px;
-
-        border-radius: 20px;
-
-    }
-
-}
-
-
-/* =========================================================
-   SMALL MOBILE
-========================================================= */
-
-@media (max-width: 380px) {
-
-    .header-brand {
-
-        gap: 8px;
-
-    }
-
-
-    .header-brand h1 {
-
-        font-size: 14px;
-
-    }
-
-
-    .header-brand p {
-
-        font-size: 9px;
-
-    }
-
-
-    .container {
-
-        padding:
-            10px;
-
-    }
-
-
-    .page-container {
-
-        padding-left: 9px;
-
-        padding-right: 9px;
-
-    }
-
-
-    .balance-value {
-
-        font-size: 25px;
-
-    }
-
-
-    .quick-btn {
-
-        min-height: 70px;
-
-        font-size: 10px;
-
-    }
-
-
-    .quick-btn i {
-
-        font-size: 18px;
-
-    }
-
-
-    .summary-card {
-
-        padding: 11px;
-
-    }
-
-
-    .summary-card strong {
-
-        font-size: 14px;
-
-    }
-
-
-    .transaction-list-header .btn {
-
-        font-size: 12px;
-
-        padding-left: 9px;
-
-        padding-right: 9px;
-
-    }
-
-
-    .budget-category-info h4 {
-
-        font-size: 11px;
-
-    }
-
-
-    .budget-category-info p {
-
-        font-size: 8px;
-
-    }
-
-
-    .settings-summary-item span {
-
-        font-size: 10px;
-
-    }
-
-
-    .settings-summary-item strong {
-
-        font-size: 17px;
-
-    }
-
-}
-
-
-/* =========================================================
-   DESKTOP
-========================================================= */
-
-@media (min-width: 700px) {
-
-    .container {
-
-        padding:
-            25px;
-
-    }
-
-
-    .summary-grid {
-
-        grid-template-columns:
-            repeat(4, 1fr);
-
-    }
-
-
-    .account-grid {
-
-        grid-template-columns:
-            repeat(3, 1fr);
-
-    }
-
-}
-
-
-/* =========================================================
-   DARK MODE COMPATIBILITY
-========================================================= */
-
-body.dark-mode {
-
-    --bg: #121212;
-
-    --white: #1f1f1f;
-
-    --text: #f1f1f1;
-
-    --muted: #aaaaaa;
-
-    --border: #333333;
-
-}
-
-
-body.dark-mode {
-
-    background: var(--bg);
-
-    color: var(--text);
-
-}
-
-
-body.dark-mode .date-card,
-body.dark-mode .summary-card,
-body.dark-mode .budget-card,
-body.dark-mode .account-card,
-body.dark-mode .transaction-item,
-body.dark-mode .transaction-card,
-body.dark-mode .content-card,
-body.dark-mode .form-card,
-body.dark-mode .budget-month-card,
-body.dark-mode .budget-planned-card,
-body.dark-mode .budget-summary-card,
-body.dark-mode .budget-alert-card,
-body.dark-mode .budget-category-card,
-body.dark-mode .category-form-card,
-body.dark-mode .settings-card,
-body.dark-mode .account-total-card,
-body.dark-mode .empty-card,
-body.dark-mode .empty-state,
-body.dark-mode .empty-transactions,
-body.dark-mode .empty-accounts,
-body.dark-mode .modal-card,
-body.dark-mode .category-modal-content {
-
-    background: #1f1f1f;
-
-    border-color: #333333;
-
-}
-
-
-body.dark-mode .date-card h2,
-body.dark-mode .section-title,
-body.dark-mode .section-title h2,
-body.dark-mode .card-heading h3,
-body.dark-mode .transaction-details strong,
-body.dark-mode .transaction-info h4,
-body.dark-mode .account-info h3,
-body.dark-mode .settings-card-title h3,
-body.dark-mode .modal-card h3 {
-
-    color: #f1f1f1;
-
-}
-
-
-body.dark-mode
-.form-group input,
-body.dark-mode
-.form-group select,
-body.dark-mode
-.form-group textarea {
-
-    background: #252525;
-
-    color: white;
-
-    border-color: #444444;
-
-}
-
-
-body.dark-mode
-.login-input {
-
-    background: #252525;
-
-    border-color: #444444;
-
-}
-
-
-body.dark-mode
-.budget-numbers div,
-body.dark-mode
-.transaction-summary-card,
-body.dark-mode
-.settings-summary-item {
-
-    background: #252525;
-
-}
-
-
-body.dark-mode
-.bottom-nav {
-
-    background:
-        rgba(29, 29, 29, 0.97);
-
-    border-color: #333333;
-
-}
-
-
-body.dark-mode
-.add-menu {
-
-    background: #1f1f1f;
-
-}
-
-
-body.dark-mode
-.add-menu-header button {
-
-    background: #333333;
-
-    color: white;
-
-}
-
-
-body.dark-mode
-.quick-add-menu button {
-
-    background: #1f1f1f;
-
-    color: white;
-
-}
-
-
-body.dark-mode
-.category-transaction-table th {
-
-    background: #303030;
-
-    color: white;
-
-}
-
-
-body.dark-mode
-.category-transaction-table td {
-
-    border-color: #333333;
-
-}
-
-
-body.dark-mode
-.category-transaction-table tbody tr:hover {
-
-    background: #292929;
-
-}
-
-
-/* =========================================================
-   PRINT
-========================================================= */
-
-@media print {
-
-    body {
-
-        background: white;
-
-        padding: 0;
-
-    }
-
-
-    .app-header,
-    .bottom-nav,
-    .add-menu-overlay,
-    .quick-add-menu,
-    .notification-btn,
-    .modal-overlay {
-
-        display: none !important;
-
-    }
-
-
-    .container,
-    .page-container,
-    .form-container {
-
-        max-width: 100%;
-
-        padding: 10px;
-
-    }
-
-
-    .summary-card,
-    .content-card,
-    .transaction-card,
-    .transaction-item {
-
-        box-shadow: none;
-
-        border:
-            1px solid #ddd;
-
-    }
-
 }
