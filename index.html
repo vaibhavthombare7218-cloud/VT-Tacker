@@ -1,1612 +1,679 @@
-<!DOCTYPE html><html lang="mr"><head><meta charset="UTF-8">
+<!DOCTYPE html>
+<html lang="mr">
 
-<meta name="viewport"
-      content="width=device-width, initial-scale=1.0">
+<head>
+    <meta charset="UTF-8">
 
-<meta name="theme-color"
-      content="#5b0b18">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
 
-<meta name="description"
-      content="रोजचा जमा खर्च अहवाल - Personal Finance Tracker">
+    <meta name="theme-color"
+          content="#5b0b18">
 
-<title>रोजचा जमा खर्च अहवाल</title>
+    <meta name="description"
+          content="रोजचा जमा खर्च अहवाल - Personal Finance Tracker">
 
-<!-- Font Awesome -->
-<link rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <title>रोजचा जमा खर्च अहवाल</title>
 
-<!-- CSS -->
-<link rel="stylesheet"
-      href="style.css">
+    <link rel="stylesheet" href="style.css">
+</head>
 
-<!-- PWA -->
-<link rel="manifest"
-      href="manifest.json">
+<body>
 
-<meta name="mobile-web-app-capable"
-      content="yes">
-
-<meta name="apple-mobile-web-app-capable"
-      content="yes">
-
-<meta name="apple-mobile-web-app-status-bar-style"
-      content="default">
-
-<meta name="apple-mobile-web-app-title"
-      content="जमा खर्च">
-
-</head><body><!-- =====================================================
-     HEADER
-===================================================== --><header class="app-header"><div class="header-brand">
-
-    <div class="app-logo">
-
-        <i class="fa-solid fa-wallet"></i>
-
-    </div>
-
-    <div>
-
-        <h1>
-            रोजचा जमा खर्च अहवाल
-        </h1>
-
-        <p>
-            वैभव विनायक ठोंबरे
-        </p>
-
-    </div>
-
-</div>
-
-
-<button
-    class="notification-btn"
-    type="button"
-    onclick="openReminder()">
-
-    <i class="fa-solid fa-bell"></i>
-
-    <span id="notificationDot"></span>
-
-</button>
-
-</header><!-- =====================================================
-     MAIN
-===================================================== --><main class="container"><!-- =================================================
-     DATE
-================================================== -->
-
-<section class="date-card">
-
-    <div>
-
-        <span class="small-label">
-            आज
-        </span>
-
-        <h2 id="todayDate">
-            --
-        </h2>
-
-    </div>
-
-
-    <div class="date-icon">
-
-        <i class="fa-solid fa-calendar-day"></i>
-
-    </div>
-
-</section>
-
-
-
-<!-- =================================================
-     TOTAL BALANCE
-================================================== -->
-
-<section class="balance-card">
-
-    <div class="balance-header">
-
-        <span>
-            एकूण शिल्लक
-        </span>
-
-
-        <button
-            type="button"
-            onclick="toggleBalance()"
-            class="eye-btn">
-
-            <i
-                id="balanceEye"
-                class="fa-solid fa-eye">
-            </i>
-
-        </button>
-
-    </div>
-
-
-    <div
-        id="totalBalance"
-        class="balance-value">
-
-        ₹0.00
-
-    </div>
-
-
-    <div class="balance-row">
-
-
-        <div>
-
-            <span>
-
-                <i class="fa-solid fa-arrow-down"></i>
-
-                एकूण जमा
-
-            </span>
-
-
-            <strong id="totalIncome">
-                ₹0.00
-            </strong>
-
-        </div>
-
-
-        <div>
-
-            <span>
-
-                <i class="fa-solid fa-arrow-up"></i>
-
-                एकूण खर्च
-
-            </span>
-
-
-            <strong id="totalExpense">
-                ₹0.00
-            </strong>
-
-        </div>
-
-    </div>
-
-</section>
-
-
-
-<!-- =================================================
-     TODAY REPORT
-================================================== -->
-
-<h3 class="section-title">
-    आजचा अहवाल
-</h3>
-
-
-<section class="summary-grid">
-
-
-    <div class="summary-card expense-card">
-
-        <div class="summary-icon">
-
-            <i class="fa-solid fa-arrow-up"></i>
-
-        </div>
-
-
-        <div>
-
-            <span>
-                आजचा खर्च
-            </span>
-
-
-            <strong id="todayExpense">
-                ₹0.00
-            </strong>
-
-        </div>
-
-    </div>
-
-
-</section>
-
-
-
-<!-- =================================================
-     MONTHLY BUDGET
-
+<!-- =====================================================
+     APP HEADER
 ===================================================== -->
 
-<section class="budget-card">
+<header class="app-header">
 
-    <div class="card-heading">
+    <div class="header-left">
 
-        <div>
-
-            <span class="small-label">
-                चालू महिना
-            </span>
-
-
-            <h3>
-                मासिक बजेट
-            </h3>
-
-        </div>
-
-
-        <i class="fa-solid fa-wallet"></i>
-
-    </div>
-
-
-
-    <div class="budget-numbers">
-
-
-        <!-- PLANNED BUDGET -->
-
-        <div>
-
-            <span>
-                Budget
-            </span>
-
-
-            <strong id="budgetAmount">
-                ₹0
-            </strong>
-
-        </div>
-
-
-
-        <!-- ACTUAL EXPENSE -->
-
-        <div>
-
-            <span>
-                खर्च
-            </span>
-
-
-            <strong id="budgetSpent">
-                ₹0
-            </strong>
-
-        </div>
-
-
-
-        <!-- REMAINING -->
-
-        <div>
-
-            <span>
-                बाकी
-            </span>
-
-
-            <strong id="budgetRemaining">
-                ₹0
-            </strong>
-
-        </div>
-
-    </div>
-
-
-
-    <!-- PROGRESS -->
-
-    <div class="progress-container">
-
-        <div
-            id="budgetProgress"
-            class="progress-bar">
-
-        </div>
-
-    </div>
-
-
-
-    <!-- FOOTER -->
-
-    <div class="budget-footer">
-
-
-        <span id="budgetPercentage">
-            0% वापरले
-        </span>
-
-
-        <button
-            type="button"
-            onclick="goToBudget()">
-
-            Budget पहा
-
-            <i class="fa-solid fa-chevron-right"></i>
-
+        <button class="menu-btn"
+                id="menuBtn"
+                aria-label="Menu">
+            ☰
         </button>
 
-    </div>
-
-</section>
-
-
-
-<!-- =================================================
-     QUICK ACTIONS
-================================================== -->
-
-<h3 class="section-title">
-    जलद नोंद
-</h3>
-
-
-<section class="quick-actions">
-
-
-    <!-- INCOME -->
-
-    <button
-        class="quick-btn income-btn"
-        type="button"
-        onclick="goToIncome()">
-
-        <i class="fa-solid fa-plus"></i>
-
-        <span>
-            जमा नोंदवा
-        </span>
-
-    </button>
-
-
-
-    <!-- EXPENSE -->
-
-    <button
-        class="quick-btn expense-btn"
-        type="button"
-        onclick="goToExpense()">
-
-        <i class="fa-solid fa-minus"></i>
-
-        <span>
-            खर्च नोंदवा
-        </span>
-
-    </button>
-
-
-
-    <!-- WORK PLAN -->
-
-    <button
-        class="quick-btn work-plan-btn"
-        type="button"
-        onclick="goToWorkPlan()">
-
-        <i class="fa-solid fa-calendar-check"></i>
-
-        <span>
-            Work Plan
-        </span>
-
-    </button>
-
-
-
-    <!-- DUE MONEY -->
-
-    <button
-        class="quick-btn due-money-btn"
-        type="button"
-        onclick="goToDueMoney()">
-
-        <i class="fa-solid fa-hand-holding-dollar"></i>
-
-        <span>
-            घेतलेली रक्कम
-        </span>
-
-    </button>
-
-
-</section>
-
-
-
-<!-- =================================================
-     ACCOUNTS
-================================================== -->
-
-<div class="section-heading">
-
-    <h3 class="section-title">
-        माझी खाती
-    </h3>
-
-
-    <button
-        type="button"
-        onclick="goToAccounts()">
-
-        सर्व पहा
-
-        <i class="fa-solid fa-chevron-right"></i>
-
-    </button>
-
-</div>
-
-
-
-<section
-    id="accountSummary"
-    class="account-grid">
-
-
-    <div class="empty-card">
-
-        <i class="fa-solid fa-building-columns"></i>
-
-        <p>
-            खाते जोडलेले नाही.
-        </p>
-
-
-        <button
-            type="button"
-            onclick="goToAccounts()">
-
-            खाते जोडा
-
-        </button>
-
-    </div>
-
-
-</section>
-
-
-
-<!-- =================================================
-     RECENT TRANSACTIONS
-================================================== -->
-
-<div class="section-heading">
-
-    <h3 class="section-title">
-        अलीकडील व्यवहार
-    </h3>
-
-
-    <button
-        type="button"
-        onclick="goToTransactions()">
-
-        सर्व पहा
-
-        <i class="fa-solid fa-chevron-right"></i>
-
-    </button>
-
-</div>
-
-
-
-<section
-    id="recentTransactions"
-    class="transactions-list">
-
-
-    <div class="empty-card">
-
-        <i class="fa-solid fa-receipt"></i>
-
-        <p>
-            अजून कोणतेही व्यवहार नाहीत.
-        </p>
-
-    </div>
-
-
-</section>
-
-
-
-<!-- =================================================
-     REMINDER
-================================================== -->
-
-<section
-    id="reminderCard"
-    class="reminder-card">
-
-
-    <div class="reminder-icon">
-
-        <i class="fa-solid fa-bell"></i>
-
-    </div>
-
-
-    <div class="reminder-content">
-
-        <strong>
-            आजचा खर्च नोंदवला का?
-        </strong>
-
-
-        <p>
-            रोजचा खर्च वेळेवर नोंदवा.
-        </p>
-
-    </div>
-
-
-    <button
-        type="button"
-        onclick="goToExpense()">
-
-        नोंदवा
-
-    </button>
-
-
-</section>
-
-</main><!-- =====================================================
-     BOTTOM NAVIGATION
-===================================================== --><nav class="bottom-nav"><!-- HOME -->
-
-<button
-    class="nav-item active"
-    type="button"
-    onclick="goHome()">
-
-    <i class="fa-solid fa-house"></i>
-
-    <span>
-        मुख्यपृष्ठ
-    </span>
-
-</button>
-
-
-
-<!-- BUDGET -->
-
-<button
-    class="nav-item"
-    type="button"
-    onclick="goToBudget()">
-
-    <i class="fa-solid fa-bullseye"></i>
-
-    <span>
-        Budget
-    </span>
-
-</button>
-
-
-
-<!-- ADD -->
-
-<button
-    class="nav-add"
-    type="button"
-    onclick="showAddMenu()">
-
-    <i class="fa-solid fa-plus"></i>
-
-</button>
-
-
-
-<!-- REPORT -->
-
-<button
-    class="nav-item"
-    type="button"
-    onclick="goToReports()">
-
-    <i class="fa-solid fa-chart-pie"></i>
-
-    <span>
-        Report
-    </span>
-
-</button>
-
-
-
-<!-- SETTINGS -->
-
-<button
-    class="nav-item"
-    type="button"
-    onclick="goToSettings()">
-
-    <i class="fa-solid fa-gear"></i>
-
-    <span>
-        सेटिंग
-    </span>
-
-</button>
-
-</nav><!-- =====================================================
-     ADD MENU
-===================================================== --><div
-    id="addMenu"
-    class="add-menu-overlay"
-    onclick="closeAddMenu(event)"><div
-    class="add-menu"
-    onclick="event.stopPropagation()">
-
-
-    <div class="add-menu-header">
-
-        <h3>
-            नवीन नोंद
-        </h3>
-
-
-        <button
-            type="button"
-            onclick="closeAddMenu()">
-
-            <i class="fa-solid fa-xmark"></i>
-
-        </button>
-
-    </div>
-
-
-
-    <button
-        class="menu-income"
-        type="button"
-        onclick="goToIncome()">
-
-        <i class="fa-solid fa-arrow-down"></i>
-
-        जमा नोंदवा
-
-    </button>
-
-
-
-    <button
-        class="menu-expense"
-        type="button"
-        onclick="goToExpense()">
-
-        <i class="fa-solid fa-arrow-up"></i>
-
-        खर्च नोंदवा
-
-    </button>
-
-
-</div>
-
-</div><!-- =====================================================
-     CATEGORY TRANSACTION MODAL
-===================================================== --><div
-    id="categoryTransactionModal"
-    class="category-modal"><div
-    class="category-modal-content">
-
-
-    <!-- HEADER -->
-
-    <div
-        class="category-modal-header">
-
-
         <div>
-
-            <h2
-                id="categoryTransactionTitle">
-
-                Category
-
-            </h2>
-
-
-            <div
-                id="categoryTransactionMonth"
-                class="category-modal-month">
-
+            <div class="app-title">
+                रोजचा जमा खर्च अहवाल
             </div>
 
+            <div class="app-subtitle">
+                Personal Finance Tracker
+            </div>
         </div>
 
+    </div>
 
-        <button
-            type="button"
-            class="modal-close-btn"
-            onclick="closeCategoryTransactions()">
+</header>
 
-            ✕
 
+<!-- =====================================================
+     SIDE MENU
+===================================================== -->
+
+<div class="menu-overlay"
+     id="menuOverlay"></div>
+
+<aside class="side-menu"
+       id="sideMenu">
+
+    <div class="side-menu-header">
+
+        <div class="side-menu-title">
+            जमा खर्च
+        </div>
+
+        <button class="close-menu"
+                id="closeMenu">
+            ×
         </button>
 
-
     </div>
 
 
-
-    <!-- SUMMARY -->
-
-    <div
-        class="category-transaction-summary">
-
-
-        <div
-            class="transaction-summary-card">
-
-
-            <small>
-                या महिन्याचा एकूण खर्च
-            </small>
-
-
-            <strong
-                id="categoryTransactionTotal">
-
-                ₹0
-
-            </strong>
-
-
-        </div>
-
-
-
-        <div
-            class="transaction-summary-card">
-
-
-            <small>
-                एकूण Transactions
-            </small>
-
-
-            <strong
-                id="categoryTransactionCount">
-
-                0 Transactions
-
-            </strong>
-
-
-        </div>
-
-
-    </div>
-
-
-
-    <!-- TRANSACTION TABLE -->
-
-    <div
-        class="category-transaction-table-wrapper">
-
-
-        <table
-            class="category-transaction-table">
-
-
-            <thead>
-
-                <tr>
-
-                    <th>
-                        Date
-                    </th>
-
-                    <th>
-                        Description
-                    </th>
-
-                    <th>
-                        Amount
-                    </th>
-
-                    <th>
-                        Payment Mode
-                    </th>
-
-                    <th>
-                        Account
-                    </th>
-
-                    <th>
-                        Note
-                    </th>
-
-                    <th>
-                        Action
-                    </th>
-
-                </tr>
-
-            </thead>
-
-
-
-            <tbody
-                id="categoryTransactionBody">
-
-            </tbody>
-
-
-        </table>
-
-
-    </div>
-
-
-</div>
-
-</div><!-- =====================================================
-     JAVASCRIPT
-===================================================== --><script src="app.js"></script><script src="expense.js"></script><script src="monthly-budget.js"></script><script>
-
-/* =====================================================
-   INDEX DATE
-===================================================== */
-
-function updateIndexTodayDate() {
-
-    const element =
-        document.getElementById(
-            "todayDate"
-        );
-
-    if (!element) {
-
-        return;
-    }
-
-
-    const today =
-        new Date();
-
-
-    element.textContent =
-        today.toLocaleDateString(
-            "mr-IN",
-            {
-                weekday: "long",
-                day: "2-digit",
-                month: "long",
-                year: "numeric"
-            }
-        );
-
-}
-
-
-
-/* =====================================================
-   INDEX MONTHLY BUDGET
-   Uses monthly-budget.js keys/functions
-===================================================== */
-
-function updateIndexBudget() {
-
-    const month =
-        typeof window.getBudgetCurrentMonth ===
-        "function"
-            ? window.getBudgetCurrentMonth()
-            : (
-                new Date().getFullYear() +
-                "-" +
-                String(
-                    new Date().getMonth() + 1
-                ).padStart(
-                    2,
-                    "0"
-                )
-            );
-
-
-    /*
-       Get saved monthly budget
-    */
-
-    let budget = {
-
-        total: 0,
-
-        categories: {}
-
-    };
-
-
-    if (
-        typeof window.getBudgetForMonth ===
-        "function"
-    ) {
-
-        budget =
-            window.getBudgetForMonth(
-                month
-            ) || budget;
-
-    }
-
-
-    /*
-       Planned Budget
-    */
-
-    const planned =
-        Number(
-            budget.total || 0
-        );
-
-
-    /*
-       Actual Expense
-    */
-
-    let actual = 0;
-
-
-    if (
-        typeof window.getMonthlyExpenseTotal ===
-        "function"
-    ) {
-
-        actual =
-            Number(
-                window.getMonthlyExpenseTotal(
-                    month
-                ) || 0
-            );
-
-    }
-
-
-    /*
-       Remaining
-    */
-
-    const remaining =
-        planned -
-        actual;
-
-
-    /*
-       Used %
-    */
-
-    let percentage = 0;
-
-
-    if (
-        planned > 0
-    ) {
-
-        percentage =
-            (
-                actual /
-                planned
-            ) *
-            100;
-
-    }
-
-
-    /*
-       Display percentage can exceed 100
-       when budget is over.
-    */
-
-    const displayPercentage =
-        Math.max(
-            0,
-            Math.round(
-                percentage
-            )
-        );
-
-
-    /*
-       Progress width limited to 100
-    */
-
-    const progressWidth =
-        Math.min(
-            Math.max(
-                percentage,
-                0
-            ),
-            100
-        );
-
-
-    /*
-       Budget
-    */
-
-    const budgetElement =
-        document.getElementById(
-            "budgetAmount"
-        );
-
-
-    if (budgetElement) {
-
-        budgetElement.textContent =
-            formatIndexMoney(
-                planned
-            );
-
-    }
-
-
-    /*
-       Spent
-    */
-
-    const spentElement =
-        document.getElementById(
-            "budgetSpent"
-        );
-
-
-    if (spentElement) {
-
-        spentElement.textContent =
-            formatIndexMoney(
-                actual
-            );
-
-    }
-
-
-    /*
-       Remaining
-    */
-
-    const remainingElement =
-        document.getElementById(
-            "budgetRemaining"
-        );
-
-
-    if (remainingElement) {
-
-        remainingElement.textContent =
-            formatIndexMoney(
-                remaining
-            );
-
-
-        if (
-            remaining < 0
-        ) {
-
-            remainingElement.classList.add(
-                "budget-negative"
-            );
-
-        } else {
-
-            remainingElement.classList.remove(
-                "budget-negative"
-            );
-
-        }
-
-    }
-
-
-    /*
-       Progress
-    */
-
-    const progressElement =
-        document.getElementById(
-            "budgetProgress"
-        );
-
-
-    if (progressElement) {
-
-        progressElement.style.width =
-            progressWidth + "%";
-
-    }
-
-
-    /*
-       Percentage
-    */
-
-    const percentageElement =
-        document.getElementById(
-            "budgetPercentage"
-        );
-
-
-    if (percentageElement) {
-
-        if (planned > 0) {
-
-            percentageElement.textContent =
-                displayPercentage +
-                "% वापरले";
-
-        } else {
-
-            percentageElement.textContent =
-                "Budget सेट केलेले नाही";
-
-        }
-
-    }
-
-}
-
-
-
-/* =====================================================
-   INDEX MONEY FORMAT
-===================================================== */
-
-function formatIndexMoney(
-    amount
-) {
-
-    return (
-        "₹" +
-        Number(
-            amount || 0
-        ).toLocaleString(
-            "en-IN"
-        )
-    );
-
-}
-
-
-
-/* =====================================================
-   RECENT EXPENSE TRANSACTIONS
-===================================================== */
-
-function updateIndexRecentTransactions() {
-
-    const container =
-        document.getElementById(
-            "recentTransactions"
-        );
-
-
-    if (!container) {
-
-        return;
-    }
-
-
-    if (
-        typeof window.getExpenses !==
-        "function"
-    ) {
-
-        return;
-    }
-
-
-    const expenses =
-        window.getExpenses();
-
-
-    if (
-        !Array.isArray(expenses) ||
-        expenses.length === 0
-    ) {
-
-        container.innerHTML = `
-
-            <div class="empty-card">
-
-                <i class="fa-solid fa-receipt"></i>
-
-                <p>
-                    अजून कोणतेही व्यवहार नाहीत.
+    <nav class="side-nav">
+
+        <button class="nav-item active"
+                data-page="dashboard">
+            <span>🏠</span>
+            <span>Dashboard</span>
+        </button>
+
+        <button class="nav-item"
+                data-page="income">
+            <span>💰</span>
+            <span>जमा</span>
+        </button>
+
+        <button class="nav-item"
+                data-page="expense">
+            <span>💸</span>
+            <span>खर्च</span>
+        </button>
+
+        <button class="nav-item"
+                data-page="budget">
+            <span>📊</span>
+            <span>Budget</span>
+        </button>
+
+        <button class="nav-item"
+                data-page="accounts">
+            <span>🏦</span>
+            <span>Accounts</span>
+        </button>
+
+        <button class="nav-item"
+                data-page="transactions">
+            <span>🔄</span>
+            <span>Transactions</span>
+        </button>
+
+        <button class="nav-item"
+                data-page="reports">
+            <span>📈</span>
+            <span>Reports</span>
+        </button>
+
+        <button class="nav-item"
+                data-page="lending">
+            <span>🤝</span>
+            <span>उधारी</span>
+        </button>
+
+        <button class="nav-item"
+                data-page="workplan">
+            <span>📝</span>
+            <span>Work Plan</span>
+        </button>
+
+        <button class="nav-item"
+                data-page="settings">
+            <span>⚙️</span>
+            <span>Settings</span>
+        </button>
+
+    </nav>
+
+</aside>
+
+
+<!-- =====================================================
+     MAIN CONTENT
+===================================================== -->
+
+<main class="main-container">
+
+
+    <!-- =================================================
+         DASHBOARD
+    ================================================== -->
+
+    <section id="dashboardPage"
+             class="page active-page">
+
+        <div class="page-heading">
+
+            <div>
+                <h1>Dashboard</h1>
+
+                <p id="currentDate">
+                    आजचा आर्थिक आढावा
                 </p>
-
             </div>
 
-        `;
-
-        return;
-
-    }
+        </div>
 
 
-    /*
-       Sort newest first
-    */
+        <!-- TODAY -->
 
-    const sorted =
-        [...expenses]
-            .sort(
-                (
-                    a,
-                    b
-                ) => {
+        <div class="section-title">
+            आजचा आढावा
+        </div>
 
-                    const dateA =
-                        new Date(
-                            (
-                                a.date ||
-                                ""
-                            ) +
-                            "T00:00:00"
-                        ).getTime();
+        <div class="summary-grid">
 
+            <div class="summary-card income-card">
 
-                    const dateB =
-                        new Date(
-                            (
-                                b.date ||
-                                ""
-                            ) +
-                            "T00:00:00"
-                        ).getTime();
-
-
-                    if (
-                        dateB !==
-                        dateA
-                    ) {
-
-                        return (
-                            dateB -
-                            dateA
-                        );
-
-                    }
-
-
-                    return String(
-                        b.createdAt ||
-                        ""
-                    ).localeCompare(
-                        String(
-                            a.createdAt ||
-                            ""
-                        )
-                    );
-
-                }
-            )
-            .slice(
-                0,
-                5
-            );
-
-
-    container.innerHTML =
-        "";
-
-
-    sorted.forEach(
-        expense => {
-
-
-            const categoryId =
-                typeof window.normalizeExpenseCategory ===
-                "function"
-                    ? window.normalizeExpenseCategory(
-                        expense
-                    )
-                    : (
-                        expense.categoryId ||
-                        expense.category ||
-                        "other_expense"
-                    );
-
-
-            const categoryName =
-                typeof window.getCategoryName ===
-                "function"
-                    ? window.getCategoryName(
-                        categoryId
-                    )
-                    : (
-                        expense.categoryName ||
-                        "इतर खर्च"
-                    );
-
-
-            const categoryIcon =
-                typeof window.getCategoryIcon ===
-                "function"
-                    ? window.getCategoryIcon(
-                        categoryId
-                    )
-                    : "📦";
-
-
-            const description =
-                expense.description ||
-                expense.desc ||
-                expense.details ||
-                categoryName;
-
-
-            const amount =
-                Number(
-                    expense.amount || 0
-                );
-
-
-            const card =
-                document.createElement(
-                    "div"
-                );
-
-
-            card.className =
-                "transaction-item";
-
-
-            card.innerHTML = `
-
-                <div class="transaction-icon">
-
-                    ${categoryIcon}
-
+                <div class="summary-icon">
+                    💰
                 </div>
 
+                <div class="summary-label">
+                    आजचा जमा
+                </div>
 
-                <div class="transaction-info">
+                <div class="summary-value"
+                     id="todayIncome">
+                    ₹0
+                </div>
 
-                    <strong>
-
-                        ${escapeIndexHTML(
-                            categoryName
-                        )}
-
-                    </strong>
+            </div>
 
 
-                    <span>
+            <div class="summary-card expense-card">
 
-                        ${escapeIndexHTML(
-                            description
-                        )}
+                <div class="summary-icon">
+                    💸
+                </div>
 
+                <div class="summary-label">
+                    आजचा खर्च
+                </div>
+
+                <div class="summary-value"
+                     id="todayExpense">
+                    ₹0
+                </div>
+
+            </div>
+
+
+            <div class="summary-card balance-card">
+
+                <div class="summary-icon">
+                    💵
+                </div>
+
+                <div class="summary-label">
+                    आजची शिल्लक
+                </div>
+
+                <div class="summary-value"
+                     id="todayBalance">
+                    ₹0
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- MONTH -->
+
+        <div class="section-title">
+            या महिन्याचा आढावा
+        </div>
+
+        <div class="summary-grid">
+
+            <div class="summary-card">
+
+                <div class="summary-label">
+                    महिन्याचा जमा
+                </div>
+
+                <div class="summary-value"
+                     id="monthIncome">
+                    ₹0
+                </div>
+
+            </div>
+
+
+            <div class="summary-card">
+
+                <div class="summary-label">
+                    महिन्याचा खर्च
+                </div>
+
+                <div class="summary-value"
+                     id="monthExpense">
+                    ₹0
+                </div>
+
+            </div>
+
+
+            <div class="summary-card">
+
+                <div class="summary-label">
+                    महिन्याची शिल्लक
+                </div>
+
+                <div class="summary-value"
+                     id="monthBalance">
+                    ₹0
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- BUDGET -->
+
+        <div class="section-title">
+            Budget vs Expense
+        </div>
+
+        <div class="budget-overview-card">
+
+            <div class="budget-row">
+
+                <div>
+                    <span class="small-label">
+                        Monthly Budget
                     </span>
 
+                    <strong id="totalBudget">
+                        ₹0
+                    </strong>
+                </div>
 
-                    <small>
+                <div>
+                    <span class="small-label">
+                        Actual Expense
+                    </span>
 
-                        ${formatIndexDate(
-                            expense.date
-                        )}
+                    <strong id="totalBudgetExpense">
+                        ₹0
+                    </strong>
+                </div>
 
-                    </small>
+                <div>
+                    <span class="small-label">
+                        Remaining
+                    </span>
+
+                    <strong id="totalBudgetRemaining">
+                        ₹0
+                    </strong>
+                </div>
+
+            </div>
+
+
+            <div class="progress-container">
+
+                <div class="progress-track">
+
+                    <div class="progress-bar"
+                         id="totalBudgetProgress"
+                         style="width:0%">
+                    </div>
 
                 </div>
 
-
-                <div class="transaction-amount expense">
-
-                    -${formatIndexMoney(
-                        amount
-                    )}
-
+                <div class="progress-text"
+                     id="totalBudgetPercent">
+                    0% used
                 </div>
 
-            `;
+            </div>
+
+        </div>
 
 
-            container.appendChild(
-                card
-            );
+        <!-- QUICK ACTIONS -->
 
-        }
-    );
+        <div class="section-title">
+            Quick Actions
+        </div>
 
-}
+        <div class="quick-actions">
 
+            <button class="quick-btn"
+                    data-page="income">
 
+                <span>➕</span>
+                <span>जमा नोंदवा</span>
 
-/* =====================================================
-   DATE FORMAT
-===================================================== */
+            </button>
 
-function formatIndexDate(
-    dateString
-) {
+            <button class="quick-btn"
+                    data-page="expense">
 
-    if (!dateString) {
+                <span>➖</span>
+                <span>खर्च नोंदवा</span>
 
-        return "-";
-    }
+            </button>
 
+            <button class="quick-btn"
+                    data-page="budget">
 
-    const date =
-        new Date(
-            dateString +
-            "T00:00:00"
-        );
+                <span>📊</span>
+                <span>Budget</span>
 
+            </button>
 
-    if (
-        isNaN(
-            date.getTime()
-        )
-    ) {
+            <button class="quick-btn"
+                    data-page="accounts">
 
-        return dateString;
-    }
+                <span>🏦</span>
+                <span>Accounts</span>
 
+            </button>
 
-    return date.toLocaleDateString(
-        "mr-IN",
-        {
-            day: "2-digit",
-            month: "short",
-            year: "numeric"
-        }
-    );
-
-}
+        </div>
 
 
+        <!-- CATEGORY COMPARISON -->
 
-/* =====================================================
-   HTML ESCAPE
-===================================================== */
+        <div class="section-title">
+            Category-wise Budget vs Expense
+        </div>
 
-function escapeIndexHTML(
-    value
-) {
+        <div id="dashboardCategoryComparison"
+             class="comparison-list">
 
-    return String(
-        value ?? ""
-    )
-        .replace(
-            /&/g,
-            "&amp;"
-        )
-        .replace(
-            /</g,
-            "&lt;"
-        )
-        .replace(
-            />/g,
-            "&gt;"
-        )
-        .replace(
-            /"/g,
-            "&quot;"
-        )
-        .replace(
-            /'/g,
-            "&#039;"
-        );
+            <div class="empty-state">
+                Budget आणि Expense data उपलब्ध नाही.
+            </div>
 
-}
+        </div>
+
+    </section>
 
 
+    <!-- =================================================
+         PLACEHOLDER PAGES
+    ================================================== -->
 
-/* =====================================================
-   REFRESH INDEX
-===================================================== */
+    <section id="incomePage"
+             class="page">
 
-function refreshIndexPage() {
+        <div class="page-heading">
+            <h1>जमा</h1>
+            <p>जमा नोंद व्यवस्थापन</p>
+        </div>
 
-    updateIndexTodayDate();
+        <div class="coming-card">
+            <div class="coming-icon">💰</div>
+            <h2>जमा Module</h2>
+            <p>
+                या module मध्ये जमा entries,
+                amount, date आणि account व्यवस्थापन जोडले जाईल.
+            </p>
+        </div>
 
-    updateIndexBudget();
-
-    updateIndexRecentTransactions();
-
-
-    /*
-       Existing app.js dashboard
-    */
-
-    if (
-        typeof window.updateDashboard ===
-        "function"
-    ) {
-
-        window.updateDashboard();
-
-    }
-
-}
+    </section>
 
 
+    <section id="expensePage"
+             class="page">
 
-/* =====================================================
-   NAVIGATION
-===================================================== */
+        <div class="page-heading">
+            <h1>खर्च</h1>
+            <p>खर्च नोंद व्यवस्थापन</p>
+        </div>
 
-function goToWorkPlan() {
+        <div class="coming-card">
+            <div class="coming-icon">💸</div>
+            <h2>खर्च Module</h2>
+            <p>
+                Category-wise खर्च आणि Budget comparison
+                येथे जोडले जाईल.
+            </p>
+        </div>
 
-    window.location.href =
-        "work-plan.html";
-
-}
-
-
-function goToDueMoney() {
-
-    window.location.href =
-        "due-money.html";
-
-}
-
+    </section>
 
 
-/* =====================================================
-   PAGE LOAD
-===================================================== */
+    <section id="budgetPage"
+             class="page">
 
-document.addEventListener(
-    "DOMContentLoaded",
-    function() {
+        <div class="page-heading">
+            <h1>Budget</h1>
+            <p>Monthly Budget Management</p>
+        </div>
 
-        refreshIndexPage();
+        <div class="coming-card">
+            <div class="coming-icon">📊</div>
+            <h2>Budget Module</h2>
+            <p>
+                प्रत्येक category साठी budget आणि
+                actual expense automatic compare केले जाईल.
+            </p>
+        </div>
 
-    }
-);
+    </section>
 
 
+    <section id="accountsPage"
+             class="page">
 
-/* =====================================================
-   STORAGE CHANGE
-   Same browser tab / other tabs
-===================================================== */
+        <div class="page-heading">
+            <h1>Accounts</h1>
+            <p>तुमचे आर्थिक Accounts</p>
+        </div>
 
-window.addEventListener(
-    "storage",
-    function(event) {
+        <div id="accountsList"
+             class="accounts-list">
+        </div>
 
-        if (
-            event.key ===
-            "expenses" ||
-            event.key ===
-            "monthly_budgets"
-        ) {
+        <button class="primary-btn"
+                id="addAccountBtn">
+            ＋ Add Account
+        </button>
 
-            refreshIndexPage();
+    </section>
 
-        }
 
-    }
-);
+    <section id="transactionsPage"
+             class="page">
 
-</script></body></html>
+        <div class="page-heading">
+            <h1>Transactions</h1>
+            <p>सर्व जमा आणि खर्च व्यवहार</p>
+        </div>
+
+        <div class="coming-card">
+            <div class="coming-icon">🔄</div>
+            <h2>Transactions Module</h2>
+            <p>
+                सर्व financial transactions साठी
+                Central transaction system वापरले जाईल.
+            </p>
+        </div>
+
+    </section>
+
+
+    <section id="reportsPage"
+             class="page">
+
+        <div class="page-heading">
+            <h1>Reports</h1>
+            <p>आर्थिक अहवाल</p>
+        </div>
+
+        <div class="coming-card">
+            <div class="coming-icon">📈</div>
+            <h2>Reports Module</h2>
+            <p>
+                Daily, Monthly, Yearly आणि
+                Category-wise reports येथे असतील.
+            </p>
+        </div>
+
+    </section>
+
+
+    <section id="lendingPage"
+             class="page">
+
+        <div class="page-heading">
+            <h1>उधारी</h1>
+            <p>Lending & Repayment</p>
+        </div>
+
+        <div class="coming-card">
+            <div class="coming-icon">🤝</div>
+            <h2>उधारी Module</h2>
+            <p>
+                दिलेली / घेतलेली रक्कम आणि
+                date-wise repayment tracking.
+            </p>
+        </div>
+
+    </section>
+
+
+    <section id="workplanPage"
+             class="page">
+
+        <div class="page-heading">
+            <h1>Work Plan</h1>
+            <p>Daily Work Planning</p>
+        </div>
+
+        <div class="coming-card">
+            <div class="coming-icon">📝</div>
+            <h2>Work Plan</h2>
+            <p>
+                Date-wise tasks, priority, time आणि
+                completed checklist.
+            </p>
+        </div>
+
+    </section>
+
+
+    <section id="settingsPage"
+             class="page">
+
+        <div class="page-heading">
+            <h1>Settings</h1>
+            <p>App Settings</p>
+        </div>
+
+        <div class="coming-card">
+            <div class="coming-icon">⚙️</div>
+            <h2>Settings</h2>
+            <p>
+                पुढील modules मध्ये app settings
+                आणि data management जोडले जाईल.
+            </p>
+        </div>
+
+    </section>
+
+</main>
+
+
+<!-- =====================================================
+     ADD ACCOUNT MODAL
+===================================================== -->
+
+<div class="modal-overlay"
+     id="accountModal">
+
+    <div class="modal">
+
+        <div class="modal-header">
+
+            <h2>Add Account</h2>
+
+            <button class="modal-close"
+                    id="closeAccountModal">
+                ×
+            </button>
+
+        </div>
+
+
+        <form id="accountForm">
+
+            <div class="form-group">
+
+                <label for="accountName">
+                    Account Name
+                </label>
+
+                <input type="text"
+                       id="accountName"
+                       placeholder="उदा. SBI Bank"
+                       required>
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label for="openingBalance">
+                    Opening Balance
+                </label>
+
+                <input type="number"
+                       id="openingBalance"
+                       min="0"
+                       step="0.01"
+                       value="0"
+                       required>
+
+            </div>
+
+
+            <div class="modal-actions">
+
+                <button type="button"
+                        class="secondary-btn"
+                        id="cancelAccount">
+                    Cancel
+                </button>
+
+                <button type="submit"
+                        class="primary-btn">
+                    Save Account
+                </button>
+
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
+
+
+<!-- =====================================================
+     APP JS
+===================================================== -->
+
+<script src="app.js"></script>
+
+</body>
+</html>
